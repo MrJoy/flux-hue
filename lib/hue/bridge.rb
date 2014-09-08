@@ -87,17 +87,17 @@ module Hue
   private
 
     KEYS_MAP = {
-      :id => :id,
-      :ip => :internalipaddress,
-      :name => :name,
-      :proxy_port => :proxyport,
-      :software_update => :swupdate,
-      :ip_whitelist => :whitelist,
+      :id               => :id,
+      :ip               => :internalipaddress,
+      :name             => :name,
+      :proxy_port       => :proxyport,
+      :software_update  => :swupdate,
+      :ip_whitelist     => :whitelist,
       :software_version => :swversion,
-      :proxy_address => :proxyaddress,
-      :mac_address => :macaddress,
-      :network_mask => :netmask,
-      :portal_services => :portalservices,
+      :proxy_address    => :proxyaddress,
+      :mac_address      => :macaddress,
+      :network_mask     => :netmask,
+      :portal_services  => :portalservices,
     }
 
     def unpack(hash)
