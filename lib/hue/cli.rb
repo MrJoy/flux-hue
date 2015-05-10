@@ -14,7 +14,7 @@ module Hue
       client(options[:user]).add_lights
     end
 
-    desc 'all STATE [COLOR]', 'Send commands to all lights'
+    desc 'all [STATE] [COLOR]', 'Send commands to all lights'
     shared_options
     shared_light_options
     long_desc <<-LONGDESC
@@ -24,14 +24,15 @@ module Hue
       hue all --alert lselect\n
       hue all off\n
     LONGDESC
-    def all(state = 'on')
+    def all(state = nil)
       body = clean_body(options, state: state)
       client(options[:user]).lights.each do |light|
+        puts light.name
         puts light.set_state body
       end
     end
 
-    desc 'light ID STATE [COLOR]', 'Access a light'
+    desc 'light ID [STATE] [COLOR]', 'Access a light'
     long_desc <<-LONGDESC
     Examples: \n
       hue light 1 on --hue 12345  \n
@@ -60,7 +61,7 @@ module Hue
       end
     end
 
-    desc 'group ID STATE [COLOR]', 'Update a group of lights'
+    desc 'group ID [STATE] [COLOR]', 'Update a group of lights'
     long_desc <<-LONGDESC
     Examples: \n
       hue group 1 on --hue 12345
