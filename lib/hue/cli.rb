@@ -8,13 +8,10 @@ module Hue
       end
     end
 
-    desc 'add LIGHTS', 'Search for new lights'
+    desc 'add', 'Search for new lights'
     shared_options
-    def add(thing)
-      case thing
-      when 'lights'
-        client(options[:user]).add_lights
-      end
+    def add
+      client(options[:user]).add_lights
     end
 
     desc 'all STATE [COLOR]', 'Send commands to all lights'
