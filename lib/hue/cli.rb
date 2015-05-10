@@ -25,8 +25,7 @@ module Hue
       hue all off\n
     LONGDESC
     def all(state = 'on')
-      body = options.dup
-      body[:on] = state_as_bool(state)
+      body = clean_body(options, state: state)
       client(options[:user]).lights.each do |light|
         puts light.set_state body
       end
@@ -46,10 +45,7 @@ module Hue
       light = client(options[:user]).light(id)
       puts light.name
 
-      body = options.dup
-      # We no longer need :user so remove it.
-      body.delete(:user)
-      body[:on] = state_as_bool(state)
+      body = clean_body(options, state: state)
       puts light.set_state(body) if body.length > 0
     end
 
@@ -76,12 +72,21 @@ module Hue
       group = client.group(id)
       puts group.name
 
-      body = options.dup
-      body[:on] = state_as_bool(state)
+      body = clean_body(options, state: state)
+      puts group.set_state(body) if body.length > 0
       puts group.set_state(body) if body.length > 0
     end
 
   private
+
+    def clean_body(options, state: nil)
+      body = options.dup
+      # We don't need :user for the request, just for getting a client object
+      # so we remove it.
+      body.delete(:user)
+      body[:on] = state_as_bool(state) if state
+      body
+    end
 
     def state_as_bool(state)
       (state == 'on' || !(state == 'off'))
