@@ -50,8 +50,9 @@ module Hue
     end
 
     desc 'groups', 'Find all light groups on your network'
+    shared_options
     def groups
-      client.groups.each do |group|
+      client(options[:user]).groups.each do |group|
         puts group.id.to_s.ljust(6) + group.name
         group.lights.each do |light|
           puts " -> " + light.id.to_s.ljust(6) + light.name
@@ -67,9 +68,10 @@ module Hue
       hue groups 1 --alert lselect
       hue groups 1 off
     LONGDESC
+    shared_options
     shared_light_options
     def group(id, state = nil)
-      group = client.group(id)
+      group = client(options[:user]).group(id)
       puts group.name
 
       body = clean_body(options, state: state)
