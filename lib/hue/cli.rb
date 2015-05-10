@@ -78,6 +78,19 @@ module Hue
       puts group.set_state(body) if body.length > 0
     end
 
+    desc 'name ID NAME', 'Update the name of a light'
+    long_desc <<-LONGDESC
+    Examples: \n
+      hue name 1 "My Light"
+    LONGDESC
+    shared_options
+    def name(id, name)
+      light = client(options[:user]).light(id)
+      puts "#{light.name} => #{name}"
+
+      light.name = name if name != light.name
+    end
+
   private
 
     def clean_body(options, state: nil)
