@@ -49,6 +49,8 @@ module Hue
       @client = client
       @bridge = bridge
       @id = id
+      @state = {}
+      @light_ids = []
 
       unpack(data)
     end
