@@ -10,6 +10,7 @@ module Hue
                     :desc => 'Username with access to higher level functions.',
                     :default => Hue::USERNAME,
                     :required => false
+      # TODO: Expose IP here, and utilize it elsewhere.
 
     end
   end
