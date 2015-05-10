@@ -74,7 +74,6 @@ module Hue
 
       body = clean_body(options, state: state)
       puts group.set_state(body) if body.length > 0
-      puts group.set_state(body) if body.length > 0
     end
 
   private
