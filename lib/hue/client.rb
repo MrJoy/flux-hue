@@ -6,10 +6,12 @@ module Hue
   class Client
     attr_reader :username
 
-    def initialize(username = '1234567890')
+    def initialize(username = '1234567890', ip = nil)
       unless USERNAME_RANGE.include?(username.length)
         raise InvalidUsername, "Usernames must be between #{USERNAME_RANGE.first} and #{USERNAME_RANGE.last}."
       end
+
+      bridge(ip)
 
       @username = username
 
@@ -20,11 +22,18 @@ module Hue
       end
     end
 
-    def bridge
-      # Pick the first one for now. In theory, they should all do the same thing.
-      bridge = bridges.first
-      raise NoBridgeFound unless bridge
-      bridge
+    def bridge(ip = nil)
+      @bridge ||= begin
+        if ip.nil?
+          # Pick the first one for now. In theory, they should all do the same thing.
+
+          bridge = bridges.first
+          raise NoBridgeFound unless bridge
+          bridge
+        else
+          Bridge.new(self, {"internalipaddress" => ip})
+        end
+      end
     end
 
     def bridges

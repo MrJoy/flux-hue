@@ -143,25 +143,25 @@ module Hue
   private
 
     KEYS_MAP = {
-      :state => :state,
-      :type => :type,
-      :name => :name,
-      :model => :modelid,
+      :state            => :state,
+      :type             => :type,
+      :name             => :name,
+      :model            => :modelid,
       :software_version => :swversion,
-      :point_symbol => :pointsymbol
+      :point_symbol     => :pointsymbol
     }
 
     STATE_KEYS_MAP = {
-      :on => :on,
-      :brightness => :bri,
-      :hue => :hue,
-      :saturation => :sat,
-      :xy => :xy,
+      :on                => :on,
+      :brightness        => :bri,
+      :hue               => :hue,
+      :saturation        => :sat,
+      :xy                => :xy,
       :color_temperature => :ct,
-      :alert => :alert,
-      :effect => :effect,
-      :color_mode => :colormode,
-      :reachable => :reachable,
+      :alert             => :alert,
+      :effect            => :effect,
+      :color_mode        => :colormode,
+      :reachable         => :reachable,
     }
 
     def unpack(hash)
