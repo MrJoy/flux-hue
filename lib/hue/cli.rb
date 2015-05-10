@@ -26,7 +26,7 @@ module Hue
     LONGDESC
     def all(state = 'on')
       body = options.dup
-      body[:on] = state == 'on'
+      body[:on] = state_as_bool(state)
       client(options[:user]).lights.each do |light|
         puts light.set_state body
       end
@@ -49,7 +49,7 @@ module Hue
       body = options.dup
       # We no longer need :user so remove it.
       body.delete(:user)
-      body[:on] = (state == 'on' || !(state == 'off'))
+      body[:on] = state_as_bool(state)
       puts light.set_state(body) if body.length > 0
     end
 
@@ -77,11 +77,15 @@ module Hue
       puts group.name
 
       body = options.dup
-      body[:on] = (state == 'on' || !(state == 'off'))
+      body[:on] = state_as_bool(state)
       puts group.set_state(body) if body.length > 0
     end
 
   private
+
+    def state_as_bool(state)
+      (state == 'on' || !(state == 'off'))
+    end
 
     def client(username = Hue::USERNAME)
       @client ||= Hue::Client.new username
