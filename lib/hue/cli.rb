@@ -16,10 +16,7 @@ module Hue
 
     desc 'all STATE [COLOR]', 'Send commands to all lights'
     shared_options
-    method_option :hue, :type => :numeric
-    method_option :sat, :type => :numeric, :aliases => '--saturation'
-    method_option :bri, :type => :numeric, :aliases => '--brightness'
-    method_option :alert, :type => :string
+    shared_light_options
     long_desc <<-LONGDESC
     Examples: \n
       hue all on --hue 12345\n
@@ -44,12 +41,7 @@ module Hue
       hue light 1 off
     LONGDESC
     shared_options
-    method_option :hue, :type => :numeric
-    method_option :sat, :type => :numeric, :aliases => '--saturation'
-    method_option :bri, :type => :numeric, :aliases => '--brightness'
-    method_option :alert, :type => :string
-    method_option :effect, :type => :string
-    method_option :transitiontime, :type => :numeric
+    shared_light_options
     def light(id, state = nil)
       light = client(options[:user]).light(id)
       puts light.name
@@ -79,10 +71,7 @@ module Hue
       hue groups 1 --alert lselect
       hue groups 1 off
     LONGDESC
-    method_option :hue, :type => :numeric
-    method_option :sat, :type => :numeric, :aliases => '--saturation'
-    method_option :bri, :type => :numeric, :aliases => '--brightness'
-    method_option :alert, :type => :string
+    shared_light_options
     def group(id, state = nil)
       group = client.group(id)
       puts group.name
