@@ -61,7 +61,7 @@ module Hue
       end
     end
 
-    desc 'group ID [STATE] [COLOR]', 'Update a group of lights'
+    desc 'group ID [STATE] [COLOR] [NAME] [LIGHTS]', 'Update a group of lights'
     long_desc <<-LONGDESC
     Examples: \n
       hue group 1 on --hue 12345
@@ -71,11 +71,28 @@ module Hue
     LONGDESC
     shared_options
     shared_light_options
+    method_option :name, :type => :string
+    method_option :lights, :type => :string
     def group(id, state = nil)
+      all_options = options.dup
       group = client(options[:user]).group(id)
-      puts group.name
+      new_name = all_options.delete(:name)
+      if new_name && new_name != group.name
+        puts "#{group.name} => #{new_name}"
+        group.name = new_name
+      else
+        puts group.name
+      end
+      lights = all_options.delete(:lights)
+      lights = lights.strip.split(/\s*,\s*/).map(&:to_i).sort if lights
 
-      body = clean_body(options, state: state)
+      cur_lights = group.lights.map(&:id).map(&:to_i).sort
+      if lights && lights != cur_lights
+        puts "  -> #{lights.join(', ')}"
+        group.lights = lights
+      end
+
+      body = clean_body(all_options, state: state)
       puts group.set_state(body) if body.length > 0
     end
 
