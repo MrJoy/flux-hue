@@ -1,41 +1,39 @@
-require 'thor'
-
 module Hue
-  class Cli < Thor
+  class Cli < CliBase
+    shared_options
     desc 'lights', 'Find all of the lights on your network'
     def lights
-      client.lights.each do |light|
+      client(options[:user]).lights.each do |light|
         puts light.id.to_s.ljust(6) + light.name
       end
     end
 
+    shared_options
     desc 'add LIGHTS', 'Search for new lights'
     def add(thing)
       case thing
       when 'lights'
-        client.add_lights
+        client(options[:user]).add_lights
       end
     end
 
-    desc 'light ID STATE [COLOR]', 'Access a light'
+    shared_options
+    method_option :hue, :type => :numeric
+    method_option :sat, :type => :numeric, :aliases => '--saturation'
+    method_option :bri, :type => :numeric, :aliases => '--brightness'
+    method_option :alert, :type => :string
+    desc 'all STATE [COLOR]', 'Send commands to all lights'
     long_desc <<-LONGDESC
     Examples: \n
-      hue all on \n
-      hue all off \n
-      hue all --hue 12345  \n
-      hue all --bri 25 \n
-      hue all --hue 50000 --bri 200 --sat 240 \n
-      hue all --alert lselect \n
+      hue all on --hue 12345\n
+      hue all --bri 25\n
+      hue all --alert lselect\n
+      hue all off\n
     LONGDESC
-    option :hue, :type => :numeric
-    option :sat, :type => :numeric, :aliases => '--saturation'
-    option :bri, :type => :numeric, :aliases => '--brightness'
-    option :alert, :type => :string
-    desc 'all STATE', 'Send commands to all lights'
     def all(state = 'on')
       body = options.dup
       body[:on] = state == 'on'
-      client.lights.each do |light|
+      client(options[:user]).lights.each do |light|
         puts light.set_state body
       end
     end
@@ -48,15 +46,18 @@ module Hue
       hue light 1 --alert lselect \n
       hue light 1 off
     LONGDESC
-    option :hue, :type => :numeric
-    option :sat, :type => :numeric, :aliases => '--saturation'
-    option :bri, :type => :numeric, :aliases => '--brightness'
-    option :alert, :type => :string
+    shared_options
+    method_option :hue, :type => :numeric
+    method_option :sat, :type => :numeric, :aliases => '--saturation'
+    method_option :bri, :type => :numeric, :aliases => '--brightness'
+    method_option :alert, :type => :string
     def light(id, state = nil)
-      light = client.light(id)
+      light = client(options[:user]).light(id)
       puts light.name
 
       body = options.dup
+      # We no longer need :user so remove it.
+      body.delete(:user)
       body[:on] = (state == 'on' || !(state == 'off'))
       puts light.set_state(body) if body.length > 0
     end
@@ -79,10 +80,10 @@ module Hue
       hue groups 1 --alert lselect
       hue groups 1 off
     LONGDESC
-    option :hue, :type => :numeric
-    option :sat, :type => :numeric, :aliases => '--saturation'
-    option :brightness, :type => :numeric, :aliases => '--brightness'
-    option :alert, :type => :string
+    method_option :hue, :type => :numeric
+    method_option :sat, :type => :numeric, :aliases => '--saturation'
+    method_option :bri, :type => :numeric, :aliases => '--brightness'
+    method_option :alert, :type => :string
     def group(id, state = nil)
       group = client.group(id)
       puts group.name
@@ -94,8 +95,8 @@ module Hue
 
   private
 
-    def client
-      @client ||= Hue::Client.new
+    def client(username = Hue::USERNAME)
+      @client ||= Hue::Client.new username
     end
   end
 end
