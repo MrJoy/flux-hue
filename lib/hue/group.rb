@@ -117,7 +117,6 @@ module Hue
     def refresh
       json = JSON(Net::HTTP.get(URI.parse(base_url)))
       unpack(json)
-      @lights = nil
     end
 
     def create!
@@ -168,6 +167,7 @@ module Hue
     }
 
     def unpack(data)
+      @lights = nil if data[:lights]
       unpack_hash(data, GROUP_KEYS_MAP)
 
       unless new?
