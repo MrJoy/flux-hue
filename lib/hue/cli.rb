@@ -63,10 +63,10 @@ module Hue
     desc 'group ID STATE [COLOR]', 'Update a group of lights'
     long_desc <<-LONGDESC
     Examples: \n
-      hue groups 1 on --hue 12345
-      hue groups 1 --bri 25
-      hue groups 1 --alert lselect
-      hue groups 1 off
+      hue group 1 on --hue 12345
+      hue group 1 --bri 25
+      hue group 1 --alert lselect
+      hue group 1 off
     LONGDESC
     shared_options
     shared_light_options
