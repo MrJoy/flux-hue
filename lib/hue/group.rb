@@ -53,6 +53,11 @@ module Hue
       @light_ids = []
 
       unpack(data)
+      # TODO: Somewhere upstream we're only getting name when we should be
+      # TODO: getting a fair bit more, if possible.  See if we can be
+      # TODO: more courteous upstream, and barring that, be more selective
+      # TODO: about when to do a refresh here.
+      refresh
     end
 
     def each(&block)
