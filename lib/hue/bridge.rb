@@ -81,7 +81,7 @@ module Hue
       uri = URI.parse("#{base_url}/lights")
       http = Net::HTTP.new(uri.host)
       response = http.request_post(uri.path, nil)
-      (response.body).first
+      JSON(response.body).first
     end
 
     def groups
