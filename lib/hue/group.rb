@@ -46,11 +46,11 @@ module Hue
     attr_reader :type
 
     def initialize(client, bridge, id = nil, data = {})
-      @client = client
-      @bridge = bridge
-      @id = id
-      @state = {}
-      @light_ids = []
+      @client     = client
+      @bridge     = bridge
+      @id         = id
+      @state      = {}
+      @light_ids  = []
 
       unpack(data)
       # TODO: Somewhere upstream we're only getting name when we should be
@@ -130,20 +130,20 @@ module Hue
         :lights => @light_ids,
       }
 
-      uri = URI.parse("http://#{@bridge.ip}/api/#{@client.username}/groups")
-      http = Net::HTTP.new(uri.host)
-      response = http.request_post(uri.path, JSON.dump(body))
-      json = JSON(response.body)
+      uri       = URI.parse("http://#{@bridge.ip}/api/#{@client.username}/groups")
+      http      = Net::HTTP.new(uri.host)
+      response  = http.request_post(uri.path, JSON.dump(body))
+      json      = JSON(response.body)
 
       @id = json[0]['success']['id']
     end
 
     def destroy!
-      uri = URI.parse(base_url)
-      http = Net::HTTP.new(uri.host)
-      response = http.delete(uri.path)
-      json = JSON(response.body)
-      @id = nil if json[0]['success']
+      uri       = URI.parse(base_url)
+      http      = Net::HTTP.new(uri.host)
+      response  = http.delete(uri.path)
+      json      = JSON(response.body)
+      @id       = nil if json[0]['success']
     end
 
     def new?
