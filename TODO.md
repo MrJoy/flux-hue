@@ -19,3 +19,8 @@
     * Try: https://rubygems.org/gems/persistent_httparty
     * See: http://www.slideshare.net/HiroshiNakamura/rubyhttp-clients-comparison (slides 14, 22, 30, )
         * Short form:  Curb has parallel requests, keepalives AND pipelining but check current JRuby compatibility.
+* Machine-friendly output format.
+* Separate output into STDOUT for data and STDERR for logging.  Maybe even use a proper logger!
+* Support for scenes.
+* Address lights/groups/etc symbolically wherever they can be addressed.
+    * Need to prohibit duplicate names, and warn if we see duplicates!
