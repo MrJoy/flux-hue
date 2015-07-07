@@ -87,9 +87,8 @@ module Hue
       else
         puts group.name
       end
-      lights = all_options.delete(:lights)
-      lights = lights.strip.split(/\s*,\s*/).map(&:to_i).sort if lights
 
+      lights = lights_from(all_options)
       cur_lights = group.lights.map(&:id).map(&:to_i).sort
       if lights && lights != cur_lights
         puts "  -> #{lights.join(', ')}"
@@ -114,6 +113,13 @@ module Hue
     end
 
   private
+
+    def lights_from(all_options)
+      lights = all_options.delete(:lights)
+      # TODO: Support symbolic names of lights as well!
+      lights = lights.strip.split(/\s*,\s*/).map(&:to_i).sort if lights
+      lights
+    end
 
     def clean_body(options, state: nil)
       body = options.dup
