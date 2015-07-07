@@ -36,7 +36,7 @@ module Hue
           raise NoBridgeFound unless bridge
           bridge
         else
-          Bridge.new(self, {"internalipaddress" => ip})
+          Bridge.new(self, {"ipaddress" => ip})
         end
       end
     end
@@ -66,7 +66,7 @@ module Hue
               Bridge.new(self, {
                 'id' => bridge[:usn],
                 'name' => bridge[:st],
-                'internalipaddress' => URI.parse(bridge[:location]).host
+                'ipaddress' => URI.parse(bridge[:location]).host
               })
             end
         end
