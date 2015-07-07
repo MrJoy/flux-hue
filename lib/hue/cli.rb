@@ -6,7 +6,7 @@ module Hue
     def bridges
       # TODO: Extended output form that includes proxy_address, proxy_port,
       # TODO: ip_whitelist, network_mask, gateway, and dhcp...
-      headings = ["ID", "Name", "IP", "MAC", "Version", "Update"]
+      headings = ["ID", "Name", "IP", "MAC", "API Version", "Software Version", "Update Info"]
       rows = client(options).bridges.each_with_object([]) do |bridge, r|
         bridge.refresh
         r << [
@@ -14,8 +14,9 @@ module Hue
           bridge.name,
           bridge.ip,
           bridge.mac_address,
+          bridge.api_version,
           bridge.software_version,
-          bridge.software_update
+          (bridge.software_update["text"] rescue nil)
         ]
       end
       puts Terminal::Table.new(rows: rows, headings: headings)
