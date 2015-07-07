@@ -179,6 +179,9 @@ module Hue
       # We don't need :user for the request, just for getting a client object
       # so we remove it.
       body.delete(:user)
+      # The :ip option is for identifying a hub explicitly, and doesn't belong
+      # in the request object.
+      body.delete(:ip)
       body[:on] = state_as_bool(state) if state
       body
     end
