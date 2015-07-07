@@ -135,7 +135,7 @@ module Hue
       response  = http.request_post(uri.path, JSON.dump(body))
       json      = JSON(response.body)
       success   = json.find { |resp| resp.has_key?('success') }
-      @id       = success['success']['id'] if success
+      @id       = success['success']['id'].to_i if success
       @id || json
     end
 
