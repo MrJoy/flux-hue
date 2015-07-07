@@ -1,11 +1,16 @@
+require 'terminal-table'
+
 module Hue
   class Cli < CliBase
     desc 'lights', 'Find all of the lights on your network'
     shared_options
     def lights
-      client(options[:user]).lights.each do |light|
-        puts light.id.to_s.ljust(6) + light.name
+      headings = ["ID", "Name", "Status", "Hue", "Saturation", "Brightness"]
+      rows = client(options[:user]).lights.each_with_object([]) do |light, r|
+        status = light.off? ? "OFF" : "ON"
+        r << [light.id, light.name, status, light.hue, light.saturation, light.brightness]
       end
+      puts Terminal::Table.new(rows: rows, headings: headings)
     end
 
     desc 'add', 'Search for new lights'
