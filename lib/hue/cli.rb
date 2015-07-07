@@ -5,7 +5,7 @@ module Hue
     desc 'bridges', 'Find all the bridges on your network'
     def bridges
       # TODO: Extended output form that includes proxy_address, proxy_port,
-      # TODO: ip_whitelist, network_mask, gateway, and dhcp...
+      # TODO: known_clients, network_mask, gateway, dhcp, etc...
       headings = ["ID", "Name", "IP", "MAC", "API Version", "Software Version", "Update Info"]
       rows = client(options).bridges.each_with_object([]) do |bridge, r|
         bridge.refresh
