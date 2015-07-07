@@ -29,6 +29,7 @@ module Hue
     def bridge(ip = nil)
       @bridge ||= begin
         if ip.nil?
+          puts "INFO: Discovering hub..."
           # Pick the first one for now. In theory, they should all do the same thing.
 
           bridge = bridges.first
@@ -42,9 +43,11 @@ module Hue
 
     def bridges
       @bridges ||= begin
+        puts "INFO: Trying SSDP search..."
         devices = Playful::SSDP.search 'IpBridge'
 
         if devices.count == 0
+          puts "INFO: SSDP failed, trying N-UPnP..."
           # UPnP failed, lets use N-UPnP
           bs = []
           easy = Curl::Easy.new
