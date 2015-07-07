@@ -8,7 +8,6 @@
 * Configuration
 * Make a class to represent XY color and normalize how the attribute is handled in EditableState.
 * More robust color tools, starting from: https://github.com/sshao/hue
-* Allow an env var for specifying IP, and add a command to find *all* hubs on the network.
 * Use an HTTP lib that allows us to use keepalives, if the hub supports it.
     * Try: https://rubygems.org/gems/persistent_httparty
     * See: http://www.slideshare.net/HiroshiNakamura/rubyhttp-clients-comparison (slides 14, 22, 30, )

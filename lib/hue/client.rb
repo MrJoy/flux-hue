@@ -15,6 +15,7 @@ module Hue
         raise InvalidUsername, "Usernames must be between #{USERNAME_RANGE.first} and #{USERNAME_RANGE.last}."
       end
 
+      ip ||= ENV['HUE_BRIDGE_IP']
       bridge(ip)
 
       @username = username
