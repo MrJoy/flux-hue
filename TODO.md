@@ -16,3 +16,6 @@
 * More robust color tools, starting from: https://github.com/sshao/hue
 * Allow an env var for specifying IP, and add a command to find *all* hubs on the network.
 * Use an HTTP lib that allows us to use keepalives, if the hub supports it.
+    * Try: https://rubygems.org/gems/persistent_httparty
+    * See: http://www.slideshare.net/HiroshiNakamura/rubyhttp-clients-comparison (slides 14, 22, 30, )
+        * Short form:  Curb has parallel requests, keepalives AND pipelining but check current JRuby compatibility.
