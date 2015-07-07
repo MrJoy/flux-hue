@@ -112,6 +112,30 @@ module Hue
       light.name = name if name != light.name
     end
 
+    desc 'create_group NAME [LIGHTS]', 'Create a new group'
+    long_desc <<-LONGDESC
+    Examples: \n
+      hue create_group "My Group" --lights "1, 2, 3, 4"
+    LONGDESC
+    shared_options
+    method_option :lights, :type => :string
+    def create_group(name)
+      # TODO: Ensure name doesn't collide.
+      all_options   = options.dup
+      client_ref    = client(options[:user])
+      group         = client_ref.group
+
+      group.name    = name
+      group.lights  = lights_from(all_options)
+      result        = group.create!
+
+      if result.is_a?(Fixnum)
+        puts "ID: #{result}"
+      else
+        puts "ERROR: #{result.inspect}"
+      end
+    end
+
   private
 
     def lights_from(all_options)
