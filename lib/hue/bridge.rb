@@ -5,7 +5,7 @@ module Hue
 
     # Name of the bridge. This is also its uPnP name, so will reflect the
     # actual uPnP name after any conflicts have been resolved.
-    attr_accessor :name
+    attr_reader :name
 
     # IP address of the bridge.
     attr_reader :ip
