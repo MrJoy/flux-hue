@@ -135,7 +135,8 @@ module Hue
       response  = http.request_post(uri.path, JSON.dump(body))
       json      = JSON(response.body)
       success   = json.find { |resp| resp.has_key?('success') }
-      @id       = success['id'] if success
+      @id       = success['success']['id'] if success
+      @id || json
     end
 
     def destroy!
@@ -143,7 +144,9 @@ module Hue
       http      = Net::HTTP.new(uri.host)
       response  = http.delete(uri.path)
       json      = JSON(response.body)
-      @id       = nil if json[0]['success']
+      success   = json.find { |resp| resp.has_key?('success') }
+      @id       = nil if success
+      @id.nil? ? true : json
     end
 
     def new?
