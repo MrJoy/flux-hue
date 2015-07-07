@@ -78,12 +78,16 @@ module Hue
     desc 'groups', 'Find all light groups on your network'
     shared_options
     def groups
-      client(options).groups.each do |group|
-        puts group.id.to_s.ljust(6) + group.name
-        group.lights.each do |light|
-          puts " -> " + light.id.to_s.ljust(6) + light.name
-        end
+      headings = ["ID", "Name", "Light IDs", "Lights"]
+      rows = client(options).groups.each_with_object([]) do |group, r|
+        r << [
+          group.id,
+          group.name,
+          group.lights.map { |light| light.id.to_i }.sort.join(", "),
+          group.lights.map { |light| light.name }.sort.join("\n"),
+        ]
       end
+      puts Terminal::Table.new(rows: rows, headings: headings)
     end
 
     desc 'group [ID] [STATE] [COLOR] [NAME] [LIGHTS]', 'Update a group of lights'
