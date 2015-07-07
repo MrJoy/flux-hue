@@ -24,3 +24,4 @@
 * Support for scenes.
 * Address lights/groups/etc symbolically wherever they can be addressed.
     * Need to prohibit duplicate names, and warn if we see duplicates!
+* Explicit username is deprecated.  Allow hub to assign us one, report it to the user, and pick it up from an env var / config file / something.
