@@ -66,7 +66,9 @@ module Hue
     Examples: \n
       hue group 1 on --hue 12345
       hue group 1 --bri 25
+      hue group 1 --name "My Group"
       hue group 1 --alert lselect
+      hue group 1 --lights "1, 2, 3"
       hue group 1 off
     LONGDESC
     shared_options
