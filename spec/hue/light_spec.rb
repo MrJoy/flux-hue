@@ -21,6 +21,22 @@ RSpec.describe Hue::Light do
         expect(a_request(:put, %r{http://localhost/api/.*/lights/0})).to have_been_made
       end
     end
+
+    describe "#off?" do
+      it "should return the opposite of state['on']" do
+        state = {'on' => true}
+        light = Hue::Light.new(@client, @client.bridge, 0, "state" => state)
+        expect(light.off?).to be false
+
+        state = {}
+        light = Hue::Light.new(@client, @client.bridge, 0, "state" => state)
+        expect(light.off?).to be true
+
+        state = {'off' => false}
+        light = Hue::Light.new(@client, @client.bridge, 0, "state" => state)
+        expect(light.off?).to be true
+      end
+    end
   end
 
   describe "#off?" do
