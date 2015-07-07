@@ -13,3 +13,4 @@
 * Allow symbolic names instead of IDs
 * Ensure names don't collide.
 * Make a class to represent XY color and normalize how the attribute is handled in EditableState.
+* More robust color tools, starting from: https://github.com/sshao/hue
