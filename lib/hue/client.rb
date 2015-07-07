@@ -72,7 +72,7 @@ module Hue
             .uniq { |d| d[:location] }
             .map do |bridge|
               Bridge.new(self, {
-                'id' => bridge[:usn],
+                'id' => bridge[:usn].split(/:/, 3)[1].split(/-/).last,
                 'name' => bridge[:st],
                 'ipaddress' => URI.parse(bridge[:location]).host
               })
