@@ -126,7 +126,7 @@ module Hue
       body = translate_keys(attributes, STATE_KEYS_MAP)
 
       # Add transition
-      body.merge!({:transitiontime => transition}) if transition
+      body.merge!({:transitiontime => (transition * 10.0).to_i}) if transition
 
       uri = URI.parse("#{base_url}/state")
       http = Net::HTTP.new(uri.host)
