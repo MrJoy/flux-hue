@@ -8,6 +8,7 @@ module Hue
       # TODO: ip_whitelist, network_mask, gateway, and dhcp...
       headings = ["ID", "Name", "IP", "MAC", "Version", "Update"]
       rows = client(options).bridges.each_with_object([]) do |bridge, r|
+        bridge.refresh
         r << [
           bridge.id,
           bridge.name,
