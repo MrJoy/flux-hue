@@ -136,6 +136,30 @@ module Hue
       end
     end
 
+    desc 'destroy_group ID', 'Destroy a group'
+    long_desc <<-LONGDESC
+    Examples: \n
+      hue destroy_group 1
+    LONGDESC
+    shared_options
+    def destroy_group(id)
+      all_options   = options.dup
+      client_ref    = client(options[:user])
+      group         = client_ref.group(id)
+      if !group
+        puts "ERROR: No such group as ##{id}."
+        return
+      end
+
+      result        = group.destroy!
+
+      if result === true
+        puts "Destroyed group ##{id}."
+      else
+        puts "ERROR: #{result.inspect}"
+      end
+    end
+
   private
 
     def lights_from(all_options)
