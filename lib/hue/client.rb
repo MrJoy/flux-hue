@@ -56,6 +56,14 @@ module Hue
           easy.url = 'https://www.meethue.com/api/nupnp'
           easy.perform
           JSON(easy.body).each do |hash|
+            # Normalize our interface a bit...
+            hash["ipaddress"] = hash.delete("internalipaddress")
+            # The N-UPnP interface delivers an ID which is essentially the MAC
+            # address, with two bytes injected in the middle.  To keep IDs sane
+            # regardless of where we got them, we just reduce it to the MAC
+            # address.
+            tmp = hash.delete("id")
+            hash["id"] = tmp[0..5] + tmp[10..15]
             bs << Bridge.new(self, hash)
           end
           bs
