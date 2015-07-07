@@ -2,6 +2,24 @@ require 'terminal-table'
 
 module Hue
   class Cli < CliBase
+    desc 'bridges', 'Find all the bridges on your network'
+    def bridges
+      # TODO: Extended output form that includes proxy_address, proxy_port,
+      # TODO: ip_whitelist, network_mask, gateway, and dhcp...
+      headings = ["ID", "Name", "IP", "MAC", "Version", "Update"]
+      rows = client(options).bridges.each_with_object([]) do |bridge, r|
+        r << [
+          bridge.id,
+          bridge.name,
+          bridge.ip,
+          bridge.mac_address,
+          bridge.software_version,
+          bridge.software_update
+        ]
+      end
+      puts Terminal::Table.new(rows: rows, headings: headings)
+    end
+
     desc 'lights', 'Find all of the lights on your network'
     shared_options
     def lights
