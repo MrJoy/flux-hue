@@ -75,19 +75,12 @@ module Hue
     shared_light_options
     method_option :name, :type => :string
     method_option :lights, :type => :string
-    def group(id = nil, state = nil)
+    def group(id, state = nil)
       all_options = options.dup
       client_ref  = client(options[:user])
       new_name    = all_options.delete(:name)
-      if id
-        group     = client_ref.group(id)
-      else
-        puts "Creating new group..."
-        group     = Hue::Group
-                    .new(client_ref, client.bridge, nil, { name: new_name })
-                    .create!
-      end
-      #initialize(client, bridge, id = nil, data = {})
+      group       = client_ref.group(id)
+
       if new_name && new_name != group.name
         puts "#{group.name} => #{new_name}"
         group.name = new_name
