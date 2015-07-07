@@ -6,7 +6,7 @@ module Hue
     shared_options
     def lights
       headings = ["ID", "Name", "Status", "Hue", "Saturation", "Brightness"]
-      rows = client(options[:user]).lights.each_with_object([]) do |light, r|
+      rows = client(options).lights.each_with_object([]) do |light, r|
         status = light.off? ? "OFF" : "ON"
         r << [light.id, light.name, status, light.hue, light.saturation, light.brightness]
       end
@@ -16,7 +16,7 @@ module Hue
     desc 'add', 'Search for new lights'
     shared_options
     def add
-      client(options[:user]).add_lights
+      client(options).add_lights
     end
 
     desc 'all [STATE] [COLOR]', 'Send commands to all lights'
@@ -31,7 +31,7 @@ module Hue
     LONGDESC
     def all(state = nil)
       body = clean_body(options, state: state)
-      client(options[:user]).lights.each do |light|
+      client(options).lights.each do |light|
         puts light.name
         puts light.set_state body
       end
@@ -48,7 +48,7 @@ module Hue
     shared_options
     shared_light_options
     def light(id, state = nil)
-      light = client(options[:user]).light(id)
+      light = client(options).light(id)
       puts light.name
 
       body = clean_body(options, state: state)
@@ -58,7 +58,7 @@ module Hue
     desc 'groups', 'Find all light groups on your network'
     shared_options
     def groups
-      client(options[:user]).groups.each do |group|
+      client(options).groups.each do |group|
         puts group.id.to_s.ljust(6) + group.name
         group.lights.each do |light|
           puts " -> " + light.id.to_s.ljust(6) + light.name
@@ -82,7 +82,7 @@ module Hue
     method_option :lights, :type => :string
     def group(id, state = nil)
       all_options = options.dup
-      client_ref  = client(options[:user])
+      client_ref  = client(options)
       new_name    = all_options.delete(:name)
       group       = client_ref.group(id)
 
@@ -111,7 +111,7 @@ module Hue
     LONGDESC
     shared_options
     def name(id, name)
-      light = client(options[:user]).light(id)
+      light = client(options).light(id)
       puts "#{light.name} => #{name}"
 
       light.name = name if name != light.name
@@ -127,7 +127,7 @@ module Hue
     def create_group(name)
       # TODO: Ensure name doesn't collide.
       all_options   = options.dup
-      client_ref    = client(options[:user])
+      client_ref    = client(options)
       group         = client_ref.group
 
       group.name    = name
@@ -149,7 +149,7 @@ module Hue
     shared_options
     def destroy_group(id)
       all_options   = options.dup
-      client_ref    = client(options[:user])
+      client_ref    = client(options)
       group         = client_ref.group(id)
       if !group
         puts "ERROR: No such group as ##{id}."
@@ -187,8 +187,10 @@ module Hue
       (state == 'on' || !(state == 'off'))
     end
 
-    def client(username = Hue::USERNAME)
-      @client ||= Hue::Client.new username
+    def client(options)
+      username  = options[:user] || Hue::USERNAME
+      ip        = options[:ip]
+      @client ||= Hue::Client.new username, ip
     end
   end
 end
