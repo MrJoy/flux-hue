@@ -25,7 +25,7 @@ module Hue
     def bridge(ip = nil)
       @bridge ||= begin
         if ip.nil?
-          puts "INFO: Discovering hub..."
+          puts "INFO: Discovering bridge."
           # Pick the first one for now. In theory, they should all do the same thing.
 
           bridge = bridges.first

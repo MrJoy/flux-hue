@@ -6,7 +6,7 @@ module Hue
 
       method_option :ip,
                     :type => :string,
-                    :desc => 'IP address of a hub, if known.',
+                    :desc => 'IP address of a bridge, if known.',
                     :required => false
       method_option :user,
                     :aliases => '-u',
