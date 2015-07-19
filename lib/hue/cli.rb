@@ -84,7 +84,7 @@ module Hue
     shared_options
     shared_light_options
     long_desc <<-LONGDESC
-    Examples: \n
+    Examples:\n
       hue all on --hue 12345\n
       hue all --bri 25\n
       hue all --alert lselect\n
@@ -100,11 +100,11 @@ module Hue
 
     desc 'light <id> [on|off] [--hue=X] [--brightness=X] [--saturation=X]', 'Access or update a light'
     long_desc <<-LONGDESC
-    Examples: \n
-      hue light 1 on --hue 12345  \n
-      hue light 1 --bri 25 \n
-      hue light 1 --alert lselect \n
-      hue light 1 off
+    Examples:\n
+      hue light 1 on --hue 12345 \n
+      hue light 1 --brightness 25\n
+      hue light 1 --alert lselect\n
+      hue light 1 off\n
     LONGDESC
     shared_options
     shared_light_options
@@ -124,8 +124,8 @@ module Hue
         r << [
           group.id,
           group.name,
-          group.lights.map { |light| light.id.to_i }.sort.join("\n"),
-          group.lights.map { |light| light.name }.sort.join("\n"),
+          group.lights.map(&:id).map(&:to_i).sort.join("\n"),
+          group.lights.sort { |a, b| a.id.to_i <=> b.id.to_i }.map { |light| light.name }.join("\n"),
         ]
       end
       puts Terminal::Table.new(rows: rows, headings: headings)
@@ -133,13 +133,13 @@ module Hue
 
     desc 'group <id> [on|off] [--hue=X] [--brightness=X] [--saturation=X] [--name=X] [--lights=X,Y,Z...]', 'Update a group of lights'
     long_desc <<-LONGDESC
-    Examples: \n
-      hue group 1 on --hue 12345
-      hue group 1 --bri 25
-      hue group 1 --name "My Group"
-      hue group 1 --alert lselect
-      hue group 1 --lights "1, 2, 3"
-      hue group 1 off
+    Examples:\n
+      hue group 1 on --hue 12345\n
+      hue group 1 --bri 25\n
+      hue group 1 --name "My Group"\n
+      hue group 1 --alert lselect\n
+      hue group 1 --lights "1, 2, 3"\n
+      hue group 1 off\n
     LONGDESC
     shared_options
     shared_light_options
@@ -171,8 +171,8 @@ module Hue
 
     desc 'name <id> <name>', 'Update the name of a light'
     long_desc <<-LONGDESC
-    Examples: \n
-      hue name 1 "My Light"
+    Examples:\n
+      hue name 1 "My Light"\n
     LONGDESC
     shared_options
     def name(id, name)
@@ -184,8 +184,8 @@ module Hue
 
     desc 'create_group <name> <id> [<id>...]', 'Create a new group'
     long_desc <<-LONGDESC
-    Examples: \n
-      hue create_group "My Group" 1 2 3 4
+    Examples:\n
+      hue create_group "My Group" 1 2 3 4\n
     LONGDESC
     shared_options
     def create_group(name, *lights)
@@ -206,8 +206,8 @@ module Hue
 
     desc 'destroy_group <id>', 'Destroy a group'
     long_desc <<-LONGDESC
-    Examples: \n
-      hue destroy_group 1
+    Examples:\n
+      hue destroy_group 1\n
     LONGDESC
     shared_options
     def destroy_group(id)
