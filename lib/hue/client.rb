@@ -86,7 +86,7 @@ module Hue
 
     def light(id)
       id = id.to_s
-      lights.select { |l| l.id == id }.first
+      lights.find { |l| l.id == id }
     end
 
 
@@ -94,12 +94,12 @@ module Hue
       return Group.new(self, bridge) if id.nil?
 
       id = id.to_s
-      groups.select { |g| g.id == id }.first
+      groups.find { |g| g.id == id }
     end
 
     def scene(id)
       id = id.to_s
-      scenes.select { |s| s.id == id }.first
+      scenes.find { |s| s.id == id }
     end
 
   private
