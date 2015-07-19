@@ -26,10 +26,41 @@ module Hue
     desc 'lights', 'Find all of the lights on your network'
     shared_options
     def lights
-      headings = ["ID", "Name", "Status", "Hue", "Saturation", "Brightness"]
+      headings = [
+        "ID",
+        "Type",
+        "Model",
+        "Name",
+        "Status",
+        "Mode",
+        "Hue",
+        "Saturation",
+        "Brightness",
+        "X/Y",
+        "Temp",
+        "Alert",
+        "Effect",
+        "Software Version",
+        "Reachable?",
+      ]
       rows = client(options).lights.each_with_object([]) do |light, r|
-        status = light.off? ? "OFF" : "ON"
-        r << [light.id, light.name, status, light.hue, light.saturation, light.brightness]
+        r << [
+          light.id,
+          light.type,
+          light.model,
+          light.name,
+          (light.off? ? "Off" : "On"),
+          light.color_mode,
+          light.hue,
+          light.saturation,
+          light.brightness,
+          [light.x, light.y].compact.join(", "),
+          light.color_temperature,
+          light.alert,
+          light.effect,
+          light.software_version,
+          (light.reachable? ? "Yes" : "No"),
+        ]
       end
       puts Terminal::Table.new(rows: rows, headings: headings)
     end
