@@ -25,6 +25,7 @@ module Hue
 
     desc 'lights', 'Find all of the lights on your network'
     shared_options
+    method_option :sort, :type => :string, :aliases => '--order'
     def lights
       headings = [
         "ID",
@@ -61,6 +62,14 @@ module Hue
           light.software_version,
           (light.reachable? ? "Yes" : "No"),
         ]
+      end
+      if options[:sort]
+        sorting = options[:sort].strip.split(/\s*,\s*/).map(&:to_i)
+        rows.sort! do |a, b|
+          sorting
+            .map { |k| a[k] <=> b[k] }
+            .find { |n| n != 0 } || 0
+        end
       end
       puts Terminal::Table.new(rows: rows, headings: headings)
     end
