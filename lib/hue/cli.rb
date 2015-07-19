@@ -213,7 +213,6 @@ module Hue
     LONGDESC
     shared_options
     def destroy_group(id)
-      all_options   = options.dup
       client_ref    = client(options)
       group         = client_ref.group(id)
       if !group
