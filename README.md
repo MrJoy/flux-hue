@@ -72,9 +72,7 @@ _TODO: Automatic retries+backoffs and parameters for controlling this behavior, 
 
 #### Information About Bridges: `hue bridges`
 
-Discover and show information about all bridges on the network.  This includes the UUID, assigned name, IP, MAC address, ZigBee channel, software version, and whether any firmware updates are available.
-
-_TODO: Expose more information including portal, timezone, DHCP, proxy info, and whether the link button was pressed recently._
+Discover and show information about all bridges on the network.  The information is limited to that which can be found without a registered username on the bridge.
 
 ```bash
 hue bridges
@@ -83,12 +81,33 @@ hue bridges
 Example output:
 
 ```
-INFO: Trying SSDP search...
-+--------------+-----------+-------------+-------------------+---------+-------------+------------------+------------------------+
-| ID           | Name      | IP          | MAC               | Channel | API Version | Software Version | Update Info            |
-+--------------+-----------+-------------+-------------------+---------+-------------+------------------+------------------------+
-| 0017881226f3 | Bridge-01 | 192.168.2.8 | 00:17:88:12:26:f3 | 25      | 1.7.0       | 01023599         | HUE0100 lamp 66013452  |
-+--------------+-----------+-------------+-------------------+---------+-------------+------------------+------------------------+
+INFO: Discovering bridges via SSDP...
++--------------+-----------+-------------+-------------------+-------------+------------------+
+| ID           | Name      | IP          | MAC               | API Version | Software Version |
++--------------+-----------+-------------+-------------------+-------------+------------------+
+| 0017881226f3 | Bridge-01 | 192.168.2.8 | 00:17:88:12:26:f3 | 1.7.0       | 01023599         |
++--------------+-----------+-------------+-------------------+-------------+------------------+
+```
+
+#### Information About Bridges: `hue bridge`
+
+Discover and show information about a specific bridge on the network, with which you've registered a username.  This provides more detail than `hue bridges`.
+
+_TODO: Expose more information including portal, timezone, DHCP, proxy info, and whether the link button was pressed recently._
+
+```bash
+hue bridge <id>
+```
+
+Example output:
+
+```
+INFO: Discovering bridges via SSDP...
++--------------+-----------+-------------+-------------------+---------+-------------+------------------+------------------------+-----------------+
+| ID           | Name      | IP          | MAC               | Channel | API Version | Software Version | Update Info            | Button Pressed? |
++--------------+-----------+-------------+-------------------+---------+-------------+------------------+------------------------+-----------------+
+| 0017881226f3 | Bridge-01 | 192.168.2.8 | 00:17:88:12:26:f3 | 25      | 1.7.0       | 01023599         | HUE0100 lamp 66013452  | false           |
++--------------+-----------+-------------+-------------------+---------+-------------+------------------+------------------------+-----------------+
 ```
 
 #### Information About Groups: `hue groups`

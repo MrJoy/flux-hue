@@ -17,9 +17,6 @@ module Hue
     # Client the light is associated with.
     attr_reader :client
 
-    # Bridge the light is associated with.
-    def bridge; client.bridge; end
-
     # A unique, editable name given to the light.
     attr_accessor :name
 
@@ -91,25 +88,22 @@ module Hue
     # Reserved for future functionality.
     attr_reader :point_symbol
 
-    def initialize(client, id, hash)
+    def initialize(client:, id:, data: {}, state: {})
       @client = client
-      @id = id
-      unpack(hash)
+      @id     = id
+      @state  = state
+      unpack(data)
     end
 
     def name=(new_name)
-      unless (1..32).include?(new_name.length)
-        raise InvalidValueForParameter, 'name must be between 1 and 32 characters.'
-      end
+      validate_name!(new_name)
 
-      body = {
-        :name => new_name
-      }
+      body      = { name: new_name }
 
-      uri = URI.parse(base_url)
-      http = Net::HTTP.new(uri.host)
-      response = http.request_put(uri.path, JSON.dump(body))
-      response = JSON(response.body).first
+      uri       = URI.parse(url)
+      http      = Net::HTTP.new(uri.host)
+      response  = JSON(http.request_put(uri.path, JSON.dump(body)).body).first
+
       if response['success']
         @name = new_name
       # else
@@ -117,40 +111,41 @@ module Hue
       end
     end
 
-    # Indicates if a light can be reached by the bridge. Currently
-    # always returns true, functionality will be added in a future
-    # patch.
-    def reachable?
-      @state['reachable']
-    end
+    # Indicates if a light can be reached by the bridge.
+    def reachable?; @state['reachable']; end
 
     # @param transition The duration of the transition from the light’s current
     #   state to the new state. This is given as a multiple of 100ms and
     #   defaults to 4 (400ms). For example, setting transistiontime:10 will
     #   make the transition last 1 second.
     def set_state(attributes, transition = nil)
-      body = translate_keys(attributes, STATE_KEYS_MAP)
+      body    = translate_keys(attributes, STATE_KEYS_MAP)
 
       # Add transition
-      body.merge!({:transitiontime => (transition * 10.0).to_i}) if transition
+      body.merge!(transitiontime: (transition * 10.0).to_i) if transition
 
-      uri = URI.parse("#{base_url}/state")
-      http = Net::HTTP.new(uri.host)
-      response = http.request_put(uri.path, JSON.dump(body))
-      JSON(response.body)
+      uri   = URI.parse("#{url}/state")
+      http  = Net::HTTP.new(uri.host)
+
+      JSON(http.request_put(uri.path, JSON.dump(body)).body)
     end
 
-    # Refresh the state of the lamp
-    def refresh
-      json = JSON(Net::HTTP.get(URI.parse(base_url)))
-      unpack(json)
-    end
+    # Refresh the state of the light.
+    def refresh!; unpack(JSON(Net::HTTP.get(URI.parse(base_url)))); end
 
-    def off?
-      !@state["on"]
-    end
+    # Is the light off?
+    def off?; !@state["on"]; end
 
   private
+
+    NAME_RANGE        = 1..32
+    NAME_RANGE_MSG    = "Names must be between #{NAME_RANGE.first} and"\
+                          " #{NAME_RANGE.last} characters."
+
+    def validate_name!(username)
+      raise InvalidUsername, NAME_RANGE_MSG unless NAME_RANGE
+                                                   .include?(username.length)
+    end
 
     KEYS_MAP = {
       :state            => :state,
@@ -180,8 +175,7 @@ module Hue
       @x, @y = @state['xy']
     end
 
-    def base_url
-      "http://#{bridge.ip}/api/#{client.username}/lights/#{id}"
-    end
+    def collection_url; "#{client.url}/lights"; end
+    def url; "#{collection_url}/#{id}"; end
   end
 end

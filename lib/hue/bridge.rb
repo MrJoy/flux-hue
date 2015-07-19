@@ -7,9 +7,6 @@ module Hue
     # actual uPnP name after any conflicts have been resolved.
     attr_reader :name
 
-    # The Zigbee channel the bridge is using.
-    attr_reader :zigbee_channel
-
     # MAC address of the bridge.
     attr_reader :mac_address
 
@@ -20,79 +17,124 @@ module Hue
     # Software version of the bridge.
     attr_reader :software_version
 
-    # Contains information related to software updates.
-    attr_reader :software_update
-
-    def software_update_summary; (software_update || {})["text"]; end
-
-    # Indicates whether the link button has been pressed within the last 30
-    # seconds.
-    def link_button?; get_configuration['linkbutton']; end
-
     # IP address of the bridge.
     attr_reader :ip
 
-    # Network mask of the bridge.
-    attr_reader :network_mask
-
-    # Gateway IP address of the bridge.
-    attr_reader :gateway
-
-    # Whether the IP address of the bridge is obtained with DHCP.
-    attr_reader :dhcp
-
-    # IP Address of the proxy server being used.
-    attr_reader :proxy_address
-
-    # Port of the proxy being used by the bridge. If set to 0 then a proxy is
-    # not being used.
-    attr_reader :proxy_port
-
-    # An array of whitelisted (known) clients.
-    attr_reader :known_clients
-
-    # This indicates whether the bridge is registered to synchronize data with
-    # a portal account.
-    def portal_services?; get_configuration['portalservices']; end
-    def portal_connection; get_configuration['portalconnection']; end
-    def portal_state; get_configuration['portalstate']; end
-
-    def initialize(client, hash)
-      @client = client
+    def initialize(hash)
       unpack(hash)
     end
 
-    # Current time stored on the bridge.
-    def utc; DateTime.parse(get_configuration['utc']); end
-
-    def refresh; unpack(get_configuration); end
+    def refresh!; unpack(get_configuration); end
 
     def url; "http://#{ip}/api"; end
 
-  private
+    # Find all bridges.
+    #
+    # * If `ip` is specified, or `HUE_BRIDGE_IP` is set, a `Bridge` will be
+    #   returned for that IP, and generally discovery will be skipped.
+    # * If `force_discovery` is set, then discovery will be performed *in
+    #   addition to* using the explicit IP.
+    def self.all(ip: nil, force_discovery: false)
+      @all ||= begin
+        effective_ip  = determine_effective_ip(ip)
+
+        bridges       = []
+        bridges      << Bridge.new("ipaddress" => effective_ip) if effective_ip
+        # TODO: Perhaps, given the use-case it supports, we want to do ALL
+        # TODO: discovery searches when `force_discovery` is present?
+        bridges      += find_by_discovery if bridges.length == 0 || force_discovery
+
+        filter_bridges(bridges)
+      end
+    end
+
+    def self.find_by_discovery
+      bridges = find_by_ssdp
+      bridges = find_by_nupnp unless bridges.length > 0
+
+      filter_bridges(bridges)
+    end
+
+    def self.find_by_ssdp
+      return [] if ENV['HUE_SKIP_SSDP'] && ENV['HUE_SKIP_SSDP'] != ""
+      # TODO: Ensure we're *only* getting things we want here!  The Hue Bridge
+      # TODO: tends to be obnoxious and announce itself on *any* SSDP request,
+      # TODO: so we may encounter other obnoxious gear as well...
+      puts "INFO: Discovering bridges via SSDP..."
+
+      # Loading this late to avoid slowing down the CLI needlessly.
+      require 'playful/ssdp' unless defined?(Playful)
+      Playful.log = false # Playful is super verbose
+      bridges     = Playful::SSDP.search('IpBridge')
+                    .select do |resp|
+                      # Ensure we're *only* getting things we want here!  The
+                      # Hue Bridge tends to be obnoxious and announce itself on
+                      # *any* SSDP request, so we may encounter other obnoxious
+                      # gear as well...
+                      (resp[:server] || '')
+                        .split(/[,\s]+/)
+                        .find { |token| token =~ %r{\AIpBridge/\d+(\.\d+)*\z} }
+                    end
+                    .map do |resp|
+                      Bridge.new('id'        => usn_to_id(resp[:usn]),
+                                 'name'      => resp[:st],
+                                 'ipaddress' => URI.parse(resp[:location]).host
+                      )
+                    end
+
+      filter_bridges(bridges)
+    end
+
+    def self.find_by_nupnp
+      return [] if ENV['HUE_SKIP_NUPNP'] && ENV['HUE_SKIP_NUPNP'] != ""
+      puts "INFO: Discovering bridges via N-UPnP..."
+      # UPnP failed, lets use N-UPnP
+      bridges = []
+      JSON(Net::HTTP.get(URI.parse('https://www.meethue.com/api/nupnp'))).each do |hash|
+        # Normalize our interface a bit...
+        hash["ipaddress"] = hash.delete("internalipaddress")
+        # The N-UPnP interface delivers an ID which is (apparently) the MAC
+        # address, with two bytes injected in the middle.  To keep IDs sane
+        # regardless of where we got them (NUPnP vs. SSDP), we just reduce it
+        # to the MAC address.
+        raw_id      = hash["id"]
+        hash["id"]  = raw_id[0..5] + raw_id[10..15] if raw_id
+
+        bridges << Bridge.new(hash)
+      end
+
+      filter_bridges(bridges)
+    end
 
     KEYS_MAP = {
       :id                 => :id,
       :name               => :name,
-      :zigbee_channel     => :zigbeechannel,
       :mac_address        => :mac,
       :api_version        => :apiversion,
       :software_version   => :swversion,
-      :software_update    => :swupdate,
-      :link_button        => :linkbutton,
 
       :ip                 => :ipaddress,
-      :network_mask       => :netmask,
-      :gateway            => :gateway,
-      :dhcp               => :dhcp,
-      :proxy_address      => :proxyaddress,
-      :proxy_port         => :proxyport,
-
-      :known_clients      => :whitelist,
-      # :portal_services    => :portalservices,
-      # :portal_connection  => :portalconnection,
-      # :portal_state       => :portalstate,
     }
+
+  private
+
+    def self.determine_effective_ip(explicit_ip)
+      ip_var        = ENV['HUE_BRIDGE_IP']
+      have_ip_var   = ip_var && ip_var != ""
+      explicit_ip || (have_ip_var ? ip_var : nil)
+    end
+
+    def self.filter_bridges(bridges)
+      bridges
+        .sort { |a, b| a.ip <=> b.ip }
+        .uniq { |bridge| bridge.ip }
+        .uniq
+    end
+
+    # TODO: With all the hassle around ID and the fact that I'm essentially
+    # TODO: coercing it down to just MAC address....  Just use the damned IP
+    # TODO: or MAC!
+    def self.usn_to_id(usn); usn.split(/:/, 3)[1].split(/-/).last; end
 
     def unpack(hash)
       KEYS_MAP.each do |local_key, remote_key|
@@ -100,15 +142,10 @@ module Hue
         next unless value
         instance_variable_set("@#{local_key}", value)
       end
+
+      @id = @mac_address.gsub(/:/, '') if !@id && @mac_address
     end
 
-    def get_configuration
-      # Make us a bit more loosely coupled -- ideally Bridge wouldnt know about
-      # client, but...  Bleah.  In the meantime, prefer the client base URL if
-      # we DO have a client so we can get more info from the hub like the
-      # ZigBee channel, and such.
-      config_url_base = @client ? @client.url : url
-      JSON(Net::HTTP.get(URI.parse("#{config_url_base}/config")))
-    end
+    def get_configuration; JSON(Net::HTTP.get(URI.parse("#{url}/config"))); end
   end
 end

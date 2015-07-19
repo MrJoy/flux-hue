@@ -1,100 +1,116 @@
+require 'date'
 require 'net/http'
 require 'json'
 
 module Hue
   class Client
+    # By default we just use a made up username when talking to the client.
+    # For simple cases where you only have one bridge (and aren't using
+    # software by someone who thought of the same clever name) this makes it so
+    # you don't need to store/manage any configuration -- it just happens
+    # automatically.
+    DEFAULT_USERNAME = "1234567890"
+
+    # In order to make this class work (largely) as a superset of `Bridge`, we
+    # proxy some methods through to an instance of `Bridge` that we're handed
+    # at construction-time.  When we make an API call to refresh ourselves,
+    # we'll wind up picking up much the same data, so we want to ensure that
+    # our version takes precedence in order to avoid having to push state into
+    # the `Bridge`, force a redundant refresh of it, or force the user to do
+    # so.
+    Bridge::KEYS_MAP.keys.each do |prop|
+      define_method prop do
+        instance_variable_get(:"@#{prop}") || @bridge.send(prop)
+      end
+    end
+
+    # The username registered with the bridge that we'll connect as.
     attr_reader :username
 
-    def initialize(username = Hue::USERNAME, ip = nil)
-      unless USERNAME_RANGE.include?(username.length)
-        raise InvalidUsername, "Usernames must be between #{USERNAME_RANGE.first} and #{USERNAME_RANGE.last}."
-      end
+    # The Zigbee channel the bridge is using as of when `refresh! was last
+    # called.
+    attr_reader :zigbee_channel
 
-      ip ||= ENV['HUE_BRIDGE_IP']
-      bridge(ip)
+    # Contains information related to software updates as of when `refresh! was
+    # last called.
+    attr_reader :software_update
 
-      @username = username
+    def software_update_summary; (software_update || {})["text"]; end
+
+    # Indicates whether the link button had been pressed within the 30 seconds
+    # prior to when `refresh! was last called.
+    def link_button?; @link_button; end
+
+    # Network mask of the bridge as of when `refresh! was last called.
+    attr_reader :network_mask
+
+    # Gateway IP address of the bridge as of when `refresh! was last called.
+    attr_reader :gateway
+
+    # Whether the IP address of the bridge is obtained with DHCP as of when
+    # `refresh! was last called.
+    attr_reader :dhcp
+
+    # IP Address of the proxy server being used as of when `refresh! was last
+    # called.
+    def proxy_address; @proxy_address == "none" ? nil : @proxy_address; end
+
+    # Port of the proxy being used by the bridge as of when `refresh! was last
+    # called.
+    def proxy_port; @proxy_port == 0 ? nil : @proxy_port; end
+
+    # An array of whitelisted (known) clients as of when `refresh! was last
+    # called.
+    attr_reader :known_clients
+
+    # This indicates whether the bridge was registered to synchronize data with
+    # a portal account as of when `refresh! was last called.
+    def portal_services?; @portal_services; end
+
+    # Whether or not the bridge was connected to the Philips portal as of when
+    # `refresh! was last called.
+    attr_reader :portal_connection
+
+    # The state of the Philips portal as of when `refresh! was last called.
+    attr_reader :portal_state
+
+    # Current time stored on the bridge.
+    def utc; DateTime.parse(get_configuration['utc']); end
+
+    def refresh!; unpack(get_configuration); end
+
+    def initialize(bridge, username: nil)
+      effective_username  = determine_effective_username(username)
+      validate_username!(effective_username)
+
+      @bridge             = bridge
+      @username           = effective_username
 
       begin
-        validate_user
+        validate_user!
       rescue Hue::UnauthorizedUser
-        register_user
-      end
-    end
-
-    def bridge(ip = nil)
-      @bridge ||= begin
-        if ip.nil?
-          puts "INFO: Discovering bridge."
-          # Pick the first one for now. In theory, they should all do the same thing.
-
-          bridge = bridges.first
-          raise NoBridgeFound unless bridge
-          bridge
-        else
-          puts "INFO: Skipping bridge discovery."
-          Bridge.new(self, {"ipaddress" => ip})
-        end
-      end
-    end
-
-    def bridges
-      @bridges ||= begin
-        puts "INFO: Trying SSDP search..."
-        require 'playful/ssdp' unless defined?(Playful)
-        # Playful is super verbose
-        Playful.log = false
-
-        devices = Playful::SSDP.search 'IpBridge'
-
-        if devices.count == 0
-          puts "INFO: SSDP failed, trying N-UPnP..."
-          # UPnP failed, lets use N-UPnP
-          bs = []
-          JSON(Net::HTTP.get(URI.parse('https://www.meethue.com/api/nupnp'))).each do |hash|
-            # Normalize our interface a bit...
-            hash["ipaddress"] = hash.delete("internalipaddress")
-            # The N-UPnP interface delivers an ID which is essentially the MAC
-            # address, with two bytes injected in the middle.  To keep IDs sane
-            # regardless of where we got them, we just reduce it to the MAC
-            # address.
-            tmp = hash.delete("id")
-            hash["id"] = tmp[0..5] + tmp[10..15]
-            bs << Bridge.new(self, hash)
-          end
-          bs
-        else
-          devices
-            .uniq { |d| d[:location] }
-            .map do |bridge|
-              Bridge.new(self, {
-                'id' => bridge[:usn].split(/:/, 3)[1].split(/-/).last,
-                'name' => bridge[:st],
-                'ipaddress' => URI.parse(bridge[:location]).host
-              })
-            end
-        end
+        register_user!
       end
     end
 
     def lights
       @lights ||= begin
         json = JSON(Net::HTTP.get(URI.parse(url)))
-        json['lights'].map { |id, data| Light.new(self, id, data) }
+        json['lights'].map { |id, data| Light.new(client: self, id: id, data: data) }
       end
     end
 
     def groups
       @groups ||= begin
         json = JSON(Net::HTTP.get(URI.parse("#{url}/groups")))
-        json.map { |id, data| Group.new(self, id, data) }
+        json.map { |id, data| Group.new(client: self, id: id, data: data) }
       end
     end
 
     def scenes
       @scenes ||= begin
         json = JSON(Net::HTTP.get(URI.parse("#{url}/scenes")))
-        json.map { |id, data| Scene.new(self, id, data) }
+        json.map { |id, data| Scene.new(client: self, id: id, data: data) }
       end
     end
 
@@ -122,25 +138,41 @@ module Hue
       scenes.find { |s| s.id == id }
     end
 
-    def url; "#{bridge.url}/#{username}"; end
+    def url; "#{@bridge.url}/#{username}"; end
+
+    def refresh!; unpack(get_configuration); end
 
   private
 
-    # TODO: Move user creation/validation to the bridge.
+    NAME_RANGE      = 10..40
+    NAME_RANGE_MSG  = "Usernames must be between #{NAME_RANGE.first} and"\
+                      " #{NAME_RANGE.last}."
+
+    def validate_username!(username)
+      raise InvalidUsername, NAME_RANGE_MSG unless NAME_RANGE
+                                                   .include?(username.length)
+    end
+
+    def determine_effective_username(explicit_username)
+      username_var  = ENV['HUE_BRIDGE_USER']
+      have_var      = username_var && username_var != ''
+
+      explicit_username || (have_var ? username_var : DEFAULT_USERNAME)
+    end
 
     # TODO: Prepopulate things with the response here, as we just pulled down
     # TODO: *everything* about the current state of the bridge!
-    def validate_user
+    def validate_user!
       response  = JSON(Net::HTTP.get(URI.parse(url)))
       response  = response.first if response.is_a? Array
       error     = response['error']
 
-      raise get_error(error) if error
+      raise Hue.get_error(error) if error
 
       response['success']
     end
 
-    def register_user
+    def register_user!
       # TODO: Better devicetype value, and allow customizing it!
       data = {
         devicetype: 'Ruby',
@@ -152,15 +184,41 @@ module Hue
       response  = JSON(http.request_post(uri.path, JSON.dump(data)).body).first
       error     = response['error']
 
-      raise get_error(error) if error
+      raise Hue.get_error(error) if error
 
       response['success']
     end
 
-    def get_error(error)
-      # Find error class and return instance
-      klass = Hue::ERROR_MAP[error['type']] || UnknownError
-      klass.new(error['description'])
+    KEYS_MAP = Bridge::KEYS_MAP.merge({
+      :zigbee_channel     => :zigbeechannel,
+      :software_update    => :swupdate,
+
+      :link_button        => :linkbutton,
+      :known_clients      => :whitelist,
+
+      :network_mask       => :netmask,
+      :gateway            => :gateway,
+      :dhcp               => :dhcp,
+      :proxy_address      => :proxyaddress,
+      :proxy_port         => :proxyport,
+
+      :portal_services    => :portalservices,
+      :portal_connection  => :portalconnection,
+      :portal_state       => :portalstate,
+    })
+
+    def unpack(hash)
+      KEYS_MAP.each do |local_key, remote_key|
+        value = hash[remote_key.to_s]
+        next unless value
+        instance_variable_set("@#{local_key}", value)
+      end
+
+      @id = @mac_address.gsub(/:/, '') if !@id && @mac_address
+    end
+
+    def get_configuration
+      JSON(Net::HTTP.get(URI.parse("#{url}/config")))
     end
   end
 end

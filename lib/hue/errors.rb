@@ -35,4 +35,11 @@ module Hue
     301 => Hue::TooManyGroups,
     302 => Hue::GroupTooFull
   }
+
+
+  def self.get_error(error)
+    # Find error class and return instance
+    klass = Hue::ERROR_MAP[error['type']] || UnknownError
+    klass.new(error['description'])
+  end
 end

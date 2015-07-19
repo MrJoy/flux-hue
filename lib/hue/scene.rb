@@ -9,16 +9,13 @@ module Hue
     # The client object this scene is associated with.
     attr_reader :client
 
-    # Bridge the scene is associated with.
-    def bridge; client.bridge; end
-
     # A unique, editable name given to the scene.
     attr_accessor :name
 
     # Whether or not the scene is active on a group.
     attr_reader :active
 
-    def initialize(client, id, data)
+    def initialize(client:, id:, data: {})
       @client = client
       @id     = id
 
@@ -39,6 +36,6 @@ module Hue
 
     def unpack(data); unpack_hash(data, SCENE_KEYS_MAP); end
 
-    def base_url; "#{client.bridge_url}/#{client.username}/scenes/#{id}"; end
+    def base_url; "#{client.url}/scenes/#{id}"; end
   end
 end
