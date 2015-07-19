@@ -1,49 +1,58 @@
 require 'terminal-table'
 
+# TODO: Normalize output, error handling, etc.
+
+# TODO: Failure handling for setting names/lights.
 module Hue
+  # TODO: `Cli` is an acronym, treat it as such.
   class Cli < CliBase
+    BRIDGE_FIELDS = {
+      "ID"                => :id,
+      "Name"              => :name,
+      "IP"                => :ip,
+      "MAC"               => :mac_address,
+      "Channel"           => :zigbee_channel,
+      "API Version"       => :api_version,
+      "Software Version"  => :software_version,
+      "Update Info"       => :software_update_summary,
+      "Button Pressed?"   => :link_button?,
+    }
+
     desc 'bridges', 'Find all the bridges on your network'
     def bridges
       # TODO: Extended output form that includes proxy_address, proxy_port,
       # TODO: known_clients, network_mask, gateway, dhcp, etc...
-      headings = ["ID", "Name", "IP", "MAC", "Channel", "API Version", "Software Version", "Update Info"]
       rows = client(options).bridges.each_with_object([]) do |bridge, r|
+        # TODO: Make this happen on-demand when accessing a property that isn't
+        # TODO: populated yet.
         bridge.refresh
-        r << [
-          bridge.id,
-          bridge.name,
-          bridge.ip,
-          bridge.mac_address,
-          bridge.zigbee_channel,
-          bridge.api_version,
-          bridge.software_version,
-          (bridge.software_update["text"] rescue nil)
-        ]
+        r << BRIDGE_FIELDS.values.map { |prop| bridge.send(prop) }
       end
-      puts Terminal::Table.new(rows: rows, headings: headings)
+      puts Terminal::Table.new(rows: rows, headings: BRIDGE_FIELDS.keys)
     end
 
-    desc 'lights', 'Find all of the lights on your network'
+    LIGHT_FIELDS = [
+      "ID",
+      "Type",
+      "Model",
+      "Name",
+      "Status",
+      "Mode",
+      "Hue",
+      "Saturation",
+      "Brightness",
+      "X/Y",
+      "Temp",
+      "Alert",
+      "Effect",
+      "Software Version",
+      "Reachable?",
+    ]
+
+    desc 'lights [--order=X,Y,...]', 'Find all of the lights on your network'
     shared_options
     method_option :sort, :type => :string, :aliases => '--order'
     def lights
-      headings = [
-        "ID",
-        "Type",
-        "Model",
-        "Name",
-        "Status",
-        "Mode",
-        "Hue",
-        "Saturation",
-        "Brightness",
-        "X/Y",
-        "Temp",
-        "Alert",
-        "Effect",
-        "Software Version",
-        "Reachable?",
-      ]
       rows = client(options).lights.each_with_object([]) do |light, r|
         r << [
           light.id,
@@ -64,14 +73,14 @@ module Hue
         ]
       end
       if options[:sort]
-        sorting = options[:sort].strip.split(/\s*,\s*/).map(&:to_i)
+        sorting = parse_list(options[:sort])
         rows.sort! do |a, b|
           sorting
             .map { |k| a[k] <=> b[k] }
             .find { |n| n != 0 } || 0
         end
       end
-      puts Terminal::Table.new(rows: rows, headings: headings)
+      puts Terminal::Table.new(rows: rows, headings: LIGHT_FIELDS)
     end
 
     desc 'add', 'Search for new lights'
@@ -80,7 +89,7 @@ module Hue
       client(options).add_lights
     end
 
-    desc 'all [on|off] [--hue=X] [--brightness=X] [--saturation=X]', 'Send commands to all lights'
+    desc 'all [shared options] [light options]', 'Manipulate all lights'
     shared_options
     shared_light_options
     long_desc <<-LONGDESC
@@ -91,14 +100,17 @@ module Hue
       hue all off\n
     LONGDESC
     def all(state = nil)
-      body = clean_body(options, state: state)
+      body          = clean_body(options, state: state)
+
+      change_state  = body.length > 0
+      raise NothingToDo unless change_state
+
       client(options).lights.each do |light|
-        puts light.name
-        puts light.set_state body
+        puts light.set_state(body)
       end
     end
 
-    desc 'light <id> [on|off] [--hue=X] [--brightness=X] [--saturation=X]', 'Access or update a light'
+    desc 'light <id> [shared options] [light options]', 'Manipulate a light'
     long_desc <<-LONGDESC
     Examples:\n
       hue light 1 on --hue 12345 \n
@@ -108,30 +120,43 @@ module Hue
     LONGDESC
     shared_options
     shared_light_options
+    method_option :name, :type => :string
     def light(id, state = nil)
-      light = client(options).light(id)
-      puts light.name
+      opts          = options.dup
+      light         = client(opts).light(id)
+      raise UnknownLight unless light
 
-      body = clean_body(options, state: state)
-      puts light.set_state(body) if body.length > 0
+      new_name      = opts.delete(:name)
+      body          = clean_body(opts, state: state)
+
+      change_state  = body.length > 0
+      change_name   = (new_name && new_name != light.name)
+      raise NothingToDo unless change_state || change_name
+
+      puts light.set_state(body) if change_state
+      light.name = new_name if change_name
     end
+
+    GROUP_FIELDS = ["ID", "Name", "Light IDs", "Lights"]
 
     desc 'groups', 'Find all light groups on your network'
     shared_options
     def groups
-      headings = ["ID", "Name", "Light IDs", "Lights"]
       rows = client(options).groups.each_with_object([]) do |group, r|
+        lights  = group
+                  .lights
+                  .sort { |a, b| a.id.to_i <=> b.id.to_i }
         r << [
           group.id,
           group.name,
-          group.lights.map(&:id).map(&:to_i).sort.join("\n"),
-          group.lights.sort { |a, b| a.id.to_i <=> b.id.to_i }.map { |light| light.name }.join("\n"),
+          lights.map(&:id).join("\n"),
+          lights.map(&:name).join("\n"),
         ]
       end
-      puts Terminal::Table.new(rows: rows, headings: headings)
+      puts Terminal::Table.new(rows: rows, headings: GROUP_FIELDS)
     end
 
-    desc 'group <id> [on|off] [--hue=X] [--brightness=X] [--saturation=X] [--name=X] [--lights=X,Y,Z...]', 'Update a group of lights'
+    desc 'group <id> [shared options] [light options]', 'Manipulate a group of lights'
     long_desc <<-LONGDESC
     Examples:\n
       hue group 1 on --hue 12345\n
@@ -146,40 +171,26 @@ module Hue
     method_option :name, :type => :string
     method_option :lights, :type => :string
     def group(id, state = nil)
-      all_options = options.dup
-      client_ref  = client(options)
-      new_name    = all_options.delete(:name)
-      group       = client_ref.group(id)
+      group         = client(options)
+                      .group(id)
+      lights        = group
+                      .lights
+                      .map(&:id)
+                      .map(&:to_i)
+                      .sort
 
-      if new_name && new_name != group.name
-        puts "#{group.name} => #{new_name}"
-        group.name = new_name
-      else
-        puts group.name
-      end
+      new_name      = options[:name]
+      new_lights    = parse_lights(options[:lights])
+      body          = clean_body(options, state: state)
 
-      lights = lights_from(all_options)
-      cur_lights = group.lights.map(&:id).map(&:to_i).sort
-      if lights && lights != cur_lights
-        puts "  -> #{lights.join(', ')}"
-        group.lights = lights
-      end
+      change_state  = body.length > 0
+      change_name   = (new_name && new_name != group.name)
+      change_lights = (lights && new_lights != lights)
+      raise NothingToDo unless change_state || change_name || change_lights
 
-      body = clean_body(all_options, state: state)
-      puts group.set_state(body) if body.length > 0
-    end
-
-    desc 'name <id> <name>', 'Update the name of a light'
-    long_desc <<-LONGDESC
-    Examples:\n
-      hue name 1 "My Light"\n
-    LONGDESC
-    shared_options
-    def name(id, name)
-      light = client(options).light(id)
-      puts "#{light.name} => #{name}"
-
-      light.name = name if name != light.name
+      puts group.set_state(body) if change_state
+      group.name    = new_name if change_name
+      group.lights  = lights if change_lights
     end
 
     desc 'create_group <name> <id> [<id>...]', 'Create a new group'
@@ -189,19 +200,23 @@ module Hue
     LONGDESC
     shared_options
     def create_group(name, *lights)
-      # TODO: Ensure name doesn't collide.
+      # TODO: Ensure name doesn't collide?
+
+      # TODO: Warn if the name is a poor choice for symbolic usage?
       client_ref    = client(options)
+      # TODO: Make `create!` be a static method, and add an errors accessor!
       group         = Group.new(client_ref)
 
       group.name    = name
-      group.lights  = Array(lights).map { |light| light.strip.to_i }.sort
+      group.lights  = Array(lights)
+                      .map(&:strip)
+                      .map(&:to_i)
+                      .sort
       result        = group.create!
 
-      if result.is_a?(Fixnum)
-        puts "ID: #{result}"
-      else
-        puts "ERROR: #{result.inspect}"
-      end
+      raise InvalidUsage, result.inspect unless result.is_a?(Fixnum)
+
+      puts "SUCCESS: Created group ##{result}"
     end
 
     desc 'destroy_group <id>', 'Destroy a group'
@@ -211,51 +226,48 @@ module Hue
     LONGDESC
     shared_options
     def destroy_group(id)
-      client_ref    = client(options)
-      group         = client_ref.group(id)
-      if !group
-        puts "ERROR: No such group as ##{id}."
-        return
-      end
+      group   = client(options).group(id)
+      raise UnknownGroup unless group
 
-      result        = group.destroy!
+      result  = group.destroy!
 
-      if result === true
-        puts "Destroyed group ##{id}."
-      else
-        puts "ERROR: #{result.inspect}"
-      end
+      raise InvalidUsage, result.inspect unless result === true
+
+      puts "SUCCESS: Destroyed group ##{id}."
     end
 
   private
 
-    def lights_from(all_options)
-      lights = all_options.delete(:lights)
-      # TODO: Support symbolic names of lights as well!
-      lights = lights.strip.split(/\s*,\s*/).map(&:to_i).sort if lights
-      lights
+    def parse_list(raw)
+      (raw || "")
+        .strip
+        .split(/[,\s]+/)
+        .map(&:to_i)
     end
+
+    def parse_lights(raw)
+      parse_list(raw)
+        .sort
+        .uniq
+        .reject { |n| n == 0 }
+    end
+
+    # TODO: Turn this into a whitelist instead of a blacklist.
+    NON_API_REQUEST_KEYS=%i(user ip lights name)
 
     def clean_body(options, state: nil)
       body = options.dup
-      # We don't need :user for the request, just for getting a client object
-      # so we remove it.
-      body.delete(:user)
-      # The :ip option is for identifying a hub explicitly, and doesn't belong
-      # in the request object.
-      body.delete(:ip)
-      body[:on] = state_as_bool(state) if state
+      # Remove keys that are for signalling our code and are unknown to the
+      # bridge.
+      NON_API_REQUEST_KEYS.each do |key|
+        body.delete(key)
+      end
+      body[:on] = (state == 'on' || state != 'off') if state
       body
     end
 
-    def state_as_bool(state)
-      (state == 'on' || !(state == 'off'))
-    end
-
     def client(options)
-      username  = options[:user] || Hue::USERNAME
-      ip        = options[:ip]
-      @client ||= Hue::Client.new username, ip
+      @client ||= Hue::Client.new(options[:user] || Hue::USERNAME, options[:ip])
     end
   end
 end

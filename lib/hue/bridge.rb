@@ -23,12 +23,11 @@ module Hue
     # Contains information related to software updates.
     attr_reader :software_update
 
+    def software_update_summary; (software_update || {})["text"]; end
+
     # Indicates whether the link button has been pressed within the last 30
     # seconds.
-    def link_button?
-      json = get_configuration
-      json['linkbutton']
-    end
+    def link_button?; get_configuration['linkbutton']; end
 
     # IP address of the bridge.
     attr_reader :ip
@@ -68,39 +67,7 @@ module Hue
 
     def refresh; unpack(get_configuration); end
 
-    def lights
-      @lights ||= begin
-        json = JSON(Net::HTTP.get(URI.parse(base_url)))
-        json['lights'].map do |key, value|
-          Light.new(@client, self, key, value)
-        end
-      end
-    end
-
-    def add_lights
-      uri = URI.parse("#{base_url}/lights")
-      http = Net::HTTP.new(uri.host)
-      response = http.request_post(uri.path, nil)
-      JSON(response.body).first
-    end
-
-    def groups
-      @groups ||= begin
-        json = JSON(Net::HTTP.get(URI.parse("#{base_url}/groups")))
-        json.map do |id, data|
-          Group.new(@client, id, data)
-        end
-      end
-    end
-
-    def scenes
-      @scenes ||= begin
-        json = JSON(Net::HTTP.get(URI.parse("#{base_url}/scenes")))
-        json.map do |id, data|
-          Scene.new(@client, self, id, data)
-        end
-      end
-    end
+    def url; "http://#{ip}/api"; end
 
   private
 
@@ -112,7 +79,7 @@ module Hue
       :api_version        => :apiversion,
       :software_version   => :swversion,
       :software_update    => :swupdate,
-      # :link_button        => :linkbutton,
+      :link_button        => :linkbutton,
 
       :ip                 => :ipaddress,
       :network_mask       => :netmask,
@@ -136,11 +103,12 @@ module Hue
     end
 
     def get_configuration
-      JSON(Net::HTTP.get(URI.parse("#{base_url}/config")))
-    end
-
-    def base_url
-      "http://#{ip}/api/#{@client.username}"
+      # Make us a bit more loosely coupled -- ideally Bridge wouldnt know about
+      # client, but...  Bleah.  In the meantime, prefer the client base URL if
+      # we DO have a client so we can get more info from the hub like the
+      # ZigBee channel, and such.
+      config_url_base = @client ? @client.url : url
+      JSON(Net::HTTP.get(URI.parse("#{config_url_base}/config")))
     end
   end
 end

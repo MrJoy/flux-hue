@@ -3,16 +3,22 @@ module Hue
     include TranslateKeys
     include EditableState
 
-    HUE_RANGE = 0..65535
-    SATURATION_RANGE = 0..255
-    BRIGHTNESS_RANGE = 0..255
+    HUE_RANGE               = 0..65535
+    # TODO: Bridhe is clamping us to 254 on these.  Enforce that here?
+    SATURATION_RANGE        = 0..255
+    BRIGHTNESS_RANGE        = 0..255
+    # TODO: Is the color temp range fixed, or does it depend on the light?  The
+    # TODO: lights have different white-points!
     COLOR_TEMPERATURE_RANGE = 153..500
 
     # Unique identification number.
     attr_reader :id
 
-    # Bridge the light is associated with
-    attr_reader :bridge
+    # Client the light is associated with.
+    attr_reader :client
+
+    # Bridge the light is associated with.
+    def bridge; client.bridge; end
 
     # A unique, editable name given to the light.
     attr_accessor :name
@@ -85,9 +91,8 @@ module Hue
     # Reserved for future functionality.
     attr_reader :point_symbol
 
-    def initialize(client, bridge, id, hash)
+    def initialize(client, id, hash)
       @client = client
-      @bridge = bridge
       @id = id
       unpack(hash)
     end
@@ -176,7 +181,7 @@ module Hue
     end
 
     def base_url
-      "http://#{@bridge.ip}/api/#{@client.username}/lights/#{id}"
+      "http://#{bridge.ip}/api/#{client.username}/lights/#{id}"
     end
   end
 end

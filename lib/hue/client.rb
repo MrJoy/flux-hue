@@ -32,6 +32,7 @@ module Hue
           raise NoBridgeFound unless bridge
           bridge
         else
+          puts "INFO: Skipping bridge discovery."
           Bridge.new(self, {"ipaddress" => ip})
         end
       end
@@ -76,12 +77,33 @@ module Hue
       end
     end
 
-    def lights; bridge.lights; end
-    def groups; bridge.groups; end
-    def scenes; bridge.scenes; end
+    def lights
+      @lights ||= begin
+        json = JSON(Net::HTTP.get(URI.parse(url)))
+        json['lights'].map { |id, data| Light.new(self, id, data) }
+      end
+    end
 
+    def groups
+      @groups ||= begin
+        json = JSON(Net::HTTP.get(URI.parse("#{url}/groups")))
+        json.map { |id, data| Group.new(self, id, data) }
+      end
+    end
+
+    def scenes
+      @scenes ||= begin
+        json = JSON(Net::HTTP.get(URI.parse("#{url}/scenes")))
+        json.map { |id, data| Scene.new(self, id, data) }
+      end
+    end
+
+    # TODO: Add support for specifying serial numbers.
     def add_lights
-      bridge.add_lights
+      uri = URI.parse("#{@client.url}/lights")
+      http = Net::HTTP.new(uri.host)
+      response = http.request_post(uri.path, nil)
+      JSON(response.body).first
     end
 
     def light(id)
@@ -100,10 +122,16 @@ module Hue
       scenes.find { |s| s.id == id }
     end
 
+    def url; "#{bridge.url}/#{username}"; end
+
   private
 
+    # TODO: Move user creation/validation to the bridge.
+
+    # TODO: Prepopulate things with the response here, as we just pulled down
+    # TODO: *everything* about the current state of the bridge!
     def validate_user
-      response  = JSON(Net::HTTP.get(URI.parse("#{api_url}/#{@username}")))
+      response  = JSON(Net::HTTP.get(URI.parse(url)))
       response  = response.first if response.is_a? Array
       error     = response['error']
 
@@ -113,14 +141,15 @@ module Hue
     end
 
     def register_user
-      body = JSON.dump({
+      # TODO: Better devicetype value, and allow customizing it!
+      data = {
         devicetype: 'Ruby',
-        username: @username
-      })
+        username:   username
+      }
 
-      uri       = URI.parse(api_url)
+      uri       = URI.parse(bridge.url)
       http      = Net::HTTP.new(uri.host)
-      response  = JSON(http.request_post(uri.path, body).body).first
+      response  = JSON(http.request_post(uri.path, JSON.dump(data)).body).first
       error     = response['error']
 
       raise get_error(error) if error
@@ -133,7 +162,5 @@ module Hue
       klass = Hue::ERROR_MAP[error['type']] || UnknownError
       klass.new(error['description'])
     end
-
-    def api_url; "http://#{bridge.ip}/api"; end
   end
 end

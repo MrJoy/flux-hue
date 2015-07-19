@@ -245,6 +245,10 @@ hue all --effect none
 
 This sub-command lets you manipulate a single light individually.  The numeric ID of the light (as reported by `hue lights`) is required.  All other parameters are optional.
 
+In addition to the parameters supported by `hue all`, you can also set the name of the light:
+
+* `--name "New Name"`
+
 ```bash
 hue light 1 off
 hue light 1 on --hue 45000 --brightness 127 --saturation 254 --transitiontime 0.1
@@ -252,6 +256,7 @@ hue light 1 --alert lselect
 hue light 1 --alert none
 hue light 1 --effect colorloop
 hue light 1 --effect none
+hue light 1 --name "New Name"
 ```
 
 #### Creating a Group: `hue create_group`
@@ -272,9 +277,10 @@ hue destroy_group 1
 
 ### Manipulating a Group: `hue group`
 
-In additition to the options supported by `hue light`, you can change the name of the group, or which lights are in it:
+This sub-command sets the properties of several lights at once.
 
-* `--name "New Name"`
+In addition to the parameters supported by `hue light`, you can also set which lights are in the group:
+
 * `--lights "<id>,<id>..."
 
 
