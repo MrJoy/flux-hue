@@ -27,7 +27,8 @@ module Hue
 
     # Brightness of the light. This is a scale from the minimum
     # brightness the light is capable of, 0, to the maximum capable
-    # brightness, 255. Note a brightness of 0 is not off.
+    # brightness, 254. (Should be 255 but value clamps to 254!) Note a
+    # brightness of 0 is not off.
     attr_reader :brightness
 
     # The x coordinate of a color in CIE color space. Between 0 and 1.
