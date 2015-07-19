@@ -46,9 +46,9 @@ module Hue
     # A fixed name describing the type of group.
     attr_reader :type
 
-    def initialize(client, bridge, id = nil, data = {})
+    def initialize(client, id = nil, data = {})
       @client     = client
-      @bridge     = bridge
+      @bridge     = client.bridge
       @id         = id
       @state      = {}
       @light_ids  = []

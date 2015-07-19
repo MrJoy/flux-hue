@@ -88,7 +88,7 @@ module Hue
       @groups ||= begin
         json = JSON(Net::HTTP.get(URI.parse("#{base_url}/groups")))
         json.map do |id, data|
-          Group.new(@client, self, id, data)
+          Group.new(@client, id, data)
         end
       end
     end

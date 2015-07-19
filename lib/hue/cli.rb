@@ -191,7 +191,7 @@ module Hue
     def create_group(name, *lights)
       # TODO: Ensure name doesn't collide.
       client_ref    = client(options)
-      group         = client_ref.group
+      group         = Group.new(client_ref)
 
       group.name    = name
       group.lights  = Array(lights).map { |light| light.strip.to_i }.sort

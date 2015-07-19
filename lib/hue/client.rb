@@ -90,9 +90,7 @@ module Hue
     end
 
 
-    def group(id = nil)
-      return Group.new(self, bridge) if id.nil?
-
+    def group(id)
       id = id.to_s
       groups.find { |g| g.id == id }
     end
