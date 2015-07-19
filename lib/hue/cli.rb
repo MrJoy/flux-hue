@@ -80,7 +80,7 @@ module Hue
       client(options).add_lights
     end
 
-    desc 'all [STATE] [COLOR]', 'Send commands to all lights'
+    desc 'all [on|off] [--hue=X] [--brightness=X] [--saturation=X]', 'Send commands to all lights'
     shared_options
     shared_light_options
     long_desc <<-LONGDESC
@@ -98,7 +98,7 @@ module Hue
       end
     end
 
-    desc 'light ID [STATE] [COLOR]', 'Access a light'
+    desc 'light <id> [on|off] [--hue=X] [--brightness=X] [--saturation=X]', 'Access or update a light'
     long_desc <<-LONGDESC
     Examples: \n
       hue light 1 on --hue 12345  \n
@@ -131,7 +131,7 @@ module Hue
       puts Terminal::Table.new(rows: rows, headings: headings)
     end
 
-    desc 'group [ID] [STATE] [COLOR] [NAME] [LIGHTS]', 'Update a group of lights'
+    desc 'group <id> [on|off] [--hue=X] [--brightness=X] [--saturation=X] [--name=X] [--lights=X,Y,Z...]', 'Update a group of lights'
     long_desc <<-LONGDESC
     Examples: \n
       hue group 1 on --hue 12345
@@ -169,7 +169,7 @@ module Hue
       puts group.set_state(body) if body.length > 0
     end
 
-    desc 'name ID NAME', 'Update the name of a light'
+    desc 'name <id> <name>', 'Update the name of a light'
     long_desc <<-LONGDESC
     Examples: \n
       hue name 1 "My Light"
@@ -206,7 +206,7 @@ module Hue
       end
     end
 
-    desc 'destroy_group ID', 'Destroy a group'
+    desc 'destroy_group <id>', 'Destroy a group'
     long_desc <<-LONGDESC
     Examples: \n
       hue destroy_group 1
