@@ -6,7 +6,7 @@ module Hue
     def bridges
       # TODO: Extended output form that includes proxy_address, proxy_port,
       # TODO: known_clients, network_mask, gateway, dhcp, etc...
-      headings = ["ID", "Name", "IP", "MAC", "API Version", "Software Version", "Update Info"]
+      headings = ["ID", "Name", "IP", "MAC", "Channel", "API Version", "Software Version", "Update Info"]
       rows = client(options).bridges.each_with_object([]) do |bridge, r|
         bridge.refresh
         r << [
@@ -14,6 +14,7 @@ module Hue
           bridge.name,
           bridge.ip,
           bridge.mac_address,
+          bridge.zigbee_channel,
           bridge.api_version,
           bridge.software_version,
           (bridge.software_update["text"] rescue nil)
