@@ -182,7 +182,7 @@ module Hue
       light.name = name if name != light.name
     end
 
-    desc 'create_group NAME [LIGHTS]', 'Create a new group'
+    desc 'create_group <name> <id> [<id>...]', 'Create a new group'
     long_desc <<-LONGDESC
     Examples: \n
       hue create_group "My Group" 1 2 3 4
