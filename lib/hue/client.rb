@@ -1,6 +1,5 @@
 require 'net/http'
 require 'json'
-require 'curb'
 
 module Hue
   class Client
@@ -51,10 +50,7 @@ module Hue
           puts "INFO: SSDP failed, trying N-UPnP..."
           # UPnP failed, lets use N-UPnP
           bs = []
-          easy = Curl::Easy.new
-          easy.url = 'https://www.meethue.com/api/nupnp'
-          easy.perform
-          JSON(easy.body).each do |hash|
+          JSON(Net::HTTP.get(URI.parse('https://www.meethue.com/api/nupnp'))).each do |hash|
             # Normalize our interface a bit...
             hash["ipaddress"] = hash.delete("internalipaddress")
             # The N-UPnP interface delivers an ID which is essentially the MAC
