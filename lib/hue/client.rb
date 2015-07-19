@@ -132,7 +132,7 @@ module Hue
 
     def get_error(error)
       # Find error class and return instance
-      klass = Hue::ERROR_MAP[error['type']] || UnknownError unless klass
+      klass = Hue::ERROR_MAP[error['type']] || UnknownError
       klass.new(error['description'])
     end
   end
