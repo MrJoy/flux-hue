@@ -124,7 +124,7 @@ module Hue
         r << [
           group.id,
           group.name,
-          group.lights.map { |light| light.id.to_i }.sort.join(", "),
+          group.lights.map { |light| light.id.to_i }.sort.join("\n"),
           group.lights.map { |light| light.name }.sort.join("\n"),
         ]
       end
