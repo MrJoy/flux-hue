@@ -76,9 +76,9 @@ module Hue
       end
     end
 
-    def lights
-      bridge.lights
-    end
+    def lights; bridge.lights; end
+    def groups; bridge.groups; end
+    def scenes; bridge.scenes; end
 
     def add_lights
       bridge.add_lights
@@ -89,19 +89,12 @@ module Hue
       lights.select { |l| l.id == id }.first
     end
 
-    def groups
-      bridge.groups
-    end
 
     def group(id = nil)
       return Group.new(self, bridge) if id.nil?
 
       id = id.to_s
       groups.select { |g| g.id == id }.first
-    end
-
-    def scenes
-      bridge.scenes
     end
 
     def scene(id)
@@ -111,42 +104,36 @@ module Hue
 
   private
 
-  def validate_user
-    response = JSON(Net::HTTP.get(URI.parse("http://#{bridge.ip}/api/#{@username}")))
+    def validate_user
+      response  = JSON(Net::HTTP.get(URI.parse("http://#{bridge.ip}/api/#{@username}")))
+      response  = response.first if response.is_a? Array
+      error     = response['error']
 
-    if response.is_a? Array
-      response = response.first
+      raise get_error(error) if error
+
+      response['success']
     end
 
-    if error = response['error']
-      raise get_error(error)
+    def register_user
+      body = JSON.dump({
+        devicetype: 'Ruby',
+        username: @username
+      })
+
+      uri       = URI.parse("http://#{bridge.ip}/api")
+      http      = Net::HTTP.new(uri.host)
+      response  = JSON(http.request_post(uri.path, body).body).first
+      error     = response['error']
+
+      raise get_error(error) if error
+
+      response['success']
     end
 
-    response['success']
-  end
-
-  def register_user
-    body = JSON.dump({
-      devicetype: 'Ruby',
-      username: @username
-    })
-
-    uri = URI.parse("http://#{bridge.ip}/api")
-    http = Net::HTTP.new(uri.host)
-    response = JSON(http.request_post(uri.path, body).body).first
-
-    if error = response['error']
-      raise get_error(error)
+    def get_error(error)
+      # Find error class and return instance
+      klass = Hue::ERROR_MAP[error['type']] || UnknownError unless klass
+      klass.new(error['description'])
     end
-
-    response['success']
-  end
-
-  def get_error(error)
-    # Find error class and return instance
-    klass = Hue::ERROR_MAP[error['type']] || UnknownError unless klass
-    klass.new(error['description'])
-  end
-
   end
 end

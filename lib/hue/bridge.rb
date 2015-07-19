@@ -52,22 +52,11 @@ module Hue
     # An array of whitelisted (known) clients.
     attr_reader :known_clients
 
-    # This indicates whether the bridge is registered to synchronize data with a
-    # portal account.
-    def portal_services?
-      json = get_configuration
-      json['portalservices']
-    end
-
-    def portal_connection
-      json = get_configuration
-      json['portalconnection']
-    end
-
-    def portal_state
-      json = get_configuration
-      json['portalstate']
-    end
+    # This indicates whether the bridge is registered to synchronize data with
+    # a portal account.
+    def portal_services?; get_configuration['portalservices']; end
+    def portal_connection; get_configuration['portalconnection']; end
+    def portal_state; get_configuration['portalstate']; end
 
     def initialize(client, hash)
       @client = client
@@ -75,15 +64,9 @@ module Hue
     end
 
     # Current time stored on the bridge.
-    def utc
-      json = get_configuration
-      DateTime.parse(json['utc'])
-    end
+    def utc; DateTime.parse(get_configuration['utc']); end
 
-    def refresh
-      json = get_configuration
-      unpack(json)
-    end
+    def refresh; unpack(get_configuration); end
 
     def lights
       @lights ||= begin
