@@ -55,7 +55,7 @@ module Hue
           light.hue,
           light.saturation,
           light.brightness,
-          [light.x, light.y].compact.join(", "),
+          [light.x, light.y].compact.map { |n| "%0.4f" % n }.join(", "),
           light.color_temperature,
           light.alert,
           light.effect,
