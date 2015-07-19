@@ -185,18 +185,16 @@ module Hue
     desc 'create_group NAME [LIGHTS]', 'Create a new group'
     long_desc <<-LONGDESC
     Examples: \n
-      hue create_group "My Group" --lights "1, 2, 3, 4"
+      hue create_group "My Group" 1 2 3 4
     LONGDESC
     shared_options
-    method_option :lights, :type => :string
-    def create_group(name)
+    def create_group(name, *lights)
       # TODO: Ensure name doesn't collide.
-      all_options   = options.dup
       client_ref    = client(options)
       group         = client_ref.group
 
       group.name    = name
-      group.lights  = lights_from(all_options)
+      group.lights  = Array(lights).map { |light| light.strip.to_i }.sort
       result        = group.create!
 
       if result.is_a?(Fixnum)
