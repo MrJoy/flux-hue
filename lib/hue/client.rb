@@ -1,10 +1,6 @@
 require 'net/http'
 require 'json'
-require 'playful/ssdp'
 require 'curb'
-
-# Playful is super verbose
-Playful.log = false
 
 module Hue
   class Client
@@ -45,6 +41,10 @@ module Hue
     def bridges
       @bridges ||= begin
         puts "INFO: Trying SSDP search..."
+        require 'playful/ssdp' unless defined?(Playful)
+        # Playful is super verbose
+        Playful.log = false
+
         devices = Playful::SSDP.search 'IpBridge'
 
         if devices.count == 0
