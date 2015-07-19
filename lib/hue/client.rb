@@ -105,7 +105,7 @@ module Hue
   private
 
     def validate_user
-      response  = JSON(Net::HTTP.get(URI.parse("http://#{bridge.ip}/api/#{@username}")))
+      response  = JSON(Net::HTTP.get(URI.parse("#{api_url}/#{@username}")))
       response  = response.first if response.is_a? Array
       error     = response['error']
 
@@ -120,7 +120,7 @@ module Hue
         username: @username
       })
 
-      uri       = URI.parse("http://#{bridge.ip}/api")
+      uri       = URI.parse(api_url)
       http      = Net::HTTP.new(uri.host)
       response  = JSON(http.request_post(uri.path, body).body).first
       error     = response['error']
@@ -135,5 +135,7 @@ module Hue
       klass = Hue::ERROR_MAP[error['type']] || UnknownError
       klass.new(error['description'])
     end
+
+    def api_url; "http://#{bridge.ip}/api"; end
   end
 end
