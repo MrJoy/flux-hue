@@ -16,12 +16,21 @@ EASY_OPTIONS    = { timeout:          10.0,
                     follow_location:  false,
                     max_redirects:    0 }
 THREAD_COUNT    = 3
+
 ITERATIONS      = 3
+
 SPREAD_SLEEP    = 0 # 0.007
 TOTAL_SLEEP     = 0 # 0.1
 FIXED_SLEEP     = 0 # 0.03
 VARIABLE_SLEEP  = TOTAL_SLEEP - FIXED_SLEEP
+
+###############################################################################
+# Effect
+#
+# Tweak this to change the visual effect.
+###############################################################################
 TRANSITION_TIME = 0.0 # In seconds, 1/10th second precision!
+def random_hue; rand(16) * 4096; end
 
 ###############################################################################
 # System Configuration
@@ -36,13 +45,7 @@ LIGHTS          = env_lights || %w(1 2 6 7 8 9 10 11 12 13 14 15 17 18 19 20 21
                                    22 23 26 27 28 30 33 34 35 36 37)
 
 ###############################################################################
-# Effect
-#
-# Tweak this to change the visual effect.
-###############################################################################
-def random_hue; rand(16) * 4096; end
-
-###############################################################################
+# Helper Functions
 ###############################################################################
 def hue_server; "http://#{BRIDGE_IP}"; end
 def hue_base; "#{hue_server}/api/#{USERNAME}"; end
@@ -65,6 +68,9 @@ rescue Exception => e
   puts "\t#{e.backtrace.join("\n\t")}"
 end
 
+###############################################################################
+# Main
+###############################################################################
 puts "Mucking with #{LIGHTS.length} lights..."
 
 lights_for_threads = (1..THREAD_COUNT).map { [] }
