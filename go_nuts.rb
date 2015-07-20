@@ -73,16 +73,18 @@ def random_hue(light_id)
   HUE_ACCRUAL[light_id]   = tmp
 end
 
-# POSITIONS = env_int("POSITIONS") || 16
-# def random_hue(_light_id); rand(POSITIONS) * (65536/POSITIONS); end
+HUE_POSITIONS = env_int("HUE_POSITIONS") || 16
+BRI_POSITIONS = env_int("HUE_POSITIONS") || 8
+def random_hue(_light_id); rand(HUE_POSITIONS) * (65536/HUE_POSITIONS); end
+def random_bri(_light_id); rand(BRI_POSITIONS) * (256/BRI_POSITIONS); end
 
-def random_hue(_light_id)
-  @hue_accrual ||= 0
-  tmp           = (@hue_accrual ||= 0)
-  tmp          += ((rand(16) * 32) + 128)
-  tmp          -= 65_535 if tmp >= 65_535
-  @hue_accrual  = tmp
-end
+# def random_hue(_light_id)
+#   @hue_accrual ||= 0
+#   tmp           = (@hue_accrual ||= 0)
+#   tmp          += ((rand(16) * 32) + 128)
+#   tmp          -= 65_535 if tmp >= 65_535
+#   @hue_accrual  = tmp
+# end
 
 ###############################################################################
 # System Configuration
@@ -102,9 +104,14 @@ SKIP_GC = !!env_int("SKIP_GC")
 ###############################################################################
 BRIDGE_IP         = ENV["HUE_BRIDGE_IP"]
 USERNAME          = ENV["HUE_BRIDGE_USERNAME"] || DEFAULT_USERNAME
-env_lights        = (ENV["LIGHTS"] || "").split(/[\s,]+/)
-env_lights        = nil if env_lights.length == 0
-LIGHTS            = (env_lights || DEFAULT_LIGHTS).map(&:to_i)
+# env_lights        = (ENV["LIGHTS"] || "").split(/[\s,]+/)
+# env_lights        = nil if env_lights.length == 0
+# LIGHTS            = (env_lights || DEFAULT_LIGHTS).map(&:to_i)
+
+COLOR_LIGHTS      = %w(15 18 19 27).map(&:to_i)
+DIMMABLE_LIGHTS   = %w(32).map(&:to_i)
+LIGHTS            = COLOR_LIGHTS + DIMMABLE_LIGHTS
+IS_COLOR          = Hash[COLOR_LIGHTS.map { |n| [n.to_i, true] }]
 
 ###############################################################################
 # Helper Functions
@@ -127,11 +134,15 @@ def hue_base; "#{hue_server}/api/#{USERNAME}"; end
 def hue_endpoint(light_id); "#{hue_base}/lights/#{light_id}/state"; end
 
 def hue_request(light_id, hue, transition)
-  data = { "hue"            => hue,
-           "transitiontime" => (transition * 10.0).round(0) }
-  req = { method:           :put,
-          url:              hue_endpoint(light_id),
-          put_data:         Oj.dump(data) }
+  if IS_COLOR.key?(light_id)
+    data  = { "hue"            => random_hue(light_id) }
+  else
+    data  = { "bri"            => random_bri(light_id) }
+  end
+  data    = data.merge("transitiontime" => (transition * 10.0).round(0))
+  req     = { method:           :put,
+              url:              hue_endpoint(light_id),
+              put_data:         Oj.dump(data) }
   req.merge(EASY_OPTIONS)
 end
 
