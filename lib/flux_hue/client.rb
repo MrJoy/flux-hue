@@ -84,7 +84,10 @@ module FluxHue
 
     def url; "#{@bridge.url}/#{username}"; end
 
-    def refresh!; unpack(fetch_configuration); end
+    def refresh!
+      unpack(fetch_configuration)
+      self
+    end
 
   private
 

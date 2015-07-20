@@ -127,7 +127,10 @@ module FluxHue
     end
 
     # Refresh the state of the light.
-    def refresh!; unpack(client.agent.get(url)); end
+    def refresh!
+      unpack(client.agent.get(url))
+      self
+    end
 
     # Is the light off?
     def off?; !@state["on"]; end

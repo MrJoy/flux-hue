@@ -102,7 +102,10 @@ module FluxHue
       agent.put("#{url}/action", translate_keys(attributes, STATE_KEYS_MAP))
     end
 
-    def refresh; unpack(JSON(Net::HTTP.get(URI.parse(url)))); end
+    def refresh!
+      unpack(client.agent.get(url))
+      self
+    end
 
     def create!
       response  = client.agent.post(collection_url,

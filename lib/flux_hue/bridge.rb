@@ -18,7 +18,10 @@ module FluxHue
       unpack(hash)
     end
 
-    def refresh!; unpack(fetch_configuration); end
+    def refresh!
+      unpack(fetch_configuration)
+      self
+    end
 
     def register_user!(username)
       # TODO: Better devicetype value, and allow customizing it!
