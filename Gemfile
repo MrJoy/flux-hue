@@ -8,3 +8,4 @@ gemspec
 
 gem "rake"
 gem "rubocop"
+gem "bundler-audit"

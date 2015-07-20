@@ -47,7 +47,7 @@ namespace :lint do
   if have_cloc
     desc "Show LOC metrics for project using cloc."
     task :cloc do
-      sh "cloc . --exclude-dir=notes,secrets,coverage,.bundle,tmp"
+      sh "cloc . --exclude-dir=etc,reference,.bundle,tmp"
     end
   end
 
