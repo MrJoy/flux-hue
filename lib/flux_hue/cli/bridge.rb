@@ -6,15 +6,11 @@ module FluxHue
                      :network_mask, :gateway, :dhcp, :portal_connection,
                      :portal_state, :api_version, :software_version,
                      :software_update_summary
+      boolean :dhcp?, :portal_services?, :portal_connection?, :link_button?
 
       def proxy
         [@entity.proxy_address, @entity.proxy_port].compact.join(":")
       end
-
-      def dhcp?; from_boolean(@entity.dhcp?); end
-      def portal_services?; from_boolean(@entity.portal_services?); end
-      def portal_connection?; from_boolean(@entity.portal_connection?); end
-      def link_button?; from_boolean(@entity.link_button?); end
     end
 
     # CLI functionality for managing bridges.

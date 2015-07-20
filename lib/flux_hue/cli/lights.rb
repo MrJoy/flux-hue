@@ -2,16 +2,14 @@ module FluxHue
   module CLI
     # Helper to cleanse and format data from a Light for display.
     class LightPresenter < Presenter
-      def initialize(light); @light = light; end
-      def_delegators :@light, :id, :type, :model, :name, :color_mode, :hue,
+      def_delegators :@entity, :id, :type, :model, :name, :color_mode, :hue,
                      :saturation, :brightness, :color_temperature, :alert,
                      :effect, :software_version
 
-      def on?; from_boolean(@light.on?); end
-      def reachable?; from_boolean(@light.reachable?); end
+      boolean :on?, :reachable?
 
       def x_y
-        [@light.x, @light.y].compact.map { |n| "%0.4f" % n }.join(", ")
+        [@entity.x, @entity.y].compact.map { |n| "%0.4f" % n }.join(", ")
       end
     end
 
@@ -65,14 +63,13 @@ module FluxHue
       LONGDESC
       shared_nameable_light_options
       def set(*ids)
-        lights                    = selected_lights!(ids)
+        lights            = selected_lights!(ids)
 
-        name, body                = extract_changes(options)
+        body, name        = extract_changes(options)
+        ch_st, ch_na      = detect_changes!(lights, body, name)
 
-        change_state, change_name = detect_changes!(lights, body, name)
-
-        lights.each { |light| puts light.apply_state(body) } if change_state
-        lights.first.name         = name if change_name
+        lights.each { |light| puts light.apply_state(body) } if ch_st
+        lights.first.name = name if ch_na
       end
 
     private
@@ -86,19 +83,13 @@ module FluxHue
         [change_state, change_name]
       end
 
-      def extract_changes(options)
-        new_name  = options[:name]
-        body      = clean_body(options, state: options[:state])
-
-        [new_name, body]
-      end
+      def extract_changes(opts); [clean_body(opts), opts[:name]]; end
 
       def selected_lights!(ids)
         use_all = ids.find { |id| id.downcase == "all" }
-        lights  = client
-                  .lights
-                  .select { |light| use_all || ids.include?(light.id) }
-        fail UnknownLight unless lights.length > 0
+        lights  = client.lights
+        lights  = lights.select { |ll| ids.include?(ll.id) } unless use_all
+        fail UnknownLight unless use_all || lights.length == ids.length
         lights
       end
     end

@@ -9,6 +9,12 @@ module FluxHue
 
       def initialize(entity); @entity = entity; end
 
+      def self.boolean(*names)
+        Array(names).each do |name|
+          define_method(name) { from_boolean @entity.send(name) }
+        end
+      end
+
     private
 
       def from_boolean(value); value ? "Yes" : "No"; end
@@ -63,13 +69,7 @@ module FluxHue
         @client ||= FluxHue::Client.new(@bridge, username: options[:user])
       end
 
-      def parse_list(raw)
-        (raw || "")
-          .strip
-          .split(/[,\s]+/)
-          .map(&:to_i)
-      end
-
+      def parse_list(raw); (raw || "").strip.split(/[,\s]+/).map(&:to_i); end
       def extract_fields(ent, hsh); hsh.keys.map { |prop| ent.send(prop) }; end
       def pivot_row(rows, hsh); hsh.values.zip(rows.first); end
 
@@ -92,14 +92,12 @@ module FluxHue
         Terminal::Table.new(params)
       end
 
-      # TODO: Turn this into a whitelist instead of a blacklist.
-      NON_API_REQUEST_KEYS = %i(user ip lights name state)
-
-      def clean_body(options, state: nil)
+      def clean_body(options)
         body = options.dup
+        state = options[:state]
         # Remove keys that are for signalling our code and are unknown to the
         # bridge.
-        NON_API_REQUEST_KEYS.each do |key|
+        %i(user ip lights name state).each do |key|
           body.delete(key)
         end
         body[:on] = (state == "on" || state != "off") if state

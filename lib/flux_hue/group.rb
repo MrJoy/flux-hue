@@ -107,15 +107,12 @@ module FluxHue
       return if new?
 
       unpack_hash(@state, STATE_KEYS_MAP)
-      @light_ids = cleanse_lights(@light_ids)
-      @x, @y = @state["xy"]
+      @light_ids  = cleanse_lights(@light_ids)
+      @x, @y      = @state["xy"]
     end
 
-    def cleanse_lights(light_ids)
-      Array(light_ids)
-        .map { |ll| ll.is_a?(Light) ? ll.id : ll.to_i }
-        .sort
-        .uniq
+    def cleanse_lights(ids)
+      Array(ids).map { |ll| ll.is_a?(Light) ? ll.id : ll }.map(&:to_i).sort.uniq
     end
 
     def agent; client.agent; end

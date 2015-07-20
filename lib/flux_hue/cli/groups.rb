@@ -68,7 +68,7 @@ module FluxHue
         # TODO: Warn if the name is a poor choice for symbolic usage?
         group         = Group.new(client,
                                   name:   name,
-                                  lights: light_ids_from_group(lights))
+                                  lights: param_lights(lights))
 
         result        = group.create!
 
@@ -96,12 +96,12 @@ module FluxHue
         [
           options[:name],
           parse_lights(options[:lights]),
-          clean_body(options, state: options[:state]),
+          clean_body(options),
         ]
       end
 
       def detect_changes!(group, body, new_name, new_lights)
-        lights        = light_ids_from_group(group)
+        lights        = group.light_ids
         change_state  = body.length > 0
         change_name   = (new_name && new_name != group.name)
         change_lights = (lights && new_lights != lights)
@@ -111,26 +111,10 @@ module FluxHue
         [change_state, change_name, change_lights]
       end
 
-      def light_ids_from_params(lights)
-        Array(lights)
-          .map(&:strip)
-          .map(&:to_i)
-          .sort
-      end
-
-      def light_ids_from_group(group)
-        group
-          .lights
-          .map(&:id)
-          .map(&:to_i)
-          .sort
-      end
+      def param_lights(lights); Array(lights).map(&:to_i).sort.uniq; end
 
       def parse_lights(raw)
-        parse_list(raw)
-          .sort
-          .uniq
-          .reject { |n| n == 0 }
+        parse_list(raw).sort.uniq.reject { |n| n == 0 }
       end
     end
   end
