@@ -1,4 +1,7 @@
 #!/bin/bash
+IFS=$'\n\t'
+set -x
+
 mkdir -p tmp
 
 # TODO: Factor this in: http://steveyo.github.io/Hue-Emulator/
@@ -11,18 +14,18 @@ HUE_SKIP_NUPNP=1 HUE_SKIP_SSDP= HUE_BRIDGE_IP= bin/hue ${SUBCOMMAND} > tmp/${SUB
 HUE_SKIP_NUPNP= HUE_SKIP_SSDP=1 HUE_BRIDGE_IP= bin/hue ${SUBCOMMAND} > tmp/${SUBCOMMAND}_upnp.txt 2>&1
 RESULT=$(diff -u tmp/${SUBCOMMAND}_explicit_ip.txt tmp/${SUBCOMMAND}_ssdp.txt | grep -v -E '^(---|\+\+\+|@@| )')
 if [[ $RESULT != "+INFO: Discovering bridges via SSDP..." ]]; then
-  echo "FAIL: `hue ${SUBCOMMAND}` produced different results for explicit IP vs. SSDP."
+  echo "FAIL: \`hue ${SUBCOMMAND}\` produced different results for explicit IP vs. SSDP."
   ERRORS=$((ERRORS + 1))
 else
-  echo "PASS: `hue ${SUBCOMMAND}` Explicit IP and SSDP discovery are equivalent."
+  echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and SSDP discovery are equivalent."
 fi
 
 RESULT=$(diff -u tmp/${SUBCOMMAND}_explicit_ip.txt tmp/${SUBCOMMAND}_upnp.txt | grep -v -E '^(---|\+\+\+|@@| )')
 if [[ $RESULT != "+INFO: Discovering bridges via N-UPnP..." ]]; then
-  echo "FAIL: `hue ${SUBCOMMAND}` produced different results for explicit IP vs. N-UPnP."
+  echo "FAIL: \`hue ${SUBCOMMAND}\` produced different results for explicit IP vs. N-UPnP."
   ERRORS=$((ERRORS + 1))
 else
-  echo "PASS: `hue ${SUBCOMMAND}` Explicit IP and SSDP discovery are equivalent."
+  echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and SSDP discovery are equivalent."
 fi
 # Baseline:
 # +--------------+-----------+-------------+-------------------+-------------+------------------+
@@ -38,18 +41,18 @@ HUE_SKIP_NUPNP=1 HUE_SKIP_SSDP= HUE_BRIDGE_IP= bin/hue ${SUBCOMMAND} - > tmp/${S
 HUE_SKIP_NUPNP= HUE_SKIP_SSDP=1 HUE_BRIDGE_IP= bin/hue ${SUBCOMMAND} - > tmp/${SUBCOMMAND}_upnp.txt 2>&1
 RESULT=$(diff -u tmp/${SUBCOMMAND}_explicit_ip.txt tmp/${SUBCOMMAND}_ssdp.txt | grep -v -E '^(---|\+\+\+|@@| )')
 if [[ $RESULT != "+INFO: Discovering bridges via SSDP..." ]]; then
-  echo "FAIL: `hue ${SUBCOMMAND}` produced different results for explicit IP vs. SSDP."
+  echo "FAIL: \`hue ${SUBCOMMAND}\` produced different results for explicit IP vs. SSDP."
   ERRORS=$((ERRORS + 1))
 else
-  echo "PASS: `hue ${SUBCOMMAND}` Explicit IP and SSDP discovery are equivalent."
+  echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and SSDP discovery are equivalent."
 fi
 
 RESULT=$(diff -u tmp/${SUBCOMMAND}_explicit_ip.txt tmp/${SUBCOMMAND}_upnp.txt | grep -v -E '^(---|\+\+\+|@@| )')
 if [[ $RESULT != "+INFO: Discovering bridges via N-UPnP..." ]]; then
-  echo "FAIL: `hue ${SUBCOMMAND}` produced different results for explicit IP vs. N-UPnP."
+  echo "FAIL: \`hue ${SUBCOMMAND}\` produced different results for explicit IP vs. N-UPnP."
   ERRORS=$((ERRORS + 1))
 else
-  echo "PASS: `hue ${SUBCOMMAND}` Explicit IP and SSDP discovery are equivalent."
+  echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and SSDP discovery are equivalent."
 fi
 # Baseline:
 # +--------------+-------------+-------------------+-----------+---------+---------------+-------------+-------+---------------+------------+------------------+----------------------+--------------+-------------+------------------+------------------------+---------+
@@ -66,18 +69,18 @@ HUE_SKIP_NUPNP=1 HUE_SKIP_SSDP= HUE_BRIDGE_IP= bin/hue ${SUBCOMMAND} > tmp/${SUB
 HUE_SKIP_NUPNP= HUE_SKIP_SSDP=1 HUE_BRIDGE_IP= bin/hue ${SUBCOMMAND} > tmp/${SUBCOMMAND}_upnp.txt 2>&1
 RESULT=$(diff -u tmp/${SUBCOMMAND}_explicit_ip.txt tmp/${SUBCOMMAND}_ssdp.txt | grep -v -E '^(---|\+\+\+|@@| )')
 if [[ $RESULT != "+INFO: Discovering bridges via SSDP..." ]]; then
-  echo "FAIL: `hue ${SUBCOMMAND}` produced different results for explicit IP vs. SSDP."
+  echo "FAIL: \`hue ${SUBCOMMAND}\` produced different results for explicit IP vs. SSDP."
   ERRORS=$((ERRORS + 1))
 else
-  echo "PASS: `hue ${SUBCOMMAND}` Explicit IP and SSDP discovery are equivalent."
+  echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and SSDP discovery are equivalent."
 fi
 
 RESULT=$(diff -u tmp/${SUBCOMMAND}_explicit_ip.txt tmp/${SUBCOMMAND}_upnp.txt | grep -v -E '^(---|\+\+\+|@@| )')
 if [[ $RESULT != "+INFO: Discovering bridges via N-UPnP..." ]]; then
-  echo "FAIL: `hue ${SUBCOMMAND}` produced different results for explicit IP vs. N-UPnP."
+  echo "FAIL: \`hue ${SUBCOMMAND}\` produced different results for explicit IP vs. N-UPnP."
   ERRORS=$((ERRORS + 1))
 else
-  echo "PASS: `hue ${SUBCOMMAND}` Explicit IP and SSDP discovery are equivalent."
+  echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and SSDP discovery are equivalent."
 fi
 # Baseline:
 # +----+----------------------+--------+----------------------+--------+------+-------+------------+------------+----------------+------+---------+--------+------------------+------------+
