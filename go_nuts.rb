@@ -182,7 +182,7 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
 end
 
 sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
-GC.disable
+GC.disable if !!env_int("SKIP_GC")
 puts "Threads are ready to go, waking them up!"
 threads.each(&:wakeup).each(&:join)
 
