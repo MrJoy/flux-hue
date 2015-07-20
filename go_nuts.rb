@@ -157,10 +157,10 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
 
     Thread.stop
     guard_call(thread_idx) do
-      counter             = 0
+      counter = 0
       while counter < ITERATIONS
-        l_fail  = 0
-        l_succ = 0
+        l_fail    = 0
+        l_succ    = 0
         requests  = lights
                     .map { |lid| hue_request(lid, random_hue(lid), TRANSITION) }
                     .map { |req| req.merge(handlers) }
@@ -174,7 +174,7 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
           successes += l_succ
         end
 
-        counter  += 1
+        counter += 1
         sleep(FIXED_SLEEP + rand(VARIABLE_SLEEP)) unless TOTAL_SLEEP == 0
       end
     end
