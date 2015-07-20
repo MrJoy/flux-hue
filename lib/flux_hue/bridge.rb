@@ -1,18 +1,4 @@
 module FluxHue
-  # Functionality common to all bridge interfaces.
-  module BridgeShared
-    include TranslateKeys
-
-    def unpack(hash)
-      unpack_hash(hash, self.class::KEYS_MAP)
-      @id = @mac_address.gsub(/:/, "") if !@id && @mac_address
-    end
-
-    def fetch_configuration
-      JSON(Net::HTTP.get(URI.parse("#{url}/config")))
-    end
-  end
-
   # A `Bridge` represents a bridge, without a `username` for accessing
   # non-public or restricted functionality.  Very little can be done/accessed
   # without a `username`, but what there is is made available here.
@@ -24,25 +10,8 @@ module FluxHue
     # HTTP/REST agent.
     attr_reader :agent
 
-    # ID of the bridge.
-    attr_reader :id
-
-    # Name of the bridge. This is also its uPnP name, so will reflect the
-    # actual uPnP name after any conflicts have been resolved.
-    attr_reader :name
-
-    # MAC address of the bridge.
-    attr_reader :mac_address
-
-    # Which API version the bridge is serving, given its current firmware
-    # version.
-    attr_reader :api_version
-
-    # Software version of the bridge.
-    attr_reader :software_version
-
-    # IP address of the bridge.
-    attr_reader :ip
+    # Various properties from the bridge that can be accessed freely.
+    attr_reader :id, :name, :mac_address, :api_version, :software_version, :ip
 
     def initialize(agent, hash)
       @agent = agent
@@ -52,8 +21,6 @@ module FluxHue
     def refresh!; unpack(fetch_configuration); end
 
     def url; "http://#{ip}/api"; end
-
-    NUPNP_URL = "https://www.meethue.com/api/nupnp"
 
     KEYS_MAP = {
       id:               :id,
@@ -66,6 +33,9 @@ module FluxHue
     }
 
     class << self
+      include Discovery::SSDP
+      include Discovery::NUPnP
+
       def agent; @agent ||= HTTP.new; end
 
       # Find all bridges.
@@ -97,17 +67,9 @@ module FluxHue
 
       def find_by_ssdp
         return [] if ENV["HUE_SKIP_SSDP"] && ENV["HUE_SKIP_SSDP"] != ""
-        # TODO: Ensure we're *only* getting things we want here!  The Hue Bridge
-        # TODO: tends to be obnoxious and announce itself on *any* SSDP request,
-        # TODO: so we may encounter other obnoxious gear as well...
         puts "INFO: Discovering bridges via SSDP..."
 
-        setup_ssdp_lib!
-        bridges     = Playful::SSDP.search("IpBridge")
-                      .select { |resp| bridge_ssdp_response?(resp) }
-                      .map do |resp|
-                        Bridge.new(agent, extract_ssdp_response(resp))
-                      end
+        bridges = ssdp_scan!.map { |resp| Bridge.new(agent, resp) }
 
         filter_bridges(bridges)
       end
@@ -115,9 +77,8 @@ module FluxHue
       def find_by_nupnp
         return [] if ENV["HUE_SKIP_NUPNP"] && ENV["HUE_SKIP_NUPNP"] != ""
         puts "INFO: Discovering bridges via N-UPnP..."
-        bridges = agent.get(NUPNP_URL).map do |resp|
-          Bridge.new(agent, extract_nupnp_response(resp))
-        end
+
+        bridges = nupnp_scan!.map { |resp| Bridge.new(agent, resp) }
 
         filter_bridges(bridges)
       end
@@ -137,52 +98,6 @@ module FluxHue
           .uniq(&:ip)
           .uniq
       end
-
-      # Loads the Playful library for SSDP late to avoid slowing down the CLI
-      # needlessly when SSDP isn't needed.
-      def setup_ssdp_lib!
-        require "playful/ssdp" unless defined?(Playful)
-        Playful.log = false # Playful is super verbose
-      end
-
-      # Ensure we're *only* getting responses from a Philips Hue bridge.  The
-      # Hue Bridge tends to be obnoxious and announce itself on *any* SSDP
-      # SSDP request, so we assume that we may encounter other obnoxious gear
-      # as well...
-      def bridge_ssdp_response?(resp)
-        (resp[:server] || "")
-          .split(/[,\s]+/)
-          .find { |token| token =~ %r{\AIpBridge/\d+(\.\d+)*\z} }
-      end
-
-      def extract_ssdp_response(resp)
-        {
-          "id"        => ssdp_usn_to_id(resp[:usn]),
-          "name"      => resp[:st],
-          "ipaddress" => URI.parse(resp[:location]).host,
-        }
-      end
-
-      def extract_nupnp_response(resp)
-        resp              = resp.dup
-        # Normalize our interface a bit...
-        resp["ipaddress"] = resp.delete("internalipaddress")
-        # The N-UPnP interface delivers an ID which is (apparently) the MAC
-        # address, with two bytes injected in the middle.  To keep IDs sane
-        # regardless of where we got them (NUPnP vs. SSDP), we just reduce it
-        # to the MAC address.
-        resp["id"]        = nupnp_id_to_id(resp["id"])
-        resp
-      end
-
-      def nupnp_id_to_id(raw_id)
-        raw_id ? raw_id[0..5] + raw_id[10..15] : nil
-      end
-
-      # TODO: With all the hassle around ID and the fact that I'm essentially
-      # TODO: coercing it down to just MAC address....  Just use the damned IP
-      # TODO: or MAC!
-      def ssdp_usn_to_id(usn); usn.split(/:/, 3)[1].split(/-/).last; end
     end
   end
 end

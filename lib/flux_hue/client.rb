@@ -22,62 +22,25 @@ module FluxHue
     # the `Bridge`, force a redundant refresh of it, or force the user to do
     # so.
     Bridge::KEYS_MAP.keys.each do |prop|
-      define_method prop do
-        instance_variable_get(:"@#{prop}") || @bridge.send(prop)
+      define_method(prop) do
+        instance_variable_get("@#{prop}") || @bridge.send(prop)
       end
     end
 
-    # The username registered with the bridge that we'll connect as.
-    attr_reader :username
+    # HTTP/REST agent.
+    def agent; @bridge.agent; end
 
-    # The Zigbee channel the bridge is using as of when `refresh! was last
-    # called.
-    attr_reader :zigbee_channel
-
-    # Contains information related to software updates as of when `refresh! was
-    # last called.
-    attr_reader :software_update
+    # Various properties from the bridge that require a registered `username`
+    # to read.
+    attr_reader :username, :zigbee_channel, :software_update, :network_mask,
+                :gateway, :dhcp, :known_clients, :portal_connection,
+                :portal_state
 
     def software_update_summary; (software_update || {})["text"]; end
-
-    # Indicates whether the link button had been pressed within the 30 seconds
-    # prior to when `refresh! was last called.
     def link_button?; @link_button; end
-
-    # Network mask of the bridge as of when `refresh! was last called.
-    attr_reader :network_mask
-
-    # Gateway IP address of the bridge as of when `refresh! was last called.
-    attr_reader :gateway
-
-    # Whether the IP address of the bridge is obtained with DHCP as of when
-    # `refresh! was last called.
-    attr_reader :dhcp
-
-    # IP Address of the proxy server being used as of when `refresh! was last
-    # called.
     def proxy_address; @proxy_address == "none" ? nil : @proxy_address; end
-
-    # Port of the proxy being used by the bridge as of when `refresh! was last
-    # called.
     def proxy_port; @proxy_port == 0 ? nil : @proxy_port; end
-
-    # An array of whitelisted (known) clients as of when `refresh! was last
-    # called.
-    attr_reader :known_clients
-
-    # This indicates whether the bridge was registered to synchronize data with
-    # a portal account as of when `refresh! was last called.
     def portal_services?; @portal_services; end
-
-    # Whether or not the bridge was connected to the Philips portal as of when
-    # `refresh! was last called.
-    attr_reader :portal_connection
-
-    # The state of the Philips portal as of when `refresh! was last called.
-    attr_reader :portal_state
-
-    # Current time stored on the bridge.
     def utc; DateTime.parse(fetch_configuration["utc"]); end
 
     def initialize(bridge, username: nil)
@@ -95,17 +58,20 @@ module FluxHue
     end
 
     def lights
-      @lights ||= JSON(Net::HTTP.get(URI.parse(url)))["lights"]
+      @lights ||= agent
+                  .get(url)["lights"]
                   .map { |id, dd| Light.new(client: self, id: id, data: dd) }
     end
 
     def groups
-      @groups ||= JSON(Net::HTTP.get(URI.parse("#{url}/groups")))
+      @groups ||= agent
+                  .get("#{url}/groups")
                   .map { |id, dd| Group.new(client: self, id: id, data: dd) }
     end
 
     def scenes
-      @scenes ||= JSON(Net::HTTP.get(URI.parse("#{url}/scenes")))
+      @scenes ||= agent
+                  .get("#{url}/scenes")
                   .map { |id, dd| Scene.new(client: self, id: id, data: dd) }
     end
 
