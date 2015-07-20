@@ -10,7 +10,7 @@ require "oj"
 #
 # Play with this to see how error rates are affected.
 ###############################################################################
-THREAD_COUNT    = 4
+THREAD_COUNT    = 16
 ITERATIONS      = 20
 SPREAD_SLEEP    = 0.007
 TOTAL_SLEEP     = 0.1
@@ -97,8 +97,8 @@ threads = (1..THREAD_COUNT).map do |thread_idx|
                         # end
                         curl.on_success { |_easy| successes += 1 }
                         curl.on_failure do |easy|
-                          puts "ERROR for light ##{req[:light_id]} on"\
-                            " thread ##{thread_idx}: #{easy.inspect}"
+                          # puts "ERROR for light ##{req[:light_id]} on"\
+                          #   " thread ##{thread_idx}: #{easy.inspect}"
                           failures += 1
                         end
                       end
