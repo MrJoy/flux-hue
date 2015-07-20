@@ -6,10 +6,7 @@ module FluxHue
   # in order to DRY things up, centralize response handling, and prepare for
   # a more streamlined approach to interacting with the bridge.
   class HTTP
-    def get(url)
-      JSON(Net::HTTP.get(URI.parse(url)))
-    end
-
+    def get(url); JSON(Net::HTTP.get(URI.parse(url))); end
     def post(url, data); perform(:request_post, url, data); end
     def put(url, data); perform(:request_put, url, data); end
 
