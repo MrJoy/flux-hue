@@ -1,6 +1,19 @@
 #!/usr/bin/env ruby
 # https://github.com/taf2/curb/tree/master/bench
 
+# TODO: Play with fibers using the more involved `Curl::Multi` interface that
+# TODO: gives us an idle callback.
+#   f = Fiber.new do
+#     meth(1) do
+#       Fiber.yield
+#     end
+#   end
+#   meth(2) do
+#     f.resume
+#   end
+#   f.resume
+#   p Thread.current[:name]
+
 ###############################################################################
 # Early Initialization/Helpers
 ###############################################################################
