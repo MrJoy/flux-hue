@@ -19,7 +19,9 @@ EASY_OPTIONS    = { timeout:          5,
                     max_redirects:    0 }
 THREAD_COUNT    = 1
 
-ITERATIONS      = 20
+env_iters       = ENV["ITERATIONS"].to_i
+env_iters       = nil if env_iters == 0
+ITERATIONS      = env_iters || 20
 
 SPREAD_SLEEP    = 0 # 0.007
 TOTAL_SLEEP     = 0 # 0.1
@@ -64,6 +66,7 @@ def hue_request(light_id, hue, transition)
   req.merge(EASY_OPTIONS)
 end
 
+# rubocop:disable Lint/RescueException
 def guard_call(thread_idx, &block)
   block.call
 rescue Exception => e
@@ -71,6 +74,7 @@ rescue Exception => e
   puts "\t#{e.message}"
   puts "\t#{e.backtrace.join("\n\t")}"
 end
+# rubocop:enable Lint/RescueException
 
 def in_groups(entities, num_groups)
   groups = (1..num_groups).map { [] }
@@ -105,8 +109,10 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
 
     # TODO: Get timing stats, figure out if timeouts are in ms or sec, capture
     # TODO: info about failure causes, etc.
+    # rubocop:disable Style/Semicolon
     handlers  = { on_failure: ->(*_) { l_fail += 1; printf "*" },
                   on_success: ->(*_) { l_succ += 1; printf "." unless SILENT } }
+    # rubocop:enable Style/Semicolon
 
     Thread.stop
     guard_call(thread_idx) do
