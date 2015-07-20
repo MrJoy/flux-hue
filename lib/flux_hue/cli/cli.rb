@@ -35,35 +35,27 @@ module FluxHue
            "Manipulate a group of lights"
       long_desc <<-LONGDESC
       Examples:\n
-        hue group 1 on --hue 12345\n
+        hue group 1 --state on --hue 12345\n
         hue group 1 --bri 25\n
         hue group 1 --name "My Group"\n
         hue group 1 --alert lselect\n
         hue group 1 --lights "1, 2, 3"\n
-        hue group 1 off\n
+        hue group 1 --state off\n
       LONGDESC
       shared_nameable_light_options
       method_option :lights, type: :string
-      def group(id, state = nil)
-        group         = client.group(id)
-        lights        = group
-                        .lights
-                        .map(&:id)
-                        .map(&:to_i)
-                        .sort
+      def group(id)
+        group               = client.group(id)
 
-        new_name      = options[:name]
-        new_lights    = parse_lights(options[:lights])
-        body          = clean_body(options, state: state)
+        new_name            = options[:name]
+        new_lights          = parse_lights(options[:lights])
+        body                = clean_body(options, state: options[:state])
 
-        change_state  = body.length > 0
-        change_name   = (new_name && new_name != group.name)
-        change_lights = (lights && new_lights != lights)
-        fail NothingToDo unless change_state || change_name || change_lights
+        ch_st, ch_na, ch_li = detect_changes!(group, body, new_name, new_lights)
 
-        puts group.apply_state(body) if change_state
-        group.name    = new_name if change_name
-        group.lights  = lights if change_lights
+        puts group.apply_state(body) if ch_st
+        group.name          = new_name if ch_na
+        group.lights        = new_lights if ch_li
       end
 
       desc "create_group <name> <id> [<id>...]", "Create a new group"
@@ -110,6 +102,25 @@ module FluxHue
       end
 
     private
+
+      def detect_changes!(group, body, new_name, new_lights)
+        lights        = light_ids_from_group(group)
+        change_state  = body.length > 0
+        change_name   = (new_name && new_name != group.name)
+        change_lights = (lights && new_lights != lights)
+
+        fail NothingToDo unless change_state || change_name || change_lights
+
+        [change_state, change_name, change_lights]
+      end
+
+      def light_ids_from_group(group)
+        group
+          .lights
+          .map(&:id)
+          .map(&:to_i)
+          .sort
+      end
 
       def parse_lights(raw)
         parse_list(raw)

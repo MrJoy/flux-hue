@@ -59,7 +59,7 @@ module FluxHue
       # TODO: getting a fair bit more, if possible.  See if we can be
       # TODO: more courteous upstream, and barring that, be more selective
       # TODO: about when to do a refresh here.
-      refresh
+      refresh!
     end
 
     def lights
