@@ -53,12 +53,12 @@ When you've discovered the IP(s) of your bridge(s) you can tell the `hue` comman
 
 ### Commandline
 
-#### Information About Bridges: `hue bridges`
+#### Information About Bridges: `hue bridges discover`
 
 Discover and show information about all bridges on the network.  The information is limited to that which can be found without a registered username on the bridge.
 
 ```bash
-hue bridges
+hue bridges discover
 ```
 
 Example output:
@@ -72,23 +72,37 @@ INFO: Discovering bridges via SSDP...
 +--------------+-----------+-------------+-------------------+-------------+------------------+
 ```
 
-#### Information About Bridges: `hue bridge`
+#### Information About Bridges: `hue bridges inspect`
 
-Discover and show information about a specific bridge on the network, with which you've registered a username.  This provides more detail than `hue bridges`.
+Discover and show information about the selected bridge on the network, with which you've registered a username.  Use `--ip` to select a bridge explicitly.  This provides more detail than `hue bridges discover`.
 
 ```bash
-hue bridge <id>
+hue bridges inspect
 ```
 
 Example output:
 
 ```
 INFO: Discovering bridges via SSDP...
-+--------------+-----------+-------------+-------------------+---------+-------------+------------------+------------------------+-----------------+
-| ID           | Name      | IP          | MAC               | Channel | API Version | Software Version | Update Info            | Button Pressed? |
-+--------------+-----------+-------------+-------------------+---------+-------------+------------------+------------------------+-----------------+
-| 0017881226f3 | Bridge-01 | 192.168.2.8 | 00:17:88:12:26:f3 | 25      | 1.7.0       | 01023599         | HUE0100 lamp 66013452  | false           |
-+--------------+-----------+-------------+-------------------+---------+-------------+------------------+------------------------+-----------------+
++----------------------+------------------------+
+| ID                   | 0017881226f3           |
+| IP                   | 192.168.2.8            |
+| MAC                  | 00:17:88:12:26:f3      |
+| Name                 | Bridge-01              |
+| Channel              | 25                     |
+| Net Mask             | 255.255.255.0          |
+| Gateway              | 192.168.2.1            |
+| DHCP?                | true                   |
+| Proxy Address        |                        |
+| Proxy Port           |                        |
+| Portal Services?     | true                   |
+| Connected to Portal? | connected              |
+| Portal State         |                        |
+| API Version          | 1.7.0                  |
+| Software Version     | 01023599               |
+| Update Info          | HUE0100 lamp 66013452  |
+| Button?              |                        |
++----------------------+------------------------+
 ```
 
 #### Information About Groups: `hue groups`

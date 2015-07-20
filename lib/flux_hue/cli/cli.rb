@@ -7,86 +7,8 @@ module FluxHue
   module CLI
     # CLI interface to library functionality, via Thor.
     class CLI < Base
-      BRIDGES_FIELDS = {
-        "ID"                => :id,
-        "Name"              => :name,
-        "IP"                => :ip,
-        "MAC"               => :mac_address,
-        "API Version"       => :api_version,
-        "Software Version"  => :software_version,
-      }
-
-      desc "bridges", "Find all the bridges on your network"
-      shared_bridge_options
-      def bridges
-        # TODO: Extended output form that includes proxy_address, proxy_port,
-        # TODO: known_clients, network_mask, gateway, dhcp, etc...
-        bridges = Bridge.all(ip: options[:ip], force_discovery: true)
-        rows    = bridges.each_with_object([]) do |br, r|
-          # TODO: Make this happen on-demand when accessing a property that
-          # TODO: isn't populated yet.
-          br.refresh!
-          r << BRIDGES_FIELDS.values.map { |prop| br.send(prop) }
-        end
-        puts Terminal::Table.new(rows: rows, headings: BRIDGES_FIELDS.keys)
-      end
-
-      # TODO: Coalesce proxy_address and proxy_port, but filter magic `none`
-      # TODO: value...
-      BRIDGE_FIELDS = {
-        "ID"                    => :id,
-        "IP"                    => :ip,
-        "MAC"                   => :mac_address,
-
-        "Name"                  => :name,
-        "Channel"               => :zigbee_channel,
-        "Net Mask"              => :network_mask,
-        "Gateway"               => :gateway,
-        "DHCP?"                 => :dhcp,
-        "Proxy Address"         => :proxy_address,
-        "Proxy Port"            => :proxy_port,
-
-        "Portal Services?"      => :portal_services?,
-        "Connected to Portal?"  => :portal_connection,
-        "Portal State"          => :portal_state,
-
-        "API Version"           => :api_version,
-        "Software Version"      => :software_version,
-        "Update Info"           => :software_update_summary,
-
-        "Button?"               => :link_button?,
-      }
-
-      desc "bridge <id> [--ip=<bridge IP>]",
-           "Show information about a particular bridge on your network."
-      long_desc <<-LONGDESC
-        If <id> is '-', then the first discovered bridge will be used.  This is
-          most useful in conjunction with --ip or HUE_BRIDGE_IP.\n
-        Examples:\n
-          hue bridge 0017881226f3\n
-          hue bridge -\n
-      LONGDESC
-      shared_bridge_options
-      def bridge(id)
-        cleansed_id = id.upcase
-        # TODO: Command to get known_clients, etc...
-        bridges = Bridge.all(ip: options[:ip])
-        if id == "-"
-          chosen_bridge = bridges.first
-        else
-          # TODO: Make Bridge cleanse ID!
-          chosen_bridge = bridges.find { |br| br.id.upcase == cleansed_id }
-        end
-
-        fail UnknownBridge unless chosen_bridge
-
-        # TODO: Make this happen on-demand when accessing a property that isn't
-        # TODO: populated yet, or after setting the client!
-        client.refresh!
-        rows = [BRIDGE_FIELDS.values.map { |prop| client.send(prop) }]
-
-        puts Terminal::Table.new(rows: rows, headings: BRIDGE_FIELDS.keys)
-      end
+      # register(class_name, subcommand_alias, usage_list_string, description_string)
+      register(Bridge, "bridges", "bridges", "Discover/work with bridges")
 
       LIGHT_FIELDS = [
         "ID",
@@ -315,15 +237,6 @@ module FluxHue
         end
         body[:on] = (state == "on" || state != "off") if state
         body
-      end
-
-      def client
-        @bridge ||= begin
-          tmp = Bridge.all(ip: options[:ip]).first
-          fail UnknownBridge unless tmp
-          tmp
-        end
-        @client ||= Client.new(@bridge, username: options[:user])
       end
     end
   end

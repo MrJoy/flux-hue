@@ -41,6 +41,14 @@ module FluxHue
         shared_light_options
         method_option :name, type: :string
       end
+
+    protected
+
+      def client
+        @bridge ||= FluxHue::Bridge.all(ip: options[:ip]).first
+        fail UnknownBridge unless @bridge
+        @client ||= FluxHue::Client.new(@bridge, username: options[:user])
+      end
     end
   end
 end
