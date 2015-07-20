@@ -68,17 +68,14 @@ module FluxHue
     end
 
     def light(id)
-      id = id.to_s
       lights.find { |l| l.id == id }
     end
 
     def group(id)
-      id = id.to_s
       groups.find { |g| g.id == id }
     end
 
     def scene(id)
-      id = id.to_s
       scenes.find { |s| s.id == id }
     end
 
@@ -94,7 +91,7 @@ module FluxHue
     def fetch_entities(collection_url, entity_class)
       agent
         .get(collection_url)
-        .map { |id, dd| entity_class.new(client: self, id: id, data: dd) }
+        .map { |id, dd| entity_class.new(client: self, id: id.to_i, data: dd) }
     end
 
     NAME_RANGE      = 10..40
