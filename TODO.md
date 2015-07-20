@@ -5,7 +5,6 @@
 * Scheduling
 * Effects
 * User management
-* Configuration
 * Make a class to represent XY color and normalize how the attribute is handled in EditableState.
 * More robust color tools, starting from: https://github.com/sshao/hue
 * Use an HTTP lib that allows us to use keepalives, if the bridge supports it.
@@ -19,14 +18,13 @@
     * Need to prohibit duplicate names, and warn if we see duplicates!
 * Explicit username is deprecated.  Allow bridge to assign us one, report it to the user, and pick it up from an env var / config file / something.
 * Push more functionality from CLI into API for simplicity of usage...
-* Add a mode to allow the bridge to assign the user ID, since explicit IDs are deprecated!
 * Add commands to look at sensors.  Maybe have a way to wait on particular sensors?
 * Add commands to manipulate bridge configuration.
 * Add configuration file mechanism to associate user IDs with each encountered bridge.
 * Add options for machine-readable output to all commands.
 * At present, there exists some code for scenes, but it's not exposed in the CLI.
 * Automatic retries+backoffs and parameters for controlling this behavior, because OHGODRATELIMITS.
-* Check the docs for further constraints on user.
+* Check the docs for further constraints on username / name.
 * Expose color mode / color temperature / X+Y parameters to CLI.
 * Is there a way we can tell the bridge to address all lights in a single API request?  Because OHGODRATELIMITS!
 * Link to Philips documentation about color spaces and give a tl;dr about the complexity of the topic.
