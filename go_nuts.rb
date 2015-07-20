@@ -136,6 +136,7 @@ end
 
 sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
 GC.disable
+puts "Threads are ready to go, waking them up!"
 threads.each(&:wakeup).each(&:join)
 
 requests  = successes + failures
