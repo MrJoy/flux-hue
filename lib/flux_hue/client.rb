@@ -1,6 +1,4 @@
 require "date"
-require "net/http"
-require "json"
 
 module FluxHue
   # A `Client` represents a bridge, with a `username` for accessing non-public

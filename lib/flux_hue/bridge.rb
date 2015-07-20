@@ -21,6 +21,9 @@ module FluxHue
   class Bridge
     include BridgeShared
 
+    # HTTP/REST agent.
+    attr_reader :agent
+
     # ID of the bridge.
     attr_reader :id
 
@@ -41,7 +44,8 @@ module FluxHue
     # IP address of the bridge.
     attr_reader :ip
 
-    def initialize(hash)
+    def initialize(agent, hash)
+      @agent = agent
       unpack(hash)
     end
 
@@ -62,6 +66,8 @@ module FluxHue
     }
 
     class << self
+      def agent; @agent ||= HTTP.new; end
+
       # Find all bridges.
       #
       # * If `ip` is specified, or `HUE_BRIDGE_IP` is set, a `Bridge` will be
@@ -73,7 +79,7 @@ module FluxHue
           eff_ip        = determine_effective_ip(ip)
 
           bridges       = []
-          bridges      += [Bridge.new("ipaddress" => eff_ip)] if eff_ip
+          bridges      += [Bridge.new(agent, "ipaddress" => eff_ip)] if eff_ip
           # TODO: Perhaps, given the use-case it supports, we want to do ALL
           # TODO: discovery searches when `force_discovery` is present?
           bridges      += find_by_discovery if !eff_ip || force_discovery
@@ -100,10 +106,7 @@ module FluxHue
         bridges     = Playful::SSDP.search("IpBridge")
                       .select { |resp| bridge_ssdp_response?(resp) }
                       .map do |resp|
-                        Bridge.new("id"        => usn_to_id(resp[:usn]),
-                                   "name"      => resp[:st],
-                                   "ipaddress" => URI.parse(resp[:location])
-                                                  .host)
+                        Bridge.new(agent, extract_ssdp_response(resp))
                       end
 
         filter_bridges(bridges)
@@ -112,25 +115,28 @@ module FluxHue
       def find_by_nupnp
         return [] if ENV["HUE_SKIP_NUPNP"] && ENV["HUE_SKIP_NUPNP"] != ""
         puts "INFO: Discovering bridges via N-UPnP..."
-        # UPnP failed, lets use N-UPnP
-        bridges = []
-        JSON(Net::HTTP.get(URI.parse(NUPNP_URL))).each do |hash|
-          # Normalize our interface a bit...
-          hash["ipaddress"] = hash.delete("internalipaddress")
-          # The N-UPnP interface delivers an ID which is (apparently) the MAC
-          # address, with two bytes injected in the middle.  To keep IDs sane
-          # regardless of where we got them (NUPnP vs. SSDP), we just reduce it
-          # to the MAC address.
-          raw_id      = hash["id"]
-          hash["id"]  = raw_id[0..5] + raw_id[10..15] if raw_id
-
-          bridges << Bridge.new(hash)
+        bridges = agent.get(NUPNP_URL).map do |resp|
+          Bridge.new(agent, extract_nupnp_response(resp))
         end
 
         filter_bridges(bridges)
       end
 
     private
+
+      def determine_effective_ip(explicit_ip)
+        ip_var        = ENV["HUE_BRIDGE_IP"]
+        have_ip_var   = ip_var && ip_var != ""
+
+        explicit_ip || (have_ip_var ? ip_var : nil)
+      end
+
+      def filter_bridges(bridges)
+        bridges
+          .sort { |a, b| a.ip <=> b.ip }
+          .uniq(&:ip)
+          .uniq
+      end
 
       # Loads the Playful library for SSDP late to avoid slowing down the CLI
       # needlessly when SSDP isn't needed.
@@ -149,24 +155,34 @@ module FluxHue
           .find { |token| token =~ %r{\AIpBridge/\d+(\.\d+)*\z} }
       end
 
-      def determine_effective_ip(explicit_ip)
-        ip_var        = ENV["HUE_BRIDGE_IP"]
-        have_ip_var   = ip_var && ip_var != ""
-
-        explicit_ip || (have_ip_var ? ip_var : nil)
+      def extract_ssdp_response(resp)
+        {
+          "id"        => ssdp_usn_to_id(resp[:usn]),
+          "name"      => resp[:st],
+          "ipaddress" => URI.parse(resp[:location]).host,
+        }
       end
 
-      def filter_bridges(bridges)
-        bridges
-          .sort { |a, b| a.ip <=> b.ip }
-          .uniq(&:ip)
-          .uniq
+      def extract_nupnp_response(resp)
+        resp              = resp.dup
+        # Normalize our interface a bit...
+        resp["ipaddress"] = resp.delete("internalipaddress")
+        # The N-UPnP interface delivers an ID which is (apparently) the MAC
+        # address, with two bytes injected in the middle.  To keep IDs sane
+        # regardless of where we got them (NUPnP vs. SSDP), we just reduce it
+        # to the MAC address.
+        resp["id"]        = nupnp_id_to_id(resp["id"])
+        resp
+      end
+
+      def nupnp_id_to_id(raw_id)
+        raw_id ? raw_id[0..5] + raw_id[10..15] : nil
       end
 
       # TODO: With all the hassle around ID and the fact that I'm essentially
       # TODO: coercing it down to just MAC address....  Just use the damned IP
       # TODO: or MAC!
-      def usn_to_id(usn); usn.split(/:/, 3)[1].split(/-/).last; end
+      def ssdp_usn_to_id(usn); usn.split(/:/, 3)[1].split(/-/).last; end
     end
   end
 end
