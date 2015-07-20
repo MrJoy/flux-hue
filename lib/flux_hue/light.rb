@@ -120,19 +120,14 @@ module FluxHue
     #   defaults to 4 (400ms). For example, setting transistiontime:10 will
     #   make the transition last 1 second.
     def apply_state(attributes, transition = nil)
-      body    = translate_keys(attributes, STATE_KEYS_MAP)
+      body                  = translate_keys(attributes, STATE_KEYS_MAP)
+      body[:transitiontime] = (transition * 10.0).to_i if transition
 
-      # Add transition
-      body.merge!(transitiontime: (transition * 10.0).to_i) if transition
-
-      uri   = URI.parse("#{url}/state")
-      http  = Net::HTTP.new(uri.host)
-
-      JSON(http.request_put(uri.path, JSON.dump(body)).body)
+      agent.put("#{url}/state", body)
     end
 
     # Refresh the state of the light.
-    def refresh!; unpack(JSON(Net::HTTP.get(URI.parse(url)))); end
+    def refresh!; unpack(agent.get(url)); end
 
     # Is the light off?
     def off?; !@state["on"]; end
