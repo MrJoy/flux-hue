@@ -102,7 +102,6 @@ module FluxHue
         bridges
           .sort_by(&:ip)
           .uniq(&:ip)
-          .uniq
       end
     end
   end
