@@ -16,6 +16,11 @@ def env_int(name)
   (tmp == 0) ? nil : tmp
 end
 
+def env_float(name)
+  tmp = ENV[name].to_f
+  (tmp == 0.0) ? nil : tmp
+end
+
 MULTI_OPTIONS   = { pipeline:         true,
                     max_connects:     (env_int("MAX_CONNECTS") || 6) }
 EASY_OPTIONS    = { timeout:          5,
@@ -33,26 +38,41 @@ TOTAL_SLEEP     = 0 # 0.1
 FIXED_SLEEP     = 0 # 0.03
 VARIABLE_SLEEP  = TOTAL_SLEEP - FIXED_SLEEP
 
-SILENT          = true
+VERBOSE         = env_int("VERBOSE")
 
 ###############################################################################
 # Effect
 #
 # Tweak this to change the visual effect.
 ###############################################################################
-TRANSITION = 0.0 # In seconds, 1/10th second precision!
-def random_hue(_light_id); rand(16) * 4096; end
+TRANSITION = env_float("TRANSITION") || 0.0 # In seconds, 1/10th second prec.!
+def random_hue(light_id)
+  ::HUE_ACCRUAL ||= []
+  tmp                     = (HUE_ACCRUAL[light_id] ||= 0)
+  tmp                    += ((rand(16) * 128) + 256)
+  tmp                    -= 65_535 if tmp >= 65_535
+  HUE_ACCRUAL[light_id]   = tmp
+end
+# HUE_ACCRUAL = []
+# POSITIONS = 16
+# def random_hue(_light_id); rand(POSITIONS) * (65536/POSITIONS); end
 
 ###############################################################################
 # System Configuration
 #
 # Set these according to the lights you have.
 ###############################################################################
-BRIDGE_IP       = ENV["HUE_BRIDGE_IP"]
-USERNAME        = ENV["HUE_BRIDGE_USERNAME"] || "1234567890" # Default for lib.
-env_lights      = ENV["LIGHTS"] ? ENV["LIGHTS"].split(/[\s,]+/).sort.uniq : []
-env_lights      = nil if env_lights.length == 0
-LIGHTS          = env_lights || %w(1 2 3 4 5 6 7 8 9 10)
+DEFAULT_USERNAME  = "1234567890" # Default for lib.
+DEFAULT_LIGHTS    = %w(1 2 3 4 5 6 7 8 9 10)
+
+###############################################################################
+# Bring together defaults and env vars, initialize things, etc...
+###############################################################################
+BRIDGE_IP         = ENV["HUE_BRIDGE_IP"]
+USERNAME          = ENV["HUE_BRIDGE_USERNAME"] || DEFAULT_USERNAME
+env_lights        = (ENV["LIGHTS"] || "").split(/[\s,]+/)
+env_lights        = nil if env_lights.length == 0
+LIGHTS            = (env_lights || DEFAULT_LIGHTS).map(&:to_i)
 
 ###############################################################################
 # Helper Functions
@@ -132,7 +152,7 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
     # TODO: info about failure causes, etc.
     # rubocop:disable Style/Semicolon
     handlers  = { on_failure: ->(*_) { l_fail += 1; printf "*" },
-                  on_success: ->(*_) { l_succ += 1; printf "." unless SILENT } }
+                  on_success: ->(*_) { l_succ += 1; printf "." if VERBOSE } }
     # rubocop:enable Style/Semicolon
 
     Thread.stop
