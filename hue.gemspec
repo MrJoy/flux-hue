@@ -6,11 +6,11 @@ require "hue/version"
 Gem::Specification.new do |spec|
   spec.name          = "hue"
   spec.version       = Hue::VERSION
-  spec.authors       = ["Sam Soffes"]
-  spec.email         = ["sam@soff.es"]
-  spec.description   = "Work with Philips Hue light bulbs."
-  spec.summary       = "Work with Philips Hue light bulbs from Ruby."
-  spec.homepage      = "https://github.com/soffes/hue"
+  spec.authors       = ["Jon Frisby", "Sam Soffes"]
+  spec.email         = ["jfrisby@mrjoy.com", "sam@soff.es"]
+  spec.description   = "Work with the Philips Hue system."
+  spec.summary       = "Work with the Philips Hue system from Ruby."
+  spec.homepage      = "https://github.com/MrJoy/hue"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($INPUT_RECORD_SEPARATOR)
