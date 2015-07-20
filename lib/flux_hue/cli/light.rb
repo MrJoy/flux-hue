@@ -56,7 +56,6 @@ module FluxHue
 
       desc "set <all|id ...> [shared options] [light options]",
            "Manipulate a light, or all lights, on your network"
-      shared_light_options
       long_desc <<-LONGDESC
       Examples:\n
         hue lights set all on --hue 12345\n
@@ -64,6 +63,7 @@ module FluxHue
         hue lights set all --alert lselect\n
         hue lights set 1 off\n
       LONGDESC
+      shared_nameable_light_options
       def set(*ids)
         all_lights  = ids.find { |id| id.downcase == "all" }
         lights      = client
@@ -72,7 +72,7 @@ module FluxHue
         fail UnknownLight unless lights.length > 0
 
         new_name      = options[:name]
-        body          = clean_body(options, state: state)
+        body          = clean_body(options, state: options[:state])
 
         change_state  = body.length > 0
         change_name   = (new_name && new_name != lights.first.name)

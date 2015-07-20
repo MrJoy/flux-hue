@@ -117,20 +117,6 @@ module FluxHue
           .uniq
           .reject { |n| n == 0 }
       end
-
-      # TODO: Turn this into a whitelist instead of a blacklist.
-      NON_API_REQUEST_KEYS = %i(user ip lights name)
-
-      def clean_body(options, state: nil)
-        body = options.dup
-        # Remove keys that are for signalling our code and are unknown to the
-        # bridge.
-        NON_API_REQUEST_KEYS.each do |key|
-          body.delete(key)
-        end
-        body[:on] = (state == "on" || state != "off") if state
-        body
-      end
     end
   end
 end

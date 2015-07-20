@@ -41,6 +41,7 @@ module FluxHue
 
       def self.shared_light_options
         shared_access_controlled_options
+        method_option :state,           type: :string
         method_option :hue,             type: :numeric
         method_option :sat,             type: :numeric, aliases: "--saturation"
         method_option :bri,             type: :numeric, aliases: "--brightness"
@@ -89,6 +90,20 @@ module FluxHue
         params[:headings] = hsh.values if hsh
 
         Terminal::Table.new(params)
+      end
+
+      # TODO: Turn this into a whitelist instead of a blacklist.
+      NON_API_REQUEST_KEYS = %i(user ip lights name state)
+
+      def clean_body(options, state: nil)
+        body = options.dup
+        # Remove keys that are for signalling our code and are unknown to the
+        # bridge.
+        NON_API_REQUEST_KEYS.each do |key|
+          body.delete(key)
+        end
+        body[:on] = (state == "on" || state != "off") if state
+        body
       end
     end
   end
