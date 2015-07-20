@@ -1,9 +1,14 @@
+require "forwardable"
 require "thor"
 
 module FluxHue
   module CLI
     # Base class for classes to help cleanse and format data for display.
     class Presenter
+      extend Forwardable
+
+      def initialize(entity); @entity = entity; end
+
     private
 
       def from_boolean(value); value ? "Yes" : "No"; end

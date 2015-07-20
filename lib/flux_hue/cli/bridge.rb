@@ -2,21 +2,19 @@ module FluxHue
   module CLI
     # Helper to cleanse and format data from a Bridge/Client for display.
     class BridgePresenter < Presenter
-      extend Forwardable
-      def initialize(bridge); @bridge = bridge; end
-      def_delegators :@bridge, :id, :ip, :mac_address, :name, :zigbee_channel,
+      def_delegators :@entity, :id, :ip, :mac_address, :name, :zigbee_channel,
                      :network_mask, :gateway, :dhcp, :portal_connection,
                      :portal_state, :api_version, :software_version,
                      :software_update_summary
 
       def proxy
-        [@bridge.proxy_address, @bridge.proxy_port].compact.join(":")
+        [@entity.proxy_address, @entity.proxy_port].compact.join(":")
       end
 
-      def dhcp?; from_boolean(@bridge.dhcp?); end
-      def portal_services?; from_boolean(@bridge.portal_services?); end
-      def portal_connection?; from_boolean(@bridge.portal_connection?); end
-      def link_button?; from_boolean(@bridge.link_button?); end
+      def dhcp?; from_boolean(@entity.dhcp?); end
+      def portal_services?; from_boolean(@entity.portal_services?); end
+      def portal_connection?; from_boolean(@entity.portal_connection?); end
+      def link_button?; from_boolean(@entity.link_button?); end
     end
 
     # CLI functionality for managing bridges.

@@ -3,8 +3,6 @@
 # TODO: Failure handling for setting names/lights.
 require "terminal-table"
 
-require "forwardable"
-
 module FluxHue
   module CLI
     # Helper to cleanse and format data from a Light for display.
