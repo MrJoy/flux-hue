@@ -64,7 +64,7 @@ module FluxHue
 
     # TODO: Add support for specifying serial numbers.
     def add_lights
-      agent.post("#{@client.url}/lights", nil).first
+      agent.post("#{url}/lights", nil).first
     end
 
     def light(id)
