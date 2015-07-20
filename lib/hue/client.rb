@@ -3,6 +3,9 @@ require "net/http"
 require "json"
 
 module Hue
+  # A `Client` represents a bridge, with a `username` for accessing non-public
+  # or restricted functionality.  In most cases, this is what you want, as
+  # very little is possible on the bridge without a `username`.
   class Client
     # By default we just use a made up username when talking to the client.
     # For simple cases where you only have one bridge (and aren't using
@@ -75,9 +78,7 @@ module Hue
     attr_reader :portal_state
 
     # Current time stored on the bridge.
-    def utc; DateTime.parse(get_configuration["utc"]); end
-
-    def refresh!; unpack(get_configuration); end
+    def utc; DateTime.parse(fetch_configuration["utc"]); end
 
     def initialize(bridge, username: nil)
       effective_username  = determine_effective_username(username)
@@ -94,24 +95,18 @@ module Hue
     end
 
     def lights
-      @lights ||= begin
-        json = JSON(Net::HTTP.get(URI.parse(url)))
-        json["lights"].map { |id, data| Light.new(client: self, id: id, data: data) }
-      end
+      @lights ||= JSON(Net::HTTP.get(URI.parse(url)))["lights"]
+                  .map { |id, dd| Light.new(client: self, id: id, data: dd) }
     end
 
     def groups
-      @groups ||= begin
-        json = JSON(Net::HTTP.get(URI.parse("#{url}/groups")))
-        json.map { |id, data| Group.new(client: self, id: id, data: data) }
-      end
+      @groups ||= JSON(Net::HTTP.get(URI.parse("#{url}/groups")))
+                  .map { |id, dd| Group.new(client: self, id: id, data: dd) }
     end
 
     def scenes
-      @scenes ||= begin
-        json = JSON(Net::HTTP.get(URI.parse("#{url}/scenes")))
-        json.map { |id, data| Scene.new(client: self, id: id, data: data) }
-      end
+      @scenes ||= JSON(Net::HTTP.get(URI.parse("#{url}/scenes")))
+                  .map { |id, dd| Scene.new(client: self, id: id, data: dd) }
     end
 
     # TODO: Add support for specifying serial numbers.
@@ -139,7 +134,7 @@ module Hue
 
     def url; "#{@bridge.url}/#{username}"; end
 
-    def refresh!; unpack(get_configuration); end
+    def refresh!; unpack(fetch_configuration); end
 
   private
 
@@ -217,7 +212,7 @@ module Hue
       @id = @mac_address.gsub(/:/, "") if !@id && @mac_address
     end
 
-    def get_configuration
+    def fetch_configuration
       JSON(Net::HTTP.get(URI.parse("#{url}/config")))
     end
   end

@@ -1,12 +1,9 @@
 require "thor"
 
 module Hue
-  class CliBase < Thor
-    class InvalidUsage < Thor::Error
-      # def initialize(msg); @msg = msg; end
-      # def to_s; "ERROR: #{self.class.to_s.split(/::/).last}: #{@msg}"; end
-      # def backtrace; end
-    end
+  # Shared functionality used in multiple places in the CLI class.
+  class CLIBase < Thor
+    class InvalidUsage < Thor::Error; end
     class NothingToDo < InvalidUsage; end
     class UnknownBridge < InvalidUsage; end
     class UnknownLight < InvalidUsage; end

@@ -1,26 +1,38 @@
-RSpec.describe Hue::Light do
+# Helper to ensure a clean execution environment during tests without
+# destroying env vars the developer explicitly set.
+module EnvStash
   # Don't let our tests go wonky because someone forget to unset some env vars.
   OVERRIDE_VARS = %w(HUE_BRIDGE_IP HUE_BRIDGE_USER HUE_SKIP_SSDP HUE_SKIP_NUPNP)
-  # rubocop:disable Metrics/LineLength
-  def stash_overrides!(&block)
-    stash = {}
-    begin
-      OVERRIDE_VARS.each do |key|
-        next unless ENV.key?(key)
-        stash[key] = ENV[key]
-        ENV.delete(key)
-      end
-      block.call
-    ensure
-      stash.each do |key, value|
-        ENV[key] = value
-      end
+
+  def self.stash_overrides!(&block)
+    stash = yank_keys!(OVERRIDE_VARS)
+    block.call
+  ensure
+    stash.each do |key, value|
+      puts "Restoring: #{key} to #{value}..."
+      ENV[key] = value
     end
   end
 
+protected
+
+  def self.yank_keys!(keys)
+    stash = {}
+    keys.each do |key|
+      next unless ENV.key?(key)
+      stash[key] = ENV[key]
+      ENV.delete(key)
+    end
+    stash
+  end
+end
+
+RSpec.describe Hue::Light do
+  # rubocop:disable Metrics/LineLength
+
   %w(on hue saturation brightness color_temperature alert effect).each do |attribute|
     around do |test|
-      stash_overrides!(&test)
+      EnvStash.stash_overrides!(&test)
     end
 
     before do

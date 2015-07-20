@@ -1,4 +1,9 @@
 module Hue
+  # A `Bridge` represents a bridge, without a `username` for accessing
+  # non-public or restricted functionality.  Very little can be done/accessed
+  # without a `username`, but what there is is made available here.
+  #
+  # Principally, this includes bridge discovery
   class Bridge
     # ID of the bridge.
     attr_reader :id
@@ -24,7 +29,7 @@ module Hue
       unpack(hash)
     end
 
-    def refresh!; unpack(get_configuration); end
+    def refresh!; unpack(fetch_configuration); end
 
     def url; "http://#{ip}/api"; end
 
@@ -36,13 +41,13 @@ module Hue
     #   addition to* using the explicit IP.
     def self.all(ip: nil, force_discovery: false)
       @all ||= begin
-        effective_ip  = determine_effective_ip(ip)
+        eff_ip        = determine_effective_ip(ip)
 
         bridges       = []
-        bridges      << Bridge.new("ipaddress" => effective_ip) if effective_ip
+        bridges      += [Bridge.new("ipaddress" => eff_ip)] if eff_ip
         # TODO: Perhaps, given the use-case it supports, we want to do ALL
         # TODO: discovery searches when `force_discovery` is present?
-        bridges      += find_by_discovery if bridges.length == 0 || force_discovery
+        bridges      += find_by_discovery if !eff_ip || force_discovery
 
         filter_bridges(bridges)
       end
@@ -62,19 +67,9 @@ module Hue
       # TODO: so we may encounter other obnoxious gear as well...
       puts "INFO: Discovering bridges via SSDP..."
 
-      # Loading this late to avoid slowing down the CLI needlessly.
-      require "playful/ssdp" unless defined?(Playful)
-      Playful.log = false # Playful is super verbose
+      setup_ssdp_lib!
       bridges     = Playful::SSDP.search("IpBridge")
-                    .select do |resp|
-                      # Ensure we're *only* getting things we want here!  The
-                      # Hue Bridge tends to be obnoxious and announce itself on
-                      # *any* SSDP request, so we may encounter other obnoxious
-                      # gear as well...
-                      (resp[:server] || "")
-                        .split(/[,\s]+/)
-                        .find { |token| token =~ %r{\AIpBridge/\d+(\.\d+)*\z} }
-                    end
+                    .select { |resp| bridge_ssdp_response?(resp) }
                     .map do |resp|
                       Bridge.new("id"        => usn_to_id(resp[:usn]),
                                  "name"      => resp[:st],
@@ -84,12 +79,14 @@ module Hue
       filter_bridges(bridges)
     end
 
+    NUPNP_URL = "https://www.meethue.com/api/nupnp"
+
     def self.find_by_nupnp
       return [] if ENV["HUE_SKIP_NUPNP"] && ENV["HUE_SKIP_NUPNP"] != ""
       puts "INFO: Discovering bridges via N-UPnP..."
       # UPnP failed, lets use N-UPnP
       bridges = []
-      JSON(Net::HTTP.get(URI.parse("https://www.meethue.com/api/nupnp"))).each do |hash|
+      JSON(Net::HTTP.get(URI.parse(NUPNP_URL))).each do |hash|
         # Normalize our interface a bit...
         hash["ipaddress"] = hash.delete("internalipaddress")
         # The N-UPnP interface delivers an ID which is (apparently) the MAC
@@ -116,6 +113,23 @@ module Hue
     }
 
   private
+
+    # Loads the Playful library for SSDP late to avoid slowing down the CLI
+    # needlessly when SSDP isn't needed.
+    def setup_ssdp_lib!
+      require "playful/ssdp" unless defined?(Playful)
+      Playful.log = false # Playful is super verbose
+    end
+
+    # Ensure we're *only* getting responses from a Philips Hue bridge.  The
+    # Hue Bridge tends to be obnoxious and announce itself on *any* SSDP
+    # SSDP request, so we assume that we may encounter other obnoxious gear
+    # as well...
+    def self.bridge_ssdp_response?(resp)
+      (resp[:server] || "")
+        .split(/[,\s]+/)
+        .find { |token| token =~ %r{\AIpBridge/\d+(\.\d+)*\z} }
+    end
 
     def self.determine_effective_ip(explicit_ip)
       ip_var        = ENV["HUE_BRIDGE_IP"]
@@ -145,6 +159,8 @@ module Hue
       @id = @mac_address.gsub(/:/, "") if !@id && @mac_address
     end
 
-    def get_configuration; JSON(Net::HTTP.get(URI.parse("#{url}/config"))); end
+    def fetch_configuration
+      JSON(Net::HTTP.get(URI.parse("#{url}/config")))
+    end
   end
 end

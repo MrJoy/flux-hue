@@ -1,13 +1,14 @@
 module Hue
+  # Helpers for working with hash-based payloads from the Hue bridge.
   module TranslateKeys
     def translate_keys(hash, map)
-      new_hash = {}
-      hash.each do |key, value|
-        new_key = map[key.to_sym]
-        key = new_key if new_key
-        new_hash[key] = value
-      end
-      new_hash
+      tmp = hash
+            .map do |key, value|
+              new_key = map[key.to_sym]
+              key = new_key if new_key
+              [key, value]
+            end
+      Hash[tmp]
     end
 
     def unpack_hash(hash, map)

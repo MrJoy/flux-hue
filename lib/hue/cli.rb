@@ -1,11 +1,11 @@
-require "terminal-table"
-
 # TODO: Normalize output, error handling, etc.
 
 # TODO: Failure handling for setting names/lights.
+require "terminal-table"
+
 module Hue
-  # TODO: `Cli` is an acronym, treat it as such.
-  class Cli < CliBase
+  # CLI interface to library functionality, via Thor.
+  class CLI < CLIBase
     BRIDGES_FIELDS = {
       "ID"                => :id,
       "Name"              => :name,
@@ -56,7 +56,8 @@ module Hue
       "Button?"               => :link_button?,
     }
 
-    desc "bridge <id> [--ip=<bridge IP>]", "Show information about a particular bridge on your network."
+    desc "bridge <id> [--ip=<bridge IP>]",
+         "Show information about a particular bridge on your network."
     long_desc <<-LONGDESC
       If <id> is '-', then the first discovered bridge will be used.  This is
         most useful in conjunction with --ip or HUE_BRIDGE_IP.\n
@@ -207,7 +208,8 @@ module Hue
       puts Terminal::Table.new(rows: rows, headings: GROUP_FIELDS)
     end
 
-    desc "group <id> [shared options] [light options]", "Manipulate a group of lights"
+    desc "group <id> [shared options] [light options]",
+         "Manipulate a group of lights"
     long_desc <<-LONGDESC
     Examples:\n
       hue group 1 on --hue 12345\n
@@ -279,7 +281,7 @@ module Hue
 
       result  = group.destroy!
 
-      fail InvalidUsage, result.inspect unless result === true
+      fail InvalidUsage, result.inspect unless result == true
 
       puts "SUCCESS: Destroyed group ##{id}."
     end

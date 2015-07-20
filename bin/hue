@@ -6,4 +6,4 @@ require "hue"
 require "hue/cli_base"
 require "hue/cli"
 
-Hue::Cli.start
+Hue::CLI.start
