@@ -6,6 +6,8 @@ source "https://rubygems.org"
 
 gemspec
 
+gem "curb"
+
 group :development do
   gem "rake",           require: false
   gem "rubocop",        require: false
