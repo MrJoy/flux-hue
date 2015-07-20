@@ -25,8 +25,8 @@ bundle
 <!--
 Or install it yourself as:
 
-``` shell
-$ gem install flux-hue
+```bash
+gem install flux-hue
 ```
 -->
 
