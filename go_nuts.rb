@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# https://github.com/taf2/curb/tree/master/bench
 require "rubygems"
 require "bundler/setup"
 Bundler.setup
