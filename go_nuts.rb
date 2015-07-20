@@ -1,16 +1,15 @@
 #!/usr/bin/env ruby
 # https://github.com/taf2/curb/tree/master/bench
+
+###############################################################################
+# Early Initialization/Helpers
+###############################################################################
 require "rubygems"
 require "bundler/setup"
 Bundler.setup
 require "curb"
 require "oj"
 
-###############################################################################
-# Timing Configuration
-#
-# Play with this to see how error rates are affected.
-###############################################################################
 def env_int(name)
   tmp = ENV[name].to_i
   (tmp == 0) ? nil : tmp
@@ -20,6 +19,12 @@ def env_float(name)
   tmp = ENV[name].to_f
   (tmp == 0.0) ? nil : tmp
 end
+
+###############################################################################
+# Timing Configuration
+#
+# Play with this to see how error rates are affected.
+###############################################################################
 
 MULTI_OPTIONS   = { pipeline:         true,
                     max_connects:     (env_int("MAX_CONNECTS") || 6) }
@@ -64,6 +69,11 @@ end
 ###############################################################################
 DEFAULT_USERNAME  = "1234567890" # Default for lib.
 DEFAULT_LIGHTS    = %w(1 2 3 4 5 6 7 8 9 10)
+
+###############################################################################
+# Other Configuration
+###############################################################################
+SKIP_GC = !!env_int("SKIP_GC")
 
 ###############################################################################
 # Bring together defaults and env vars, initialize things, etc...
@@ -182,7 +192,10 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
 end
 
 sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
-GC.disable if !!env_int("SKIP_GC")
+if SKIP_GC
+  puts "Disabling garbage collection!  BE CAREFUL!"
+  GC.disable
+end
 puts "Threads are ready to go, waking them up!"
 threads.each(&:wakeup).each(&:join)
 
