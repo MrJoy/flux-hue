@@ -102,7 +102,8 @@ module FluxHue
                       .map do |resp|
                         Bridge.new("id"        => usn_to_id(resp[:usn]),
                                    "name"      => resp[:st],
-                                   "ipaddress" => URI.parse(resp[:location]).host)
+                                   "ipaddress" => URI.parse(resp[:location])
+                                                  .host)
                       end
 
         filter_bridges(bridges)

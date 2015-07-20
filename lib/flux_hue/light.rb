@@ -119,7 +119,7 @@ module FluxHue
     #   state to the new state. This is given as a multiple of 100ms and
     #   defaults to 4 (400ms). For example, setting transistiontime:10 will
     #   make the transition last 1 second.
-    def set_state(attributes, transition = nil)
+    def apply_state(attributes, transition = nil)
       body    = translate_keys(attributes, STATE_KEYS_MAP)
 
       # Add transition

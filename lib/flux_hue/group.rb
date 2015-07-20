@@ -71,26 +71,26 @@ module FluxHue
     end
 
     def name=(name)
-      @name = set_group_state(name: name)[0]["success"]["/groups/#{id}/name"]
+      @name = apply_group_state(name: name)[0]["success"]["/groups/#{id}/name"]
     end
 
     def lights=(light_ids)
       @light_ids  = cleanse_lights(light_ids)
       @lights     = nil # resets the memoization
 
-      set_group_state(lights: @light_ids)
+      apply_group_state(lights: @light_ids)
     end
 
     def scene=(scene)
-      set_group_state(scene: scene.is_a?(Scene) ? scene.id : scene)
+      apply_group_state(scene: scene.is_a?(Scene) ? scene.id : scene)
     end
 
     def <<(light_id)
       @light_ids << light_id
-      set_group_state(lights: @light_ids)
+      apply_group_state(lights: @light_ids)
     end
 
-    def set_group_state(attributes)
+    def apply_group_state(attributes)
       return if new?
 
       body  = translate_keys(attributes, GROUP_KEYS_MAP)
@@ -100,7 +100,7 @@ module FluxHue
       JSON(http.request_put(uri.path, JSON.dump(body)).body)
     end
 
-    def set_state(attributes)
+    def apply_state(attributes)
       return if new?
       body = translate_keys(attributes, STATE_KEYS_MAP)
 

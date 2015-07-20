@@ -300,11 +300,11 @@ light.hue = 46920
 light.color_temperature = 100
 
 # To change multiple parameters in a single API request:
-light.set_state({ hue: 46920, brightness: 255 })
+light.apply_state({ hue: 46920, brightness: 255 })
 
 # To change one or more parameters over a specified interval (default is 0.4
 # seconds -- note that Hue transition times are clamped to 1/10th of a second):
-light.set_state({ hue: 46920, brightness: 255 }, 5.0)
+light.apply_state({ hue: 46920, brightness: 255 }, 5.0)
 ```
 
 #### Groups
@@ -324,7 +324,7 @@ end
 group.hue = rand(FluxHue::Light::HUE_RANGE)
 
 # And just like with lights you can make multiple changes in a single request:
-group.set_state(hue: rand(FluxHue::Light::HUE_RANGE), brightness: 255)
+group.apply_state(hue: rand(FluxHue::Light::HUE_RANGE), brightness: 255)
 
 # Creating groups
 group         = Group.new(client)

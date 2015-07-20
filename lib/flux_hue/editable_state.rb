@@ -18,13 +18,13 @@ module FluxHue
                                 alert effect)
     LIGHT_STATE_PROPERTIES.each do |key|
       define_method "#{key}=".to_sym do |value|
-        set_state(key.to_sym => value)
+        apply_state(key.to_sym => value)
         instance_variable_set(:"@#{key}", value)
       end
     end
 
     def set_xy(x, y)
-      set_state(xy: [x, y])
+      apply_state(xy: [x, y])
       @x = x
       @y = y
     end

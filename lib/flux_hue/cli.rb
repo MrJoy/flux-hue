@@ -161,7 +161,7 @@ module FluxHue
       fail NothingToDo unless change_state
 
       client.lights.each do |light|
-        puts light.set_state(body)
+        puts light.apply_state(body)
       end
     end
 
@@ -185,7 +185,7 @@ module FluxHue
       change_name   = (new_name && new_name != light.name)
       fail NothingToDo unless change_state || change_name
 
-      puts light.set_state(body) if change_state
+      puts light.apply_state(body) if change_state
       light.name = new_name if change_name
     end
 
@@ -238,7 +238,7 @@ module FluxHue
       change_lights = (lights && new_lights != lights)
       fail NothingToDo unless change_state || change_name || change_lights
 
-      puts group.set_state(body) if change_state
+      puts group.apply_state(body) if change_state
       group.name    = new_name if change_name
       group.lights  = lights if change_lights
     end

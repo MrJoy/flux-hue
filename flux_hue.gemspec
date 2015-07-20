@@ -28,9 +28,11 @@ Gem::Specification.new do |spec|
   spec.homepage       = "https://github.com/MrJoy/hue"
   spec.license        = "MIT"
 
+  # rubocop:disable Style/MultilineOperationIndentation
   spec.files          = `git ls-files`
                         .split($INPUT_RECORD_SEPARATOR)
                         .reject { |f| f =~ DEV_STUFF }
+  # rubocop:enable Style/MultilineOperationIndentation
   spec.executables    = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files     = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths  = ["lib"]
