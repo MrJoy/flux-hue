@@ -315,16 +315,13 @@ module Hue
       body
     end
 
-    def bridge
+    def client
       @bridge ||= begin
         tmp = Bridge.all(ip: options[:ip]).first
         raise UnknownBridge unless tmp
         tmp
       end
-    end
-
-    def client
-      @client ||= Hue::Client.new(bridge, username: options[:user])
+      @client ||= Hue::Client.new(@bridge, username: options[:user])
     end
   end
 end
