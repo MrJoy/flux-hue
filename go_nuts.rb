@@ -16,13 +16,6 @@ def env_int(name)
   (tmp == 0) ? nil : tmp
 end
 
-def validate_max_sockets!(max_connects, threads)
-  total_conns = max_connects * threads
-  return if total_conns <= 6
-  fail "No more than 6 connections are allowed by the hub at once!  You asked"\
-    " for #{total_conns}!"
-end
-
 MULTI_OPTIONS   = { pipeline:         true,
                     max_connects:     (env_int("MAX_CONNECTS") || 6) }
 EASY_OPTIONS    = { timeout:          5,
@@ -65,6 +58,19 @@ LIGHTS          = env_lights || %w(1 2 6 7 8 9 10 11 12 13 14 15 17 18 19 20 21
 ###############################################################################
 # Helper Functions
 ###############################################################################
+def validate_counts!(lights, threads)
+  return if threads <= lights
+
+  fail "Must have at least one light for every thread you want!"
+end
+
+def validate_max_sockets!(max_connects, threads)
+  total_conns = max_connects * threads
+  return if total_conns <= 6
+  fail "No more than 6 connections are allowed by the hub at once!  You asked"\
+    " for #{total_conns}!"
+end
+
 def hue_server; "http://#{BRIDGE_IP}"; end
 def hue_base; "#{hue_server}/api/#{USERNAME}"; end
 def hue_endpoint(light_id); "#{hue_base}/lights/#{light_id}/state"; end
@@ -104,6 +110,7 @@ end
 # Main
 ###############################################################################
 validate_max_sockets!(MULTI_OPTIONS[:max_connects], THREAD_COUNT)
+validate_counts!(LIGHTS.length, THREAD_COUNT)
 
 puts "Mucking with #{LIGHTS.length} lights, across #{THREAD_COUNT} threads for"\
   " #{ITERATIONS} iterations (requests == #{LIGHTS.length * ITERATIONS})."
