@@ -1,15 +1,10 @@
-require 'bundler/gem_tasks'
+require "bundler/gem_tasks"
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
-begin
-  require 'rspec/core/rake_task'
-  RSpec::Core::RakeTask.new(:spec)
-
-  task :default => :spec
-rescue LoadError
-  # no rspec available
-end
+require "rspec/core/rake_task"
+RSpec::Core::RakeTask.new(:spec)
+task default: :spec
 
 # Define a task named `name` that runs all tasks under an identically
 # named `namespace`.

@@ -1,4 +1,6 @@
 module Hue
+  # Models a group of lights in the Hue system, providing means of
+  # applying changes to multiple lights at once.
   class Group
     include Enumerable
     include TranslateKeys
@@ -70,7 +72,7 @@ module Hue
     end
 
     def name=(name)
-      @name = set_group_state(name: name)[0]['success']["/groups/#{id}/name"]
+      @name = set_group_state(name: name)[0]["success"]["/groups/#{id}/name"]
     end
 
     def lights=(light_ids)
@@ -121,8 +123,8 @@ module Hue
       http      = Net::HTTP.new(uri.host)
       response  = http.request_post(uri.path, JSON.dump(body))
       json      = JSON(response.body)
-      success   = json.find { |resp| resp.has_key?('success') }
-      @id       = success['success']['id'].to_i if success
+      success   = json.find { |resp| resp.key?("success") }
+      @id       = success["success"]["id"].to_i if success
 
       @id || json
     end
@@ -132,7 +134,7 @@ module Hue
       http      = Net::HTTP.new(uri.host)
       response  = http.delete(uri.path)
       json      = JSON(response.body)
-      success   = json.find { |resp| resp.has_key?('success') }
+      success   = json.find { |resp| resp.key?("success") }
       @id       = nil if success
 
       @id.nil? ? true : json
@@ -140,35 +142,35 @@ module Hue
 
     def new?; @id.nil?; end
 
-    private
+  private
 
     GROUP_KEYS_MAP = {
-      :name => :name,
-      :light_ids => :lights,
-      :type => :type,
-      :state => :action
+      name:       :name,
+      light_ids:  :lights,
+      type:       :type,
+      state:      :action,
     }
 
     STATE_KEYS_MAP = {
-      :on => :on,
-      :brightness => :bri,
-      :hue => :hue,
-      :saturation => :sat,
-      :xy => :xy,
-      :color_temperature => :ct,
-      :alert => :alert,
-      :effect => :effect,
-      :color_mode => :colormode,
+      on:                 :on,
+      brightness:         :bri,
+      hue:                :hue,
+      saturation:         :sat,
+      xy:                 :xy,
+      color_temperature:  :ct,
+      alert:              :alert,
+      effect:             :effect,
+      color_mode:         :colormode,
     }
 
     def unpack(data)
       @lights = nil if data[:lights]
       unpack_hash(data, GROUP_KEYS_MAP)
 
-      unless new?
-        unpack_hash(@state, STATE_KEYS_MAP)
-        @x, @y = @state['xy']
-      end
+      return if new?
+
+      unpack_hash(@state, STATE_KEYS_MAP)
+      @x, @y = @state["xy"]
     end
 
     def cleanse_lights(light_ids)

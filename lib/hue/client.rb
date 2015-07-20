@@ -1,6 +1,6 @@
-require 'date'
-require 'net/http'
-require 'json'
+require "date"
+require "net/http"
+require "json"
 
 module Hue
   class Client
@@ -75,7 +75,7 @@ module Hue
     attr_reader :portal_state
 
     # Current time stored on the bridge.
-    def utc; DateTime.parse(get_configuration['utc']); end
+    def utc; DateTime.parse(get_configuration["utc"]); end
 
     def refresh!; unpack(get_configuration); end
 
@@ -96,7 +96,7 @@ module Hue
     def lights
       @lights ||= begin
         json = JSON(Net::HTTP.get(URI.parse(url)))
-        json['lights'].map { |id, data| Light.new(client: self, id: id, data: data) }
+        json["lights"].map { |id, data| Light.new(client: self, id: id, data: data) }
       end
     end
 
@@ -127,7 +127,6 @@ module Hue
       lights.find { |l| l.id == id }
     end
 
-
     def group(id)
       id = id.to_s
       groups.find { |g| g.id == id }
@@ -149,13 +148,13 @@ module Hue
                       " #{NAME_RANGE.last}."
 
     def validate_username!(username)
-      raise InvalidUsername, NAME_RANGE_MSG unless NAME_RANGE
-                                                   .include?(username.length)
+      fail InvalidUsername, NAME_RANGE_MSG unless NAME_RANGE
+                                                  .include?(username.length)
     end
 
     def determine_effective_username(explicit_username)
-      username_var  = ENV['HUE_BRIDGE_USER']
-      have_var      = username_var && username_var != ''
+      username_var  = ENV["HUE_BRIDGE_USER"]
+      have_var      = username_var && username_var != ""
 
       explicit_username || (have_var ? username_var : DEFAULT_USERNAME)
     end
@@ -165,31 +164,31 @@ module Hue
     def validate_user!
       response  = JSON(Net::HTTP.get(URI.parse(url)))
       response  = response.first if response.is_a? Array
-      error     = response['error']
+      error     = response["error"]
 
-      raise Hue.get_error(error) if error
+      fail Hue.get_error(error) if error
 
-      response['success']
+      response["success"]
     end
 
     def register_user!
       # TODO: Better devicetype value, and allow customizing it!
       data = {
-        devicetype: 'Ruby',
-        username:   username
+        devicetype: "Ruby",
+        username:   username,
       }
 
       uri       = URI.parse(bridge.url)
       http      = Net::HTTP.new(uri.host)
       response  = JSON(http.request_post(uri.path, JSON.dump(data)).body).first
-      error     = response['error']
+      error     = response["error"]
 
-      raise Hue.get_error(error) if error
+      fail Hue.get_error(error) if error
 
-      response['success']
+      response["success"]
     end
 
-    KEYS_MAP = Bridge::KEYS_MAP.merge({
+    CLIENT_KEYS_MAP = {
       zigbee_channel:     :zigbeechannel,
       software_update:    :swupdate,
 
@@ -205,7 +204,8 @@ module Hue
       portal_services:    :portalservices,
       portal_connection:  :portalconnection,
       portal_state:       :portalstate,
-    })
+    }
+    KEYS_MAP = Bridge::KEYS_MAP.merge(CLIENT_KEYS_MAP)
 
     def unpack(hash)
       KEYS_MAP.each do |local_key, remote_key|
@@ -214,7 +214,7 @@ module Hue
         instance_variable_set("@#{local_key}", value)
       end
 
-      @id = @mac_address.gsub(/:/, '') if !@id && @mac_address
+      @id = @mac_address.gsub(/:/, "") if !@id && @mac_address
     end
 
     def get_configuration

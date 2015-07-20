@@ -1,7 +1,12 @@
 AllCops:
+  Include:
+    - '**/Gemfile'
+    - '**/Rakefile'
+    - '**/*.rake'
+    - '**/*.gemspec'
   Exclude:
-  - reference/**/*.rb
-  - etc/**/*.rb
+    - 'reference/**/*'
+    - 'etc/**/*'
 
 Metrics/LineLength:
   Max: 80

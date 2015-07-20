@@ -33,13 +33,12 @@ module Hue
     101 => Hue::LinkButtonNotPressed,
     201 => Hue::ParameterNotModifiableWhileOff,
     301 => Hue::TooManyGroups,
-    302 => Hue::GroupTooFull
+    302 => Hue::GroupTooFull,
   }
-
 
   def self.get_error(error)
     # Find error class and return instance
-    klass = Hue::ERROR_MAP[error['type']] || UnknownError
-    klass.new(error['description'])
+    klass = Hue::ERROR_MAP[error["type"]] || UnknownError
+    klass.new(error["description"])
   end
 end

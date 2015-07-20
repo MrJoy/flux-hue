@@ -1,4 +1,4 @@
-require 'thor'
+require "thor"
 
 module Hue
   class CliBase < Thor
@@ -15,16 +15,16 @@ module Hue
     def self.shared_bridge_options
       method_option :ip,
                     type:     :string,
-                    desc:     'IP address of a bridge, if known.',
+                    desc:     "IP address of a bridge, if known.",
                     required: false
     end
 
     def self.shared_access_controlled_options
       shared_bridge_options
       method_option :user,
-                    aliases:  '-u',
+                    aliases:  "-u",
                     type:     :string,
-                    desc:     'Username with access to higher level functions.',
+                    desc:     "Username with access to higher level functions.",
                     default:  Hue::Client::DEFAULT_USERNAME,
                     required: false
     end
@@ -32,11 +32,11 @@ module Hue
     def self.shared_light_options
       shared_access_controlled_options
       method_option :hue,             type: :numeric
-      method_option :sat,             type: :numeric, aliases: '--saturation'
-      method_option :bri,             type: :numeric, aliases: '--brightness'
+      method_option :sat,             type: :numeric, aliases: "--saturation"
+      method_option :bri,             type: :numeric, aliases: "--brightness"
       method_option :alert,           type: :string
       method_option :effect,          type: :string
-      method_option :transitiontime,  type: :numeric, aliases: '--time'
+      method_option :transitiontime,  type: :numeric, aliases: "--time"
     end
 
     def self.shared_nameable_light_options

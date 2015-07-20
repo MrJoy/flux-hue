@@ -1,6 +1,7 @@
 RSpec.describe Hue::Light do
   # Don't let our tests go wonky because someone forget to unset some env vars.
   OVERRIDE_VARS = %w(HUE_BRIDGE_IP HUE_BRIDGE_USER HUE_SKIP_SSDP HUE_SKIP_NUPNP)
+  # rubocop:disable Metrics/LineLength
   def stash_overrides!(&block)
     stash = {}
     begin
@@ -17,19 +18,19 @@ RSpec.describe Hue::Light do
     end
   end
 
-  %w{on hue saturation brightness color_temperature alert effect}.each do |attribute|
+  %w(on hue saturation brightness color_temperature alert effect).each do |attribute|
     around do |test|
       stash_overrides!(&test)
     end
 
     before do
-      stub_request(:get, %r{http://localhost/api/*}).
-        to_return(:body => '[{"success":true}]')
+      stub_request(:get, %r{http://localhost/api/*})
+        .to_return(body: '[{"success":true}]')
 
-      stub_request(:put, %r{http://localhost/api*}).
-        to_return(:body => '[{}]')
+      stub_request(:put, %r{http://localhost/api*})
+        .to_return(body: "[{}]")
 
-      @client = Hue::Client.new(Hue::Bridge.all(ip: 'localhost').first)
+      @client = Hue::Client.new(Hue::Bridge.all(ip: "localhost").first)
     end
 
     describe "##{attribute}=" do
@@ -43,7 +44,7 @@ RSpec.describe Hue::Light do
 
     describe "#off?" do
       it "should return the opposite of state['on']" do
-        state = {'on' => true}
+        state = { "on" => true }
         light = Hue::Light.new(client: @client, id: 0, state: state)
         expect(light.off?).to be false
 
@@ -51,7 +52,7 @@ RSpec.describe Hue::Light do
         light = Hue::Light.new(client: @client, id: 0, state: state)
         expect(light.off?).to be true
 
-        state = {'off' => false}
+        state = { "off" => false }
         light = Hue::Light.new(client: @client, id: 0, state: state)
         expect(light.off?).to be true
       end
@@ -60,7 +61,7 @@ RSpec.describe Hue::Light do
 
   describe "#off?" do
     it "should return the opposite of state['on']" do
-      state = {'on' => true}
+      state = { "on" => true }
       light = Hue::Light.new(client: @client, id: 0, state: state)
       expect(light.off?).to be false
 
@@ -68,9 +69,10 @@ RSpec.describe Hue::Light do
       light = Hue::Light.new(client: @client, id: 0, state: state)
       expect(light.off?).to be true
 
-      state = {'off' => false}
+      state = { "off" => false }
       light = Hue::Light.new(client: @client, id: 0, state: state)
       expect(light.off?).to be true
     end
   end
+  # rubocop:enable Metrics/LineLength
 end

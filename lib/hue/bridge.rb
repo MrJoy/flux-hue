@@ -56,41 +56,40 @@ module Hue
     end
 
     def self.find_by_ssdp
-      return [] if ENV['HUE_SKIP_SSDP'] && ENV['HUE_SKIP_SSDP'] != ""
+      return [] if ENV["HUE_SKIP_SSDP"] && ENV["HUE_SKIP_SSDP"] != ""
       # TODO: Ensure we're *only* getting things we want here!  The Hue Bridge
       # TODO: tends to be obnoxious and announce itself on *any* SSDP request,
       # TODO: so we may encounter other obnoxious gear as well...
       puts "INFO: Discovering bridges via SSDP..."
 
       # Loading this late to avoid slowing down the CLI needlessly.
-      require 'playful/ssdp' unless defined?(Playful)
+      require "playful/ssdp" unless defined?(Playful)
       Playful.log = false # Playful is super verbose
-      bridges     = Playful::SSDP.search('IpBridge')
+      bridges     = Playful::SSDP.search("IpBridge")
                     .select do |resp|
                       # Ensure we're *only* getting things we want here!  The
                       # Hue Bridge tends to be obnoxious and announce itself on
                       # *any* SSDP request, so we may encounter other obnoxious
                       # gear as well...
-                      (resp[:server] || '')
+                      (resp[:server] || "")
                         .split(/[,\s]+/)
                         .find { |token| token =~ %r{\AIpBridge/\d+(\.\d+)*\z} }
                     end
                     .map do |resp|
-                      Bridge.new('id'        => usn_to_id(resp[:usn]),
-                                 'name'      => resp[:st],
-                                 'ipaddress' => URI.parse(resp[:location]).host
-                      )
+                      Bridge.new("id"        => usn_to_id(resp[:usn]),
+                                 "name"      => resp[:st],
+                                 "ipaddress" => URI.parse(resp[:location]).host)
                     end
 
       filter_bridges(bridges)
     end
 
     def self.find_by_nupnp
-      return [] if ENV['HUE_SKIP_NUPNP'] && ENV['HUE_SKIP_NUPNP'] != ""
+      return [] if ENV["HUE_SKIP_NUPNP"] && ENV["HUE_SKIP_NUPNP"] != ""
       puts "INFO: Discovering bridges via N-UPnP..."
       # UPnP failed, lets use N-UPnP
       bridges = []
-      JSON(Net::HTTP.get(URI.parse('https://www.meethue.com/api/nupnp'))).each do |hash|
+      JSON(Net::HTTP.get(URI.parse("https://www.meethue.com/api/nupnp"))).each do |hash|
         # Normalize our interface a bit...
         hash["ipaddress"] = hash.delete("internalipaddress")
         # The N-UPnP interface delivers an ID which is (apparently) the MAC
@@ -107,19 +106,19 @@ module Hue
     end
 
     KEYS_MAP = {
-      :id                 => :id,
-      :name               => :name,
-      :mac_address        => :mac,
-      :api_version        => :apiversion,
-      :software_version   => :swversion,
+      id:               :id,
+      name:             :name,
+      mac_address:      :mac,
+      api_version:      :apiversion,
+      software_version: :swversion,
 
-      :ip                 => :ipaddress,
+      ip:               :ipaddress,
     }
 
   private
 
     def self.determine_effective_ip(explicit_ip)
-      ip_var        = ENV['HUE_BRIDGE_IP']
+      ip_var        = ENV["HUE_BRIDGE_IP"]
       have_ip_var   = ip_var && ip_var != ""
       explicit_ip || (have_ip_var ? ip_var : nil)
     end
@@ -127,7 +126,7 @@ module Hue
     def self.filter_bridges(bridges)
       bridges
         .sort { |a, b| a.ip <=> b.ip }
-        .uniq { |bridge| bridge.ip }
+        .uniq(&:ip)
         .uniq
     end
 
@@ -143,7 +142,7 @@ module Hue
         instance_variable_set("@#{local_key}", value)
       end
 
-      @id = @mac_address.gsub(/:/, '') if !@id && @mac_address
+      @id = @mac_address.gsub(/:/, "") if !@id && @mac_address
     end
 
     def get_configuration; JSON(Net::HTTP.get(URI.parse("#{url}/config"))); end

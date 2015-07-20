@@ -1,10 +1,12 @@
 module Hue
+  # Models an individual lightbulb in the Hue system, providing means of
+  # both reading and updating the state/configuration of the bulb.
   class Light
     include TranslateKeys
     include EditableState
 
-    HUE_RANGE               = 0..65535
-    # TODO: Bridhe is clamping us to 254 on these.  Enforce that here?
+    HUE_RANGE               = 0..65_535
+    # TODO: Bridge is clamping us to 254 on these.  Enforce that here?
     SATURATION_RANGE        = 0..255
     BRIGHTNESS_RANGE        = 0..255
     # TODO: Is the color temp range fixed, or does it depend on the light?  The
@@ -50,11 +52,11 @@ module Hue
     # @see http://en.wikipedia.org/wiki/Mired
     attr_reader :color_temperature
 
-    # The alert effect, which is a temporary change to the bulb’s state.
+    # The alert effect, which is a temporary change to the bulb's state.
     # This can take one of the following values:
-    # * `none` – The light is not performing an alert effect.
-    # * `select` – The light is performing one breathe cycle.
-    # * `lselect` – The light is performing breathe cycles for 30 seconds
+    # * `none` - The light is not performing an alert effect.
+    # * `select` - The light is performing one breathe cycle.
+    # * `lselect` - The light is performing breathe cycles for 30 seconds
     #     or until an "alert": "none" command is received.
     #
     # Note that in version 1.0 this contains the last alert sent to the
@@ -104,17 +106,16 @@ module Hue
       http      = Net::HTTP.new(uri.host)
       response  = JSON(http.request_put(uri.path, JSON.dump(body)).body).first
 
-      if response['success']
-        @name = new_name
-      # else
-        # TODO: Error
-      end
+      # TODO: actual error handling?
+      return unless response["success"]
+
+      @name = new_name
     end
 
     # Indicates if a light can be reached by the bridge.
-    def reachable?; @state['reachable']; end
+    def reachable?; @state["reachable"]; end
 
-    # @param transition The duration of the transition from the light’s current
+    # @param transition The duration of the transition from the light's current
     #   state to the new state. This is given as a multiple of 100ms and
     #   defaults to 4 (400ms). For example, setting transistiontime:10 will
     #   make the transition last 1 second.
@@ -143,36 +144,36 @@ module Hue
                           " #{NAME_RANGE.last} characters."
 
     def validate_name!(username)
-      raise InvalidUsername, NAME_RANGE_MSG unless NAME_RANGE
-                                                   .include?(username.length)
+      fail InvalidUsername, NAME_RANGE_MSG unless NAME_RANGE
+                                                  .include?(username.length)
     end
 
     KEYS_MAP = {
-      :state            => :state,
-      :type             => :type,
-      :name             => :name,
-      :model            => :modelid,
-      :software_version => :swversion,
-      :point_symbol     => :pointsymbol
+      state:            :state,
+      type:             :type,
+      name:             :name,
+      model:            :modelid,
+      software_version: :swversion,
+      point_symbol:     :pointsymbol,
     }
 
     STATE_KEYS_MAP = {
-      :on                => :on,
-      :brightness        => :bri,
-      :hue               => :hue,
-      :saturation        => :sat,
-      :xy                => :xy,
-      :color_temperature => :ct,
-      :alert             => :alert,
-      :effect            => :effect,
-      :color_mode        => :colormode,
-      :reachable         => :reachable,
+      on:                 :on,
+      brightness:         :bri,
+      hue:                :hue,
+      saturation:         :sat,
+      xy:                 :xy,
+      color_temperature:  :ct,
+      alert:              :alert,
+      effect:             :effect,
+      color_mode:         :colormode,
+      reachable:          :reachable,
     }
 
     def unpack(hash)
       unpack_hash(hash, KEYS_MAP)
       unpack_hash(@state, STATE_KEYS_MAP)
-      @x, @y = @state['xy']
+      @x, @y = @state["xy"]
     end
 
     def collection_url; "#{client.url}/lights"; end
