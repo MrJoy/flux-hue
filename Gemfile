@@ -14,6 +14,10 @@ group :development do
   gem "bundler-audit",  require: false
 end
 
+group :development, :test do
+  gem "pry"
+end
+
 group :test do
   gem "rspec", "~> 3.3.0"
   gem "webmock"
