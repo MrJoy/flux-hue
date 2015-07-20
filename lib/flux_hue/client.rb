@@ -117,14 +117,11 @@ module FluxHue
       explicit_username || (have_var ? username_var : DEFAULT_USERNAME)
     end
 
-    # TODO: Prepopulate things with the response here, as we just pulled down
-    # TODO: *everything* about the current state of the bridge!
     def validate_user!
-      response  = JSON(Net::HTTP.get(URI.parse(url)))
-      response  = response.first if response.is_a? Array
-      error     = response["error"]
+      response = agent.get(state_url)
+      response = response.first if response.is_a?(Array)
 
-      handle_error!(error)
+      handle_error!(response["error"])
 
       response["success"]
     end
