@@ -93,13 +93,14 @@ module FluxHue
     def apply_group_state(attributes)
       return if new?
 
-      agent.put(url, translate_keys(attributes, GROUP_KEYS_MAP))
+      client.agent.put(url, translate_keys(attributes, GROUP_KEYS_MAP))
     end
 
     def apply_state(attributes)
       return if new?
 
-      agent.put("#{url}/action", translate_keys(attributes, STATE_KEYS_MAP))
+      client.agent.put("#{url}/action",
+                       translate_keys(attributes, STATE_KEYS_MAP))
     end
 
     def refresh!
