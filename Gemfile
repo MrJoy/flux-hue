@@ -6,6 +6,13 @@ source "https://rubygems.org"
 
 gemspec
 
-gem "rake"
-gem "rubocop"
-gem "bundler-audit"
+group :development do
+  gem "rake",           require: false
+  gem "rubocop",        require: false
+  gem "bundler-audit",  require: false
+end
+
+group :test do
+  gem "rspec", "~> 3.3.0"
+  gem "webmock"
+end
