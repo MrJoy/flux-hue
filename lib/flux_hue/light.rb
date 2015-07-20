@@ -13,82 +13,12 @@ module FluxHue
     # TODO: lights have different white-points!
     COLOR_TEMPERATURE_RANGE = 153..500
 
-    # Unique identification number.
-    attr_reader :id
-
     # Client the light is associated with.
     attr_reader :client
 
-    # A unique, editable name given to the light.
-    attr_accessor :name
-
-    # Hue of the light. This is a wrapping value between 0 and 65535.
-    # Both 0 and 65535 are red, 25500 is green and 46920 is blue.
-    attr_reader :hue
-
-    # Saturation of the light. 255 is the most saturated (colored)
-    # and 0 is the least saturated (white).
-    attr_reader :saturation
-
-    # Brightness of the light. This is a scale from the minimum
-    # brightness the light is capable of, 0, to the maximum capable
-    # brightness, 254. (Should be 255 but value clamps to 254!) Note a
-    # brightness of 0 is not off.
-    attr_reader :brightness
-
-    # The x coordinate of a color in CIE color space. Between 0 and 1.
-    #
-    # @see http://developers.meethue.com/coreconcepts.html#color_gets_more_complicated
-    attr_reader :x
-
-    # The y coordinate of a color in CIE color space. Between 0 and 1.
-    #
-    # @see http://developers.meethue.com/coreconcepts.html#color_gets_more_complicated
-    attr_reader :y
-
-    # The Mired Color temperature of the light. 2012 connected lights
-    # are capable of 153 (6500K) to 500 (2000K).
-    #
-    # @see http://en.wikipedia.org/wiki/Mired
-    attr_reader :color_temperature
-
-    # The alert effect, which is a temporary change to the bulb's state.
-    # This can take one of the following values:
-    # * `none` - The light is not performing an alert effect.
-    # * `select` - The light is performing one breathe cycle.
-    # * `lselect` - The light is performing breathe cycles for 30 seconds
-    #     or until an "alert": "none" command is received.
-    #
-    # Note that in version 1.0 this contains the last alert sent to the
-    # light and not its current state. This will be changed to contain the
-    # current state in an upcoming patch.
-    #
-    # @see http://developers.meethue.com/coreconcepts.html#some_extra_fun_stuff
-    attr_reader :alert
-
-    # The dynamic effect of the light, can either be `none` or
-    # `colorloop`. If set to colorloop, the light will cycle through
-    # all hues using the current brightness and saturation settings.
-    attr_reader :effect
-
-    # Indicates the color mode in which the light is working, this is
-    # the last command type it received. Values are `hs` for Hue and
-    # Saturation, `xy` for XY and `ct` for Color Temperature. This
-    # parameter is only present when the light supports at least one
-    # of the values.
-    attr_reader :color_mode
-
-    # A fixed name describing the type of light.
-    attr_reader :type
-
-    # The hardware model of the light.
-    attr_reader :model
-
-    # An identifier for the software version running on the light.
-    attr_reader :software_version
-
-    # Reserved for future functionality.
-    attr_reader :point_symbol
+    # Various properties provided to us by the bridge.
+    attr_reader :id, :name, :x, :y, :color_mode, :type, :model,
+                :software_version
 
     def initialize(client:, id:, data: {}, state: {})
       @client = client
@@ -98,9 +28,7 @@ module FluxHue
     end
 
     def name=(new_name)
-      validate_name!(new_name)
-
-      response  = client.agent.put(url, name: new_name)
+      response  = agent.put(url, name: new_name)
       response  = response.first if response.is_a?(Array)
       error     = response["error"]
 
@@ -123,28 +51,18 @@ module FluxHue
       body                  = translate_keys(attributes, STATE_KEYS_MAP)
       body[:transitiontime] = (transition * 10.0).to_i if transition
 
-      client.agent.put("#{url}/state", body)
+      agent.put("#{url}/state", body)
     end
 
     # Refresh the state of the light.
     def refresh!
-      unpack(client.agent.get(url))
+      unpack(agent.get(url))
       self
     end
 
-    # Is the light on?
-    def on?; !!@state["on"]; end
-
   private
 
-    NAME_RANGE        = 1..32
-    NAME_RANGE_MSG    = "Names must be between #{NAME_RANGE.first} and"\
-                          " #{NAME_RANGE.last} characters."
-
-    def validate_name!(name)
-      valid = NAME_RANGE.include?(name.length)
-      fail InvalidValueForParameter, NAME_RANGE_MSG unless valid
-    end
+    def agent; client.agent; end
 
     KEYS_MAP = {
       state:            :state,

@@ -2,17 +2,9 @@ module FluxHue
   # This module represents functionality common to things that behave like
   # lights.  Specifically, lights and groups of lights.
   module EditableState
-    def on?
-      @state["on"]
-    end
-
-    def on!
-      self.on = true
-    end
-
-    def off!
-      self.on = false
-    end
+    def on?; @state["on"]; end
+    def on!; self.on = true; end
+    def off!; self.on = false; end
 
     LIGHT_STATE_PROPERTIES = %w(on hue saturation brightness color_temperature
                                 alert effect)
@@ -22,6 +14,8 @@ module FluxHue
         instance_variable_set(:"@#{key}", value)
       end
     end
+
+    attr_reader *LIGHT_STATE_PROPERTIES
 
     def set_xy(x, y)
       apply_state(xy: [x, y])
