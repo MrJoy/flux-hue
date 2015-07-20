@@ -65,15 +65,24 @@ VERBOSE         = env_int("VERBOSE")
 ###############################################################################
 TRANSITION = env_float("TRANSITION") || 0.0 # In seconds, 1/10th second prec.!
 def random_hue(light_id)
-  ::HUE_ACCRUAL ||= []
+  ::HUE_ACCRUAL         ||= []
+  # TODO: Make step size / granularity and offset configurable!
   tmp                     = (HUE_ACCRUAL[light_id] ||= 0)
   tmp                    += ((rand(16) * 128) + 256)
   tmp                    -= 65_535 if tmp >= 65_535
   HUE_ACCRUAL[light_id]   = tmp
 end
-# HUE_ACCRUAL = []
-# POSITIONS = 16
+
+# POSITIONS = env_int("POSITIONS") || 16
 # def random_hue(_light_id); rand(POSITIONS) * (65536/POSITIONS); end
+
+def random_hue(_light_id)
+  @hue_accrual ||= 0
+  tmp           = (@hue_accrual ||= 0)
+  tmp          += ((rand(16) * 32) + 128)
+  tmp          -= 65_535 if tmp >= 65_535
+  @hue_accrual  = tmp
+end
 
 ###############################################################################
 # System Configuration
