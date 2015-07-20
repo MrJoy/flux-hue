@@ -10,11 +10,13 @@ require "oj"
 #
 # Play with this to see how error rates are affected.
 ###############################################################################
-MULTI_OPTIONS   = { pipeline:     false,
-                    max_connects: 1 }
-TIMEOUT         = 0
-THREAD_COUNT    = 6
-ITERATIONS      = 200
+MULTI_OPTIONS   = { pipeline:         true,
+                    max_connects:     2 }
+EASY_OPTIONS    = { timeout:          10.0,
+                    follow_location:  false,
+                    max_redirects:    0 }
+THREAD_COUNT    = 3
+ITERATIONS      = 3
 SPREAD_SLEEP    = 0 # 0.007
 TOTAL_SLEEP     = 0 # 0.1
 FIXED_SLEEP     = 0 # 0.03
@@ -27,8 +29,7 @@ TRANSITION_TIME = 0.0 # In seconds, 1/10th second precision!
 # Set these according to the lights you have.
 ###############################################################################
 BRIDGE_IP       = ENV["HUE_BRIDGE_IP"]
-USERNAME        = "1234567890" # Default from our library.
-# LIGHTS          = %w(30)
+USERNAME        = ENV["HUE_BRIDGE_USERNAME"] || "1234567890" # Default for lib.
 env_lights      = ENV["LIGHTS"] ? ENV["LIGHTS"].split(/[\s,]+/).sort.uniq : []
 env_lights      = nil if env_lights.length == 0
 LIGHTS          = env_lights || %w(1 2 6 7 8 9 10 11 12 13 14 15 17 18 19 20 21
@@ -50,11 +51,10 @@ def hue_endpoint(light_id); "#{hue_base}/lights/#{light_id}/state"; end
 def hue_request(light_id, hue, transition)
   data = { "hue"            => hue,
            "transitiontime" => (transition * 10.0).round(0) }
-
-  { method:     :put,
-    timeout:    TIMEOUT.to_f,
-    url:        hue_endpoint(light_id),
-    put_data:   Oj.dump(data) }
+  req = { method:           :put,
+          url:              hue_endpoint(light_id),
+          put_data:         Oj.dump(data) }
+  req.merge(EASY_OPTIONS)
 end
 
 def guard_call(thread_idx, &block)
