@@ -16,7 +16,7 @@ module FluxHue
     end
 
     # CLI functionality for interacting with lights.
-    class Light < Base
+    class Lights < Base
       LIGHT_FIELDS = {
         id:                 "ID",
         type:               "Type",
