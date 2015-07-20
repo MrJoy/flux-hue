@@ -10,12 +10,17 @@ module FluxHue
       JSON(Net::HTTP.get(URI.parse(url)))
     end
 
-    def post(url, data)
-      uri   = URI.parse(url)
-      http  = Net::HTTP.new(uri.host)
-      data  = JSON.dump(data) if data
+    def post(url, data); perform(:request_post, url, data); end
+    def put(url, data); perform(:request_put, url, data); end
 
-      JSON(http.request_post(uri.path, data).body)
+  private
+
+    def perform(method, url, data)
+      uri       = URI.parse(url)
+      http      = Net::HTTP.new(uri.host)
+      data      = JSON.dump(data) if data
+
+      JSON(http.send(method, uri.path, data).body)
     end
   end
 end

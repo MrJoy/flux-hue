@@ -100,11 +100,8 @@ module FluxHue
     def name=(new_name)
       validate_name!(new_name)
 
-      body      = { name: new_name }
-
-      uri       = URI.parse(url)
-      http      = Net::HTTP.new(uri.host)
-      response  = JSON(http.request_put(uri.path, JSON.dump(body)).body).first
+      response  = client.agent.put(url, name: new_name)
+      response  = response.first if response.is_a?(Array)
 
       # TODO: actual error handling?
       return unless response["success"]
