@@ -12,18 +12,21 @@ require "oj"
 # Play with this to see how error rates are affected.
 ###############################################################################
 MULTI_OPTIONS   = { pipeline:         true,
-                    max_connects:     2 }
-EASY_OPTIONS    = { timeout:          10.0,
+                    max_connects:     6 }
+EASY_OPTIONS    = { timeout:          5,
+                    connect_timeout:  5,
                     follow_location:  false,
                     max_redirects:    0 }
-THREAD_COUNT    = 3
+THREAD_COUNT    = 1
 
-ITERATIONS      = 3
+ITERATIONS      = 20
 
 SPREAD_SLEEP    = 0 # 0.007
 TOTAL_SLEEP     = 0 # 0.1
 FIXED_SLEEP     = 0 # 0.03
 VARIABLE_SLEEP  = TOTAL_SLEEP - FIXED_SLEEP
+
+SILENT          = true
 
 ###############################################################################
 # Effect
@@ -69,40 +72,48 @@ rescue Exception => e
   puts "\t#{e.backtrace.join("\n\t")}"
 end
 
+def in_groups(entities, num_groups)
+  groups = (1..num_groups).map { [] }
+  idx                = 0
+  entities.each do |entity|
+    groups[idx] << entity
+    idx  += 1
+    idx   = 0 if idx >= num_groups
+  end
+
+  groups
+end
+
 ###############################################################################
 # Main
 ###############################################################################
 puts "Mucking with #{LIGHTS.length} lights..."
 
-lights_for_threads = (1..THREAD_COUNT).map { [] }
-idx                = 0
-LIGHTS.each do |light_id|
-  lights_for_threads[idx] << light_id
-  idx  += 1
-  idx   = 0 if idx >= THREAD_COUNT
-end
-
-mutex     = Mutex.new
-failures  = 0
-successes = 0
+lights_for_threads  = in_groups(LIGHTS, THREAD_COUNT)
+mutex               = Mutex.new
+failures            = 0
+successes           = 0
 
 Thread.abort_on_exception = false
 threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
   sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
   Thread.new do
-    local_failures  = 0
-    local_successes = 0
-    lights          = lights_for_threads[thread_idx]
+    l_fail = 0
+    l_succ = 0
+    lights = lights_for_threads[thread_idx]
     puts "Thread ##{thread_idx}, handling #{lights.count} lights."
 
-    handlers  = { on_failure: ->(*_) { printf "*"; local_failures   += 1 },
-                  on_success: ->(*_) { printf "."; local_successes  += 1 } }
+    # TODO: Get timing stats, figure out if timeouts are in ms or sec, capture
+    # TODO: info about failure causes, etc.
+    handlers  = { on_failure: ->(*_) { l_fail += 1; printf "*" },
+                  on_success: ->(*_) { l_succ += 1; printf "." unless SILENT } }
 
+    Thread.stop
     guard_call(thread_idx) do
       counter             = 0
       while counter < ITERATIONS
-        local_failures  = 0
-        local_successes = 0
+        l_fail  = 0
+        l_succ = 0
         requests  = lights
                     .map { |lid| hue_request(lid, random_hue, TRANSITION_TIME) }
                     .map { |req| req.merge(handlers) }
@@ -112,8 +123,8 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
         end
 
         mutex.synchronize do
-          failures  += local_failures
-          successes += local_successes
+          failures  += l_fail
+          successes += l_succ
         end
 
         counter  += 1
@@ -123,7 +134,9 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
   end
 end
 
-threads.each(&:join)
+sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
+GC.disable
+threads.each(&:wakeup).each(&:join)
 
 requests  = successes + failures
 
