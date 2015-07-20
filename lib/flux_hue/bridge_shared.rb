@@ -9,5 +9,9 @@ module FluxHue
     end
 
     def fetch_configuration; agent.get("#{url}/config"); end
+
+    def handle_error!(error)
+      fail FluxHue.get_error(error) if error
+    end
   end
 end

@@ -20,6 +20,23 @@ module FluxHue
 
     def refresh!; unpack(fetch_configuration); end
 
+    def register_user!(username)
+      # TODO: Better devicetype value, and allow customizing it!
+      data = {
+        devicetype: "Ruby",
+        username:   username,
+      }
+
+      uri       = URI.parse(url)
+      http      = Net::HTTP.new(uri.host)
+      response  = JSON(http.request_post(uri.path, JSON.dump(data)).body).first
+      error     = response["error"]
+
+      handle_error!(error)
+
+      response["success"]
+    end
+
     def url; "http://#{ip}/api"; end
 
     KEYS_MAP = {

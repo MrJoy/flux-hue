@@ -53,7 +53,7 @@ module FluxHue
       begin
         validate_user!
       rescue UnauthorizedUser
-        register_user!
+        @bridge.register_user!(effective_username)
       end
     end
 
@@ -127,27 +127,6 @@ module FluxHue
       handle_error!(error)
 
       response["success"]
-    end
-
-    def register_user!
-      # TODO: Better devicetype value, and allow customizing it!
-      data = {
-        devicetype: "Ruby",
-        username:   username,
-      }
-
-      uri       = URI.parse(bridge.url)
-      http      = Net::HTTP.new(uri.host)
-      response  = JSON(http.request_post(uri.path, JSON.dump(data)).body).first
-      error     = response["error"]
-
-      handle_error!(error)
-
-      response["success"]
-    end
-
-    def handle_error!(error)
-      fail FluxHue.get_error(error) if error
     end
 
     CLIENT_KEYS_MAP = {
