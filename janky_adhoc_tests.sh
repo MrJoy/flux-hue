@@ -1,6 +1,6 @@
 #!/bin/bash
 IFS=$'\n\t'
-set -x
+# set -x
 
 mkdir -p tmp
 
