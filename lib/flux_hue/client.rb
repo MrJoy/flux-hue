@@ -165,7 +165,7 @@ module FluxHue
       response  = response.first if response.is_a? Array
       error     = response["error"]
 
-      fail Hue.get_error(error) if error
+      handle_error!(error)
 
       response["success"]
     end
@@ -182,9 +182,13 @@ module FluxHue
       response  = JSON(http.request_post(uri.path, JSON.dump(data)).body).first
       error     = response["error"]
 
-      fail Hue.get_error(error) if error
+      handle_error!(error)
 
       response["success"]
+    end
+
+    def handle_error!(error)
+      fail FluxHue.get_error(error) if error
     end
 
     CLIENT_KEYS_MAP = {
