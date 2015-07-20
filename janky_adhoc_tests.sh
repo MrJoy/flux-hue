@@ -6,7 +6,7 @@ mkdir -p tmp
 
 # TODO: Factor this in: http://steveyo.github.io/Hue-Emulator/
 
-ERRORS=0
+export ERRORS=0
 
 SUBCOMMAND="bridges"
 HUE_SKIP_NUPNP=1 HUE_SKIP_SSDP=1 HUE_BRIDGE_IP=192.168.2.8 bin/hue ${SUBCOMMAND} > tmp/${SUBCOMMAND}_explicit_ip.txt 2>&1
@@ -15,7 +15,7 @@ HUE_SKIP_NUPNP= HUE_SKIP_SSDP=1 HUE_BRIDGE_IP= bin/hue ${SUBCOMMAND} > tmp/${SUB
 RESULT=$(diff -u tmp/${SUBCOMMAND}_explicit_ip.txt tmp/${SUBCOMMAND}_ssdp.txt | grep -v -E '^(---|\+\+\+|@@| )')
 if [[ $RESULT != "+INFO: Discovering bridges via SSDP..." ]]; then
   echo "FAIL: \`hue ${SUBCOMMAND}\` produced unexpected resultss for explicit IP vs. SSDP."
-  ERRORS=$((ERRORS + 1))
+  export ERRORS=$((ERRORS + 1))
 else
   echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and SSDP discovery are equivalent."
 fi
@@ -23,9 +23,9 @@ fi
 RESULT=$(diff -u tmp/${SUBCOMMAND}_explicit_ip.txt tmp/${SUBCOMMAND}_upnp.txt | grep -v -E '^(---|\+\+\+|@@| )')
 if [[ $RESULT != "+INFO: Discovering bridges via N-UPnP..." ]]; then
   echo "FAIL: \`hue ${SUBCOMMAND}\` produced unexpected resultss for explicit IP vs. N-UPnP."
-  ERRORS=$((ERRORS + 1))
+  export ERRORS=$((ERRORS + 1))
 else
-  echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and SSDP discovery are equivalent."
+  echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and N-UPnP discovery are equivalent."
 fi
 # Baseline:
 # +--------------+-----------+-------------+-------------------+-------------+------------------+
@@ -42,7 +42,7 @@ HUE_SKIP_NUPNP= HUE_SKIP_SSDP=1 HUE_BRIDGE_IP= bin/hue ${SUBCOMMAND} - > tmp/${S
 RESULT=$(diff -u tmp/${SUBCOMMAND}_explicit_ip.txt tmp/${SUBCOMMAND}_ssdp.txt | grep -v -E '^(---|\+\+\+|@@| )')
 if [[ $RESULT != "+INFO: Discovering bridges via SSDP..." ]]; then
   echo "FAIL: \`hue ${SUBCOMMAND}\` produced unexpected resultss for explicit IP vs. SSDP."
-  ERRORS=$((ERRORS + 1))
+  export ERRORS=$((ERRORS + 1))
 else
   echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and SSDP discovery are equivalent."
 fi
@@ -50,9 +50,9 @@ fi
 RESULT=$(diff -u tmp/${SUBCOMMAND}_explicit_ip.txt tmp/${SUBCOMMAND}_upnp.txt | grep -v -E '^(---|\+\+\+|@@| )')
 if [[ $RESULT != "+INFO: Discovering bridges via N-UPnP..." ]]; then
   echo "FAIL: \`hue ${SUBCOMMAND}\` produced unexpected resultss for explicit IP vs. N-UPnP."
-  ERRORS=$((ERRORS + 1))
+  export ERRORS=$((ERRORS + 1))
 else
-  echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and SSDP discovery are equivalent."
+  echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and N-UPnP discovery are equivalent."
 fi
 # Baseline:
 # +--------------+-------------+-------------------+-----------+---------+---------------+-------------+-------+---------------+------------+------------------+----------------------+--------------+-------------+------------------+------------------------+---------+
@@ -70,7 +70,7 @@ HUE_SKIP_NUPNP= HUE_SKIP_SSDP=1 HUE_BRIDGE_IP= bin/hue ${SUBCOMMAND} > tmp/${SUB
 RESULT=$(diff -u tmp/${SUBCOMMAND}_explicit_ip.txt tmp/${SUBCOMMAND}_ssdp.txt | grep -v -E '^(---|\+\+\+|@@| )')
 if [[ $RESULT != "+INFO: Discovering bridges via SSDP..." ]]; then
   echo "FAIL: \`hue ${SUBCOMMAND}\` produced unexpected resultss for explicit IP vs. SSDP."
-  ERRORS=$((ERRORS + 1))
+  export ERRORS=$((ERRORS + 1))
 else
   echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and SSDP discovery are equivalent."
 fi
@@ -78,9 +78,9 @@ fi
 RESULT=$(diff -u tmp/${SUBCOMMAND}_explicit_ip.txt tmp/${SUBCOMMAND}_upnp.txt | grep -v -E '^(---|\+\+\+|@@| )')
 if [[ $RESULT != "+INFO: Discovering bridges via N-UPnP..." ]]; then
   echo "FAIL: \`hue ${SUBCOMMAND}\` produced unexpected resultss for explicit IP vs. N-UPnP."
-  ERRORS=$((ERRORS + 1))
+  export ERRORS=$((ERRORS + 1))
 else
-  echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and SSDP discovery are equivalent."
+  echo "PASS: \`hue ${SUBCOMMAND}\` Explicit IP and N-UPnP discovery are equivalent."
 fi
 # Baseline:
 # +----+----------------------+--------+----------------------+--------+------+-------+------------+------------+----------------+------+---------+--------+------------------+------------+
