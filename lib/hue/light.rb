@@ -132,7 +132,7 @@ module Hue
     end
 
     # Refresh the state of the light.
-    def refresh!; unpack(JSON(Net::HTTP.get(URI.parse(base_url)))); end
+    def refresh!; unpack(JSON(Net::HTTP.get(URI.parse(url)))); end
 
     # Is the light off?
     def off?; !@state["on"]; end
