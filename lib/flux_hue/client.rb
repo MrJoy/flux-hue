@@ -77,10 +77,7 @@ module FluxHue
 
     # TODO: Add support for specifying serial numbers.
     def add_lights
-      uri = URI.parse("#{@client.url}/lights")
-      http = Net::HTTP.new(uri.host)
-      response = http.request_post(uri.path, nil)
-      JSON(response.body).first
+      agent.post("#{@client.url}/lights", nil).first
     end
 
     def light(id)

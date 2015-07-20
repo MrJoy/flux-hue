@@ -9,5 +9,13 @@ module FluxHue
     def get(url)
       JSON(Net::HTTP.get(URI.parse(url)))
     end
+
+    def post(url, data)
+      uri   = URI.parse(url)
+      http  = Net::HTTP.new(uri.host)
+      data  = JSON.dump(data) if data
+
+      JSON(http.request_post(uri.path, data).body)
+    end
   end
 end
