@@ -81,17 +81,16 @@ successes = 0
 
 Thread.abort_on_exception = false
 threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
-  thread = Thread.new do
+  sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
+  Thread.new do
     local_failures  = 0
     local_successes = 0
     lights          = lights_for_threads[thread_idx]
     puts "Thread ##{thread_idx}, handling #{lights.count} lights."
-    sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
 
     handlers  = { on_failure: ->(*_) { printf "*"; local_failures   += 1 },
                   on_success: ->(*_) { printf "."; local_successes  += 1 } }
 
-    Thread.pass
     guard_call(thread_idx) do
       counter             = 0
       while counter < ITERATIONS
@@ -106,7 +105,6 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
         end
 
         mutex.synchronize do
-          puts "\n#{thread_idx}: requests=#{requests.count}, counter=#{counter}"
           failures  += local_failures
           successes += local_successes
         end
@@ -114,18 +112,11 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
         counter  += 1
         sleep(FIXED_SLEEP + rand(VARIABLE_SLEEP)) unless TOTAL_SLEEP == 0
       end
-      mutex.synchronize do
-        puts "#{thread_idx}: sum=#{local_failures + local_successes}, counter=#{counter}"
-      end
     end
   end
-  thread.run
-  thread
 end
 
-threads
-  .each(&:wakeup)
-  .each(&:join)
+threads.each(&:join)
 
 requests  = successes + failures
 
