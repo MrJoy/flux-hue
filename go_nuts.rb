@@ -10,11 +10,14 @@ require "oj"
 #
 # Play with this to see how error rates are affected.
 ###############################################################################
-THREAD_COUNT    = 16
-ITERATIONS      = 20
-SPREAD_SLEEP    = 0.007
-TOTAL_SLEEP     = 0.1
-FIXED_SLEEP     = 0.03
+MULTI_OPTIONS   = { pipeline:     false,
+                    max_connects: 1 }
+TIMEOUT         = 0.01
+THREAD_COUNT    = 6
+ITERATIONS      = 200
+SPREAD_SLEEP    = 0 # 0.007
+TOTAL_SLEEP     = 0 # 0.1
+FIXED_SLEEP     = 0 # 0.03
 VARIABLE_SLEEP  = TOTAL_SLEEP - FIXED_SLEEP
 TRANSITION_TIME = 0.0 # In seconds, 1/10th second precision!
 
@@ -26,8 +29,10 @@ TRANSITION_TIME = 0.0 # In seconds, 1/10th second precision!
 BRIDGE_IP       = ENV["HUE_BRIDGE_IP"]
 USERNAME        = "1234567890" # Default from our library.
 # LIGHTS          = %w(30)
-LIGHTS          = %w(1 2 6 7 8 9 10 11 12 13 14 15 17 18 19 20 21 22 23 26 27
-                     28 30 33 34 35 36 37)
+lights          = ENV["LIGHTS"] ? ENV["LIGHTS"].split(/[\s,]+/).sort.uniq : []
+lights          = nil if lights.length == 0
+LIGHTS          = lights || %w(1 2 6 7 8 9 10 11 12 13 14 15 17 18 19 20 21 22
+                               23 26 27 28 30 33 34 35 36 37)
 
 ###############################################################################
 # Effect
@@ -50,7 +55,8 @@ def hue_request(light_id, hue, transition)
   data = { "hue"            => hue,
            "transitiontime" => (transition * 10.0).round(0) }
 
-  { light_id:   light_id,
+  { method:     :put,
+    timeout:    TIMEOUT,
     url:        hue_endpoint(light_id),
     put_data:   Oj.dump(data) }
 end
@@ -65,8 +71,6 @@ end
 
 puts "Mucking with #{LIGHTS.length} lights..."
 
-MULTI_OPTIONS = { pipeline: true }
-
 lights_for_threads = (1..THREAD_COUNT).map { [] }
 idx = 0
 LIGHTS.each do |light_id|
@@ -79,37 +83,28 @@ successes = 0
 failures  = 0
 
 threads = (1..THREAD_COUNT).map do |thread_idx|
-  sleep SPREAD_SLEEP
+  sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
   Thread.new do
-    guard_call(thread_idx) do
-      agent           = Curl::Multi.new
-      agent.pipeline  = true
-      counter         = 0
-      while counter < ITERATIONS
-        counter += 1
-        requests  = LIGHTS
-                    .map { |lid| hue_request(lid, random_hue, TRANSITION_TIME) }
-                    .map do |req|
-                      Curl::Easy.new(req[:url]) do |curl|
-                        curl.put_data = req[:put_data]
-                        # curl.on_body do |data|
-                        #   puts "For URL: #{req[:url]}\n\t#{data}"
-                        # end
-                        curl.on_success { |_easy| successes += 1 }
-                        curl.on_failure do |easy|
-                          # puts "ERROR for light ##{req[:light_id]} on"\
-                          #   " thread ##{thread_idx}: #{easy.inspect}"
-                          failures += 1
-                        end
-                      end
-                    end
-        requests.each { |req| agent.add(req) }
-        agent.perform
+    lights    = lights_for_threads[thread_idx - 1]
+    puts "Thread ##{thread_idx}, handling #{lights.length} lights."
+    handlers  = { on_failure: ->(*_) { printf "*"; failures += 1 },
+                  on_success: ->(*_) { printf "."; successes += 1 } }
 
-        sleep(FIXED_SLEEP + rand(VARIABLE_SLEEP))
+    guard_call(thread_idx) do
+      counter             = 0
+      while counter < ITERATIONS
+        counter  += 1
+        requests  = lights
+                    .map { |lid| hue_request(lid, random_hue, TRANSITION_TIME) }
+                    .map { |req| req.merge(handlers) }
+
+        Curl::Multi.http(requests, MULTI_OPTIONS) do
+          # Apparently performed for each request!
+        end
+
+        sleep(FIXED_SLEEP + rand(VARIABLE_SLEEP)) unless TOTAL_SLEEP == 0
       end
     end
-    puts "Finishing thread ##{thread_idx}."
   end
 end
 
