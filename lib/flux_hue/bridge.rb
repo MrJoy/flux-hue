@@ -1,4 +1,4 @@
-module Hue
+module FluxHue
   # Functionality common to all bridge interfaces.
   module BridgeShared
     include TranslateKeys

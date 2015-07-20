@@ -1,4 +1,4 @@
-module Hue
+module FluxHue
   # Helpers for working with hash-based payloads from the Hue bridge.
   module TranslateKeys
     def translate_keys(hash, map)

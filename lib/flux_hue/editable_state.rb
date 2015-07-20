@@ -1,4 +1,4 @@
-module Hue
+module FluxHue
   # This module represents functionality common to things that behave like
   # lights.  Specifically, lights and groups of lights.
   module EditableState

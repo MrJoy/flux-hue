@@ -1,5 +1,5 @@
 #
-module Hue
+module FluxHue
   class Error < StandardError; end
 
   class UnauthorizedUser < Error; end
@@ -22,24 +22,24 @@ module Hue
 
   # Status code to exception map
   ERROR_MAP = {
-    1   => Hue::UnauthorizedUser,
-    2   => Hue::InvalidJSON,
-    3   => Hue::ResourceNotAvailable,
-    4   => Hue::MethodNotAvailable,
-    5   => Hue::MissingBody,
-    6   => Hue::ParameterNotAvailable,
-    7   => Hue::InvalidValueForParameter,
-    8   => Hue::ParameterNotModifiable,
-    901 => Hue::InternalError,
-    101 => Hue::LinkButtonNotPressed,
-    201 => Hue::ParameterNotModifiableWhileOff,
-    301 => Hue::TooManyGroups,
-    302 => Hue::GroupTooFull,
+    1   => UnauthorizedUser,
+    2   => InvalidJSON,
+    3   => ResourceNotAvailable,
+    4   => MethodNotAvailable,
+    5   => MissingBody,
+    6   => ParameterNotAvailable,
+    7   => InvalidValueForParameter,
+    8   => ParameterNotModifiable,
+    901 => InternalError,
+    101 => LinkButtonNotPressed,
+    201 => ParameterNotModifiableWhileOff,
+    301 => TooManyGroups,
+    302 => GroupTooFull,
   }
 
   def self.get_error(error)
     # Find error class and return instance
-    klass = Hue::ERROR_MAP[error["type"]] || UnknownError
+    klass = ERROR_MAP[error["type"]] || UnknownError
     klass.new(error["description"])
   end
 end

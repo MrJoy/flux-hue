@@ -9,7 +9,6 @@ module EnvStash
     block.call
   ensure
     stash.each do |key, value|
-      puts "Restoring: #{key} to #{value}..."
       ENV[key] = value
     end
   end
@@ -27,7 +26,7 @@ protected
   end
 end
 
-RSpec.describe Hue::Light do
+RSpec.describe FluxHue::Light do
   # rubocop:disable Metrics/LineLength
 
   %w(on hue saturation brightness color_temperature alert effect).each do |attribute|
@@ -42,12 +41,12 @@ RSpec.describe Hue::Light do
       stub_request(:put, %r{http://localhost/api*})
         .to_return(body: "[{}]")
 
-      @client = Hue::Client.new(Hue::Bridge.all(ip: "localhost").first)
+      @client = FluxHue::Client.new(FluxHue::Bridge.all(ip: "localhost").first)
     end
 
     describe "##{attribute}=" do
       it "PUTs the new attribute value" do
-        light = Hue::Light.new(client: @client, id: 0, state: {})
+        light = FluxHue::Light.new(client: @client, id: 0, state: {})
 
         light.send("#{attribute}=", 24)
         expect(a_request(:put, %r{http://localhost/api/.*/lights/0})).to have_been_made
@@ -57,15 +56,15 @@ RSpec.describe Hue::Light do
     describe "#off?" do
       it "should return the opposite of state['on']" do
         state = { "on" => true }
-        light = Hue::Light.new(client: @client, id: 0, state: state)
+        light = FluxHue::Light.new(client: @client, id: 0, state: state)
         expect(light.off?).to be false
 
         state = {}
-        light = Hue::Light.new(client: @client, id: 0, state: state)
+        light = FluxHue::Light.new(client: @client, id: 0, state: state)
         expect(light.off?).to be true
 
         state = { "off" => false }
-        light = Hue::Light.new(client: @client, id: 0, state: state)
+        light = FluxHue::Light.new(client: @client, id: 0, state: state)
         expect(light.off?).to be true
       end
     end
@@ -74,15 +73,15 @@ RSpec.describe Hue::Light do
   describe "#off?" do
     it "should return the opposite of state['on']" do
       state = { "on" => true }
-      light = Hue::Light.new(client: @client, id: 0, state: state)
+      light = FluxHue::Light.new(client: @client, id: 0, state: state)
       expect(light.off?).to be false
 
       state = {}
-      light = Hue::Light.new(client: @client, id: 0, state: state)
+      light = FluxHue::Light.new(client: @client, id: 0, state: state)
       expect(light.off?).to be true
 
       state = { "off" => false }
-      light = Hue::Light.new(client: @client, id: 0, state: state)
+      light = FluxHue::Light.new(client: @client, id: 0, state: state)
       expect(light.off?).to be true
     end
   end

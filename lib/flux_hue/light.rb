@@ -1,4 +1,4 @@
-module Hue
+module FluxHue
   # Models an individual lightbulb in the Hue system, providing means of
   # both reading and updating the state/configuration of the bulb.
   class Light

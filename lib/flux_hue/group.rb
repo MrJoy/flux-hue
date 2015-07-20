@@ -1,4 +1,4 @@
-module Hue
+module FluxHue
   # Models a group of lights in the Hue system, providing means of
   # applying changes to multiple lights at once.
   class Group

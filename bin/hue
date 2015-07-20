@@ -2,8 +2,8 @@
 
 lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "hue"
-require "hue/cli_base"
-require "hue/cli"
+require "flux_hue"
+require "flux_hue/cli_base"
+require "flux_hue/cli"
 
-Hue::CLI.start
+FluxHue::CLI.start

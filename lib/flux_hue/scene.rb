@@ -1,4 +1,4 @@
-module Hue
+module FluxHue
   # Models an scene in the Hue system, providing means of
   # both reading and updating the state/configuration of the scene.
   class Scene

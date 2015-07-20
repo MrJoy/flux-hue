@@ -1,4 +1,4 @@
 #
-module Hue
+module FluxHue
   VERSION = "0.1.5"
 end

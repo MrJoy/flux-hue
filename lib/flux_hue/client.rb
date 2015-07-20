@@ -2,7 +2,7 @@ require "date"
 require "net/http"
 require "json"
 
-module Hue
+module FluxHue
   # A `Client` represents a bridge, with a `username` for accessing non-public
   # or restricted functionality.  In most cases, this is what you want, as
   # very little is possible on the bridge without a `username`.
@@ -91,7 +91,7 @@ module Hue
 
       begin
         validate_user!
-      rescue Hue::UnauthorizedUser
+      rescue UnauthorizedUser
         register_user!
       end
     end

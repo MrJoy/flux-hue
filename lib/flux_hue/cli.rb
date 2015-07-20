@@ -3,7 +3,7 @@
 # TODO: Failure handling for setting names/lights.
 require "terminal-table"
 
-module Hue
+module FluxHue
   # CLI interface to library functionality, via Thor.
   class CLI < CLIBase
     BRIDGES_FIELDS = {
@@ -322,7 +322,7 @@ module Hue
         fail UnknownBridge unless tmp
         tmp
       end
-      @client ||= Hue::Client.new(@bridge, username: options[:user])
+      @client ||= Client.new(@bridge, username: options[:user])
     end
   end
 end

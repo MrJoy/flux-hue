@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "hue/version"
+require "flux_hue/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "hue"
-  spec.version       = Hue::VERSION
+  spec.name          = "flux_hue"
+  spec.version       = FluxHue::VERSION
   spec.authors       = ["Jon Frisby", "Sam Soffes"]
   spec.email         = ["jfrisby@mrjoy.com", "sam@soff.es"]
   spec.description   = "Work with the Philips Hue system."

@@ -1,4 +1,6 @@
-## Submitting a Pull Request
+# Submitting a Pull Request
+
+_NOTE: This is all rather incomplete / out of date.  File an issue or a PR and we'll go from there for now._
 
 1. [Fork the repository.][fork]
 2. [Create a topic branch.][branch]

@@ -1,4 +1,4 @@
-# Hue
+# Flux Hue
 
 Work with Philips Hue light bulbs from Ruby.
 
@@ -11,7 +11,7 @@ _Based on [hue](https://github.com/soffes/hue) by [Sam Soffes](https://github.co
 Add this line to your application's `Gemfile`:
 
 ```ruby
-gem 'hue', github: 'MrJoy/hue'
+gem 'flux-hue', github: 'MrJoy/flux-hue'
 ```
 
 And then execute:
@@ -24,7 +24,7 @@ bundle
 Or install it yourself as:
 
 ``` shell
-$ gem install hue
+$ gem install flux-hue
 ```
 -->
 
@@ -35,10 +35,6 @@ $ gem install hue
 Press the button on your bridge, and within 30 seconds run `hue lights`.  This will create a user on the bridge for the app.
 
 If you want to use your own user ID, use the `--user <your_preferred_id>` or set the environment variable `HUE_BRIDGE_USER`.  Be aware that the id *must* be 10..40 characters in length.
-
-_TODO: Check the docs for further constraints on user._
-
-_TODO: Add a mode to allow the bridge to assign the user ID, since explicit IDs are deprecated!_
 
 
 ### Finding Bridges
@@ -54,23 +50,6 @@ When you've discovered the IP(s) of your bridge(s) you can tell the `hue` comman
 
 
 ### Commandline
-
-_TODO: At present, there exists some code for scenes, but it's not exposed in the CLI._
-
-_TODO: Expose color mode / color temperature / X+Y parameters to CLI._
-
-_TODO: See if brightness/saturation limit of 254 is a rounding issue associated with HS color mode._
-
-_TODO: Add commands to manipulate bridge configuration._
-
-_TODO: Add commands to look at sensors.  Maybe have a way to wait on particular sensors?_
-
-_TODO: Add configuration file mechanism to associate user IDs with each encountered bridge._
-
-_TODO: Add options for machine-readable output to all commands._
-
-_TODO: Automatic retries+backoffs and parameters for controlling this behavior, because OHGODRATELIMITS._
-
 
 #### Information About Bridges: `hue bridges`
 
@@ -94,8 +73,6 @@ INFO: Discovering bridges via SSDP...
 #### Information About Bridges: `hue bridge`
 
 Discover and show information about a specific bridge on the network, with which you've registered a username.  This provides more detail than `hue bridges`.
-
-_TODO: Expose more information including portal, timezone, DHCP, proxy info, and whether the link button was pressed recently._
 
 ```bash
 hue bridge <id>
@@ -169,8 +146,6 @@ Example output:
 
 Display lights the bridge knows about, along with a great deal of state information about each one.  The `--order` parameter takes a comma-separated list of column numbers, starting from 0.
 
-_TODO: Make `order` more friendly by making indexing 1-based, and allowing named column references._
-
 ```bash
 hue lights
 hue lights --order <columns>
@@ -230,10 +205,6 @@ Note that some parameters will not be available if the light is off or if the li
 
 All parameters are optional and can be mixed/matched as you see fit.
 
-_TODO: Link to Philips documentation about color spaces and give a tl;dr about the complexity of the topic._
-
-_TODO: Maybe add some statically-defined metadata from the docs about whitepoint and color ranges based on device type?_
-
 * `on` / `off`: Switch lights on or off.
 * `--hue <H>`: Set the hue in HSB color space.  `<H>` goes from 0-65535 with red at 0.
 * `--saturation <S>`: Set the saturation in HSB color space.  `<S>` goes from 0-255 but the bridge seems to clamp it to 254.  0 is white, and 255 is pure color.
@@ -250,8 +221,6 @@ _TODO: Maybe add some statically-defined metadata from the docs about whitepoint
 #### Manipulating All Lights: `hue all`
 
 This sub-command lets you manipulate all lights at once.  All parameters are optional.
-
-_TODO: Is there a way we can tell the bridge to do things in a single API request?  Because OHGODRATELIMITS!_
 
 ```bash
 hue all off
@@ -310,9 +279,9 @@ In addition to the parameters supported by `hue light`, you can also set which l
 At present, the Ruby API is rather messy and awkward.  Look at `lib/hue/cli.rb` for usage examples.
 
 ```ruby
-client          = Hue::Client.new
+client          = FluxHue::Client.new
 # Or:
-client          = Hue::Client.new("<bridge_username>", "<bridge_ip>")
+client          = FluxHue::Client.new("<bridge_username>", "<bridge_ip>")
 
 bridges         = client.bridges
 default_bridge  = client.bridge
@@ -348,14 +317,14 @@ group = client.group(1)
 # Accessing lights in the group:
 group.lights.first.on!
 group.lights.each do |light|
-  light.hue = rand(Hue::Light::HUE_RANGE)
+  light.hue = rand(FluxHue::Light::HUE_RANGE)
 end
 
 # Manipulating a group at once:
-group.hue = rand(Hue::Light::HUE_RANGE)
+group.hue = rand(FluxHue::Light::HUE_RANGE)
 
 # And just like with lights you can make multiple changes in a single request:
-group.set_state({ hue: rand(Hue::Light::HUE_RANGE), brightness: 255 })
+group.set_state(hue: rand(FluxHue::Light::HUE_RANGE), brightness: 255)
 
 # Creating groups
 group         = Group.new(client)

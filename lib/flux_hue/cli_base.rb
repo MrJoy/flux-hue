@@ -1,6 +1,6 @@
 require "thor"
 
-module Hue
+module FluxHue
   # Shared functionality used in multiple places in the CLI class.
   class CLIBase < Thor
     class InvalidUsage < Thor::Error; end
@@ -22,7 +22,7 @@ module Hue
                     aliases:  "-u",
                     type:     :string,
                     desc:     "Username with access to higher level functions.",
-                    default:  Hue::Client::DEFAULT_USERNAME,
+                    default:  FluxHue::Client::DEFAULT_USERNAME,
                     required: false
     end
 
