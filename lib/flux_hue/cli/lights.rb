@@ -58,31 +58,48 @@ module FluxHue
            "Manipulate a light, or all lights, on your network"
       long_desc <<-LONGDESC
       Examples:\n
-        hue lights set all on --hue 12345\n
+        hue lights set all --state on --hue 12345\n
         hue lights set 1 2 3 4 --bri 25\n
         hue lights set all --alert lselect\n
-        hue lights set 1 off\n
+        hue lights set 1 --state off\n
       LONGDESC
       shared_nameable_light_options
       def set(*ids)
-        all_lights  = ids.find { |id| id.downcase == "all" }
-        lights      = client
-                      .lights
-                      .select { |light| all_lights || ids.include?(light.id) }
-        fail UnknownLight unless lights.length > 0
+        lights                    = selected_lights!(ids)
 
-        new_name      = options[:name]
-        body          = clean_body(options, state: options[:state])
+        name, body                = extract_changes(options)
 
+        change_state, change_name = detect_changes!(lights, body, name)
+
+        lights.each { |light| puts light.apply_state(body) } if change_state
+        lights.first.name         = name if change_name
+      end
+
+    private
+
+      def detect_changes!(lights, body, name)
         change_state  = body.length > 0
-        change_name   = (new_name && new_name != lights.first.name)
+        change_name   = (name && name != lights.first.name)
+        fail ParameterNotModifiable if name && lights.length > 1
         fail NothingToDo unless change_state || change_name
-        fail ParameterNotModifiable if new_name && lights.length > 1
 
-        lights.each do |light|
-          puts light.apply_state(body) if change_state
-        end
-        lights.first.name = new_name if change_name
+        [change_state, change_name]
+      end
+
+      def extract_changes(options)
+        new_name  = options[:name]
+        body      = clean_body(options, state: options[:state])
+
+        [new_name, body]
+      end
+
+      def selected_lights!(ids)
+        use_all = ids.find { |id| id.downcase == "all" }
+        lights  = client
+                  .lights
+                  .select { |light| use_all || ids.include?(light.id) }
+        fail UnknownLight unless lights.length > 0
+        lights
       end
     end
   end
