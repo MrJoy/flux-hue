@@ -25,36 +25,36 @@ RSpec.describe FluxHue::Light do
       end
     end
 
-    describe "#off?" do
+    describe "#on?" do
       it "should return the opposite of state['on']" do
         state = { "on" => true }
         light = FluxHue::Light.new(client: @client, id: 0, state: state)
-        expect(light.off?).to be false
+        expect(light.on?).to be true
 
         state = {}
         light = FluxHue::Light.new(client: @client, id: 0, state: state)
-        expect(light.off?).to be true
+        expect(light.on?).to be false
 
         state = { "off" => false }
         light = FluxHue::Light.new(client: @client, id: 0, state: state)
-        expect(light.off?).to be true
+        expect(light.on?).to be false
       end
     end
   end
 
-  describe "#off?" do
+  describe "#on?" do
     it "should return the opposite of state['on']" do
       state = { "on" => true }
       light = FluxHue::Light.new(client: @client, id: 0, state: state)
-      expect(light.off?).to be false
+      expect(light.on?).to be true
 
       state = {}
       light = FluxHue::Light.new(client: @client, id: 0, state: state)
-      expect(light.off?).to be true
+      expect(light.on?).to be false
 
       state = { "off" => false }
       light = FluxHue::Light.new(client: @client, id: 0, state: state)
-      expect(light.off?).to be true
+      expect(light.on?).to be false
     end
   end
   # rubocop:enable Metrics/LineLength

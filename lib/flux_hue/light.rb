@@ -132,8 +132,8 @@ module FluxHue
       self
     end
 
-    # Is the light off?
-    def off?; !@state["on"]; end
+    # Is the light on?
+    def on?; !!@state["on"]; end
 
   private
 

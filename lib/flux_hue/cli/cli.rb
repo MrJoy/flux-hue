@@ -5,114 +5,12 @@ require "terminal-table"
 
 module FluxHue
   module CLI
-    # Helper to cleanse and format data from a Light for display.
-    class LightPresenter < Presenter
-      extend Forwardable
-      def initialize(light); @light = light; end
-      def_delegators :@light, :id, :type, :model, :name, :color_mode, :hue,
-                     :saturation, :brightness, :color_temperature, :alert,
-                     :effect, :software_version
-
-      def on?; from_boolean(@light.on?); end
-      def reachable?; from_boolean(@light.reachable?); end
-
-      def x_y
-        [@light.x, @light.y].compact.map { |n| "%0.4f" % n }.join(", ")
-      end
-    end
-
     # CLI interface to library functionality, via Thor.
     class CLI < Base
-      register(Bridge, "bridges", "bridges", "Discover/work with bridges")
-
-      LIGHT_FIELDS = {
-        id: "ID",
-        type: "Type",
-        model: "Model",
-        name: "Name",
-        on?: "On?",
-        color_mode: "Mode",
-        hue: "Hue",
-        saturation: "Saturation",
-        brightness: "Brightness",
-        x_y: "X/Y",
-        color_temperature: "Temp",
-        alert: "Alert",
-        effect: "Effect",
-        software_version: "Software Version",
-        reachable?: "Reachable?",
-      }
-
-      desc "lights [--order=X,Y,...]", "Find all of the lights on your network"
-      shared_access_controlled_options
-      method_option :sort, type: :string, aliases: "--order"
-      def lights
-        rows    = client
-                  .lights
-                  .map { |light| LightPresenter.new(light) }
-                  .map { |light| extract_fields(light, LIGHT_FIELDS) }
-
-        if options[:sort]
-          sorting = parse_list(options[:sort])
-          rows.sort! do |a, b|
-            sorting
-              .map { |k| a[k] <=> b[k] }
-              .find { |n| n != 0 } || 0
-          end
-        end
-
-        puts render_table(rows, LIGHT_FIELDS)
-      end
-
-      desc "add", "Search for new lights"
-      shared_access_controlled_options
-      def add
-        client.add_lights
-      end
-
-      desc "all [shared options] [light options]", "Manipulate all lights"
-      shared_light_options
-      long_desc <<-LONGDESC
-      Examples:\n
-        hue all on --hue 12345\n
-        hue all --bri 25\n
-        hue all --alert lselect\n
-        hue all off\n
-      LONGDESC
-      def all(state = nil)
-        body          = clean_body(options, state: state)
-
-        change_state  = body.length > 0
-        fail NothingToDo unless change_state
-
-        client.lights.each do |light|
-          puts light.apply_state(body)
-        end
-      end
-
-      desc "light <id> [shared options] [light options]", "Manipulate a light"
-      long_desc <<-LONGDESC
-      Examples:\n
-        hue light 1 on --hue 12345 \n
-        hue light 1 --brightness 25\n
-        hue light 1 --alert lselect\n
-        hue light 1 off\n
-      LONGDESC
-      shared_nameable_light_options
-      def light(id, state = nil)
-        light         = client.light(id)
-        fail UnknownLight unless light
-
-        new_name      = options[:name]
-        body          = clean_body(options, state: state)
-
-        change_state  = body.length > 0
-        change_name   = (new_name && new_name != light.name)
-        fail NothingToDo unless change_state || change_name
-
-        puts light.apply_state(body) if change_state
-        light.name = new_name if change_name
-      end
+      register(Bridge, "bridges", "bridges",
+               "Discover/inspect/work with bridges")
+      register(Light, "lights", "lights",
+               "Inspect/work with lights")
 
       GROUP_FIELDS = ["ID", "Name", "Light IDs", "Lights"]
 
