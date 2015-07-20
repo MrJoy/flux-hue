@@ -190,21 +190,21 @@ module Hue
     end
 
     KEYS_MAP = Bridge::KEYS_MAP.merge({
-      :zigbee_channel     => :zigbeechannel,
-      :software_update    => :swupdate,
+      zigbee_channel:     :zigbeechannel,
+      software_update:    :swupdate,
 
-      :link_button        => :linkbutton,
-      :known_clients      => :whitelist,
+      link_button:        :linkbutton,
+      known_clients:      :whitelist,
 
-      :network_mask       => :netmask,
-      :gateway            => :gateway,
-      :dhcp               => :dhcp,
-      :proxy_address      => :proxyaddress,
-      :proxy_port         => :proxyport,
+      network_mask:       :netmask,
+      gateway:            :gateway,
+      dhcp:               :dhcp,
+      proxy_address:      :proxyaddress,
+      proxy_port:         :proxyport,
 
-      :portal_services    => :portalservices,
-      :portal_connection  => :portalconnection,
-      :portal_state       => :portalstate,
+      portal_services:    :portalservices,
+      portal_connection:  :portalconnection,
+      portal_state:       :portalstate,
     })
 
     def unpack(hash)
