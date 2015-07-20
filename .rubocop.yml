@@ -1,0 +1,72 @@
+AllCops:
+  Exclude:
+  - reference/**/*.rb
+  - etc/**/*.rb
+
+Metrics/LineLength:
+  Max: 80
+
+Style/AccessModifierIndentation:
+  EnforcedStyle: outdent
+
+Style/CollectionMethods:
+  PreferredMethods:
+    find: detect
+    inject: reduce
+    collect: map
+    find_all: select
+
+# Allow comments to be aligned to one another.
+Style/CommentIndentation:
+  Enabled: false
+
+# We like the truthiness operator.
+Style/DoubleNegation:
+  Enabled: false
+
+# Style/DotPosition:
+#   EnforcedStyle: trailing
+
+Style/EmptyLineBetweenDefs:
+  AllowAdjacentOneLineDefs: true
+
+Style/FormatString:
+  EnforcedStyle: 'String#%'
+  SupportedStyles: 'String#%'
+
+# Style/GuardClause:
+#   Enabled: false
+
+Style/IfUnlessModifier:
+  Enabled: false
+
+Style/LineEndConcatenation:
+  Enabled: false
+
+# TODO: *sigh*  See: https://github.com/bbatsov/rubocop/issues/1020
+# Style/RegexpLiteral:
+#   MaxSlashes: 0
+
+# Style/RescueModifier:
+#   Enabled: false
+
+# We like terse methods.
+Style/SingleLineMethods:
+  Enabled: false
+
+Style/SpaceAroundOperators:
+  MultiSpaceAllowedForOperators:
+    - '='
+    - '=>'
+    - '||='
+    - '+='
+    - '-='
+    - '*='
+    - '/='
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/TrailingComma:
+  EnforcedStyleForMultiline: comma
+  SupportedStyles: comma
