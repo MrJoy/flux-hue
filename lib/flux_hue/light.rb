@@ -48,8 +48,8 @@ module FluxHue
     #   defaults to 4 (400ms). For example, setting transistiontime:10 will
     #   make the transition last 1 second.
     def apply_state(attributes, transition = nil)
-      body                  = translate_keys(attributes, STATE_KEYS_MAP)
-      body[:transitiontime] = (transition * 10.0).to_i if transition
+      body                    = translate_keys(attributes, STATE_KEYS_MAP)
+      body["transitiontime"]  = (transition * 10.0).to_i if transition
 
       agent.put("#{url}/state", body)
     end

@@ -4,9 +4,7 @@ module FluxHue
     def translate_keys(hash, map)
       tmp = hash
             .map do |key, value|
-              new_key = map[key.to_sym]
-              key = new_key if new_key
-              [key, value]
+              [(map[key.to_s] || key), value]
             end
       Hash[tmp]
     end
