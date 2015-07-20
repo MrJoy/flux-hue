@@ -22,17 +22,12 @@ module FluxHue
 
     def register_user!(username)
       # TODO: Better devicetype value, and allow customizing it!
-      data = {
-        devicetype: "Ruby",
-        username:   username,
-      }
+      response = agent.post(url,
+                            devicetype: "Ruby",
+                            username:   username)
+      response = response.first if response.is_a?(Array)
 
-      uri       = URI.parse(url)
-      http      = Net::HTTP.new(uri.host)
-      response  = JSON(http.request_post(uri.path, JSON.dump(data)).body).first
-      error     = response["error"]
-
-      handle_error!(error)
+      handle_error!(response["error"])
 
       response["success"]
     end
@@ -82,25 +77,19 @@ module FluxHue
         filter_bridges(bridges)
       end
 
-      def find_by_ssdp
-        return [] if ENV["HUE_SKIP_SSDP"] && ENV["HUE_SKIP_SSDP"] != ""
-        puts "INFO: Discovering bridges via SSDP..."
-
-        bridges = ssdp_scan!.map { |resp| Bridge.new(agent, resp) }
-
-        filter_bridges(bridges)
-      end
-
-      def find_by_nupnp
-        return [] if ENV["HUE_SKIP_NUPNP"] && ENV["HUE_SKIP_NUPNP"] != ""
-        puts "INFO: Discovering bridges via N-UPnP..."
-
-        bridges = nupnp_scan!.map { |resp| Bridge.new(agent, resp) }
-
-        filter_bridges(bridges)
-      end
+      def find_by_ssdp; scan("SSDP", "HUE_SKIP_SSDP", &:ssdp_scan!); end
+      def find_by_nupnp; scan("N-UPnP", "HUE_SKIP_NUPNP", &:nupnp_scan!); end
 
     private
+
+      def scan(name, bail_var, &method)
+        return [] if ENV[bail_var] && ENV[bail_var] != ""
+        puts "INFO: Discovering bridges via #{name}..."
+
+        bridges = method.call(self).map { |resp| Bridge.new(agent, resp) }
+
+        filter_bridges(bridges)
+      end
 
       def determine_effective_ip(explicit_ip)
         ip_var        = ENV["HUE_BRIDGE_IP"]
