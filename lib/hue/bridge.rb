@@ -1,10 +1,26 @@
 module Hue
+  # Functionality common to all bridge interfaces.
+  module BridgeShared
+    include TranslateKeys
+
+    def unpack(hash)
+      unpack_hash(hash, keys_map)
+      @id = @mac_address.gsub(/:/, "") if !@id && @mac_address
+    end
+
+    def fetch_configuration
+      JSON(Net::HTTP.get(URI.parse("#{url}/config")))
+    end
+  end
+
   # A `Bridge` represents a bridge, without a `username` for accessing
   # non-public or restricted functionality.  Very little can be done/accessed
   # without a `username`, but what there is is made available here.
   #
   # Principally, this includes bridge discovery
   class Bridge
+    include BridgeShared
+
     # ID of the bridge.
     attr_reader :id
 
@@ -102,6 +118,10 @@ module Hue
       filter_bridges(bridges)
     end
 
+    def keys_map; KEYS_MAP; end
+
+  private
+
     KEYS_MAP = {
       id:               :id,
       name:             :name,
@@ -112,11 +132,9 @@ module Hue
       ip:               :ipaddress,
     }
 
-  private
-
     # Loads the Playful library for SSDP late to avoid slowing down the CLI
     # needlessly when SSDP isn't needed.
-    def setup_ssdp_lib!
+    def self.setup_ssdp_lib!
       require "playful/ssdp" unless defined?(Playful)
       Playful.log = false # Playful is super verbose
     end
@@ -148,19 +166,5 @@ module Hue
     # TODO: coercing it down to just MAC address....  Just use the damned IP
     # TODO: or MAC!
     def self.usn_to_id(usn); usn.split(/:/, 3)[1].split(/-/).last; end
-
-    def unpack(hash)
-      KEYS_MAP.each do |local_key, remote_key|
-        value = hash[remote_key.to_s]
-        next unless value
-        instance_variable_set("@#{local_key}", value)
-      end
-
-      @id = @mac_address.gsub(/:/, "") if !@id && @mac_address
-    end
-
-    def fetch_configuration
-      JSON(Net::HTTP.get(URI.parse("#{url}/config")))
-    end
   end
 end

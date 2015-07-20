@@ -7,6 +7,8 @@ module Hue
   # or restricted functionality.  In most cases, this is what you want, as
   # very little is possible on the bridge without a `username`.
   class Client
+    include BridgeShared
+
     # By default we just use a made up username when talking to the client.
     # For simple cases where you only have one bridge (and aren't using
     # software by someone who thought of the same clever name) this makes it so
@@ -136,6 +138,8 @@ module Hue
 
     def refresh!; unpack(fetch_configuration); end
 
+    def keys_map; KEYS_MAP; end
+
   private
 
     NAME_RANGE      = 10..40
@@ -201,19 +205,5 @@ module Hue
       portal_state:       :portalstate,
     }
     KEYS_MAP = Bridge::KEYS_MAP.merge(CLIENT_KEYS_MAP)
-
-    def unpack(hash)
-      KEYS_MAP.each do |local_key, remote_key|
-        value = hash[remote_key.to_s]
-        next unless value
-        instance_variable_set("@#{local_key}", value)
-      end
-
-      @id = @mac_address.gsub(/:/, "") if !@id && @mac_address
-    end
-
-    def fetch_configuration
-      JSON(Net::HTTP.get(URI.parse("#{url}/config")))
-    end
   end
 end
