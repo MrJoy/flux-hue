@@ -138,8 +138,6 @@ module FluxHue
 
     def refresh!; unpack(fetch_configuration); end
 
-    def keys_map; KEYS_MAP; end
-
   private
 
     NAME_RANGE      = 10..40
