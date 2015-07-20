@@ -15,6 +15,12 @@ module FluxHue
       JSON(http.delete(uri.path).body)
     end
 
+    def successes(resp)
+      resp
+        .select { |rr| rr.key?("success") }
+        .map { |rr| rr["success"] }
+    end
+
   private
 
     def setup(url, data = nil)

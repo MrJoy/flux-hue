@@ -68,10 +68,7 @@ module FluxHue
         # TODO: Warn if the name is a poor choice for symbolic usage?
         group         = Group.new(client,
                                   name:   name,
-                                  lights: Array(lights)
-                                          .map(&:strip)
-                                          .map(&:to_i)
-                                          .sort)
+                                  lights: light_ids_from_group(lights))
 
         result        = group.create!
 
@@ -112,6 +109,13 @@ module FluxHue
         fail NothingToDo unless change_state || change_name || change_lights
 
         [change_state, change_name, change_lights]
+      end
+
+      def light_ids_from_params(lights)
+        Array(lights)
+          .map(&:strip)
+          .map(&:to_i)
+          .sort
       end
 
       def light_ids_from_group(group)

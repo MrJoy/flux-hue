@@ -5,47 +5,12 @@ module FluxHue
     include TranslateKeys
     include EditableState
 
-    # Unique identification number.
-    attr_reader :id
-
     # The Client (and by extension, Bridge) this group is associated with.
     attr_reader :client
 
-    # A unique, editable name given to the group.
-    attr_accessor :name
-
-    # Hue of the group. This is a wrapping value between 0 and 65535.
-    # Both 0 and 65535 are red, 25500 is green and 46920 is blue.
-    attr_accessor :hue
-
-    # Saturation of the group. 255 is the most saturated (colored)
-    # and 0 is the least saturated (white).
-    attr_accessor :saturation
-
-    # Brightness of the group. This is a scale from the minimum
-    # brightness the group is capable of, 0, to the maximum capable
-    # brightness, 254. (Should be 255 but value clamps to 254!) Note a
-    # brightness of 0 is not off.
-    attr_accessor :brightness
-
-    # The x coordinate of a color in CIE color space. Between 0 and 1.
-    #
-    # @see http://developers.meethue.com/coreconcepts.html#color_gets_more_complicated
-    attr_reader :x
-
-    # The y coordinate of a color in CIE color space. Between 0 and 1.
-    #
-    # @see http://developers.meethue.com/coreconcepts.html#color_gets_more_complicated
-    attr_reader :y
-
-    # The Mired Color temperature of the light. 2012 connected lights
-    # are capable of 153 (6500K) to 500 (2000K).
-    #
-    # @see http://en.wikipedia.org/wiki/Mired
-    attr_accessor :color_temperature
-
-    # A fixed name describing the type of group.
-    attr_reader :type
+    # Various properties provided by the bridge.
+    attr_reader :id, :name, :hue, :saturation, :brightness, :x, :y,
+                :color_temperature, :type
 
     def initialize(client:, id: nil, name: nil, lights: nil, data: {})
       @client     = client
@@ -55,23 +20,14 @@ module FluxHue
       @name       = name
 
       unpack(data)
-      # TODO: Somewhere upstream we're only getting name when we should be
-      # TODO: getting a fair bit more, if possible.  See if we can be
-      # TODO: more courteous upstream, and barring that, be more selective
-      # TODO: about when to do a refresh here.
-      refresh!
     end
 
-    def lights
-      @lights ||= begin
-        @light_ids.map do |light_id|
-          @client.light(light_id)
-        end
-      end
-    end
+    def lights; @lights ||= @light_ids.map { |ll| @client.light(ll) }; end
 
     def name=(name)
-      @name = apply_group_state(name: name)[0]["success"]["/groups/#{id}/name"]
+      @name = agent
+              .successes(apply_group_state(name: name))
+              .first["/groups/#{id}/name"]
     end
 
     def lights=(light_ids)
@@ -81,40 +37,34 @@ module FluxHue
       apply_group_state(lights: @light_ids)
     end
 
-    def scene=(scene)
-      apply_group_state(scene: scene.is_a?(Scene) ? scene.id : scene)
-    end
-
     def <<(light_id)
       @light_ids << light_id
       apply_group_state(lights: @light_ids)
     end
 
-    def apply_group_state(attributes)
+    def apply_group_state(attrs)
       return if new?
 
-      client.agent.put(url, translate_keys(attributes, GROUP_KEYS_MAP))
+      agent.put(url, translate_keys(attrs, GROUP_KEYS_MAP))
     end
 
-    def apply_state(attributes)
+    def apply_state(attrs)
       return if new?
 
-      client.agent.put("#{url}/action",
-                       translate_keys(attributes, STATE_KEYS_MAP))
+      agent.put("#{url}/action", translate_keys(attrs, STATE_KEYS_MAP))
     end
 
     def refresh!
-      unpack(client.agent.get(url))
+      unpack(agent.get(url))
       self
     end
 
     def create!
-      response  = client.agent.post(collection_url,
-                                    name:   @name,
-                                    lights: @light_ids)
+      response  = agent.post(collection_url, name:   @name,
+                                             lights: @light_ids)
 
-      success   = response.find { |resp| resp.key?("success") }
-      @id       = success["success"]["id"].to_i if success
+      success   = agent.successes(response).first
+      @id       = success["id"].to_i if success
 
       @id || response
     end
@@ -168,6 +118,7 @@ module FluxHue
         .uniq
     end
 
+    def agent; client.agent; end
     def collection_url; "#{client.url}/groups"; end
     def url; "#{collection_url}/#{id}"; end
   end
