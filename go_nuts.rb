@@ -40,8 +40,8 @@ SILENT          = true
 #
 # Tweak this to change the visual effect.
 ###############################################################################
-TRANSITION_TIME = 0.0 # In seconds, 1/10th second precision!
-def random_hue; rand(16) * 4096; end
+TRANSITION = 0.0 # In seconds, 1/10th second precision!
+def random_hue(_light_id); rand(16) * 4096; end
 
 ###############################################################################
 # System Configuration
@@ -142,7 +142,7 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
         l_fail  = 0
         l_succ = 0
         requests  = lights
-                    .map { |lid| hue_request(lid, random_hue, TRANSITION_TIME) }
+                    .map { |lid| hue_request(lid, random_hue(lid), TRANSITION) }
                     .map { |req| req.merge(handlers) }
 
         Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
