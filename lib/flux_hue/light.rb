@@ -102,6 +102,9 @@ module FluxHue
 
       response  = client.agent.put(url, name: new_name)
       response  = response.first if response.is_a?(Array)
+      error     = response["error"]
+
+      fail FluxHue.get_error(error) if error
 
       # TODO: actual error handling?
       return unless response["success"]
