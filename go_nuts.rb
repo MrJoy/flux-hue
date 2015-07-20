@@ -52,8 +52,7 @@ BRIDGE_IP       = ENV["HUE_BRIDGE_IP"]
 USERNAME        = ENV["HUE_BRIDGE_USERNAME"] || "1234567890" # Default for lib.
 env_lights      = ENV["LIGHTS"] ? ENV["LIGHTS"].split(/[\s,]+/).sort.uniq : []
 env_lights      = nil if env_lights.length == 0
-LIGHTS          = env_lights || %w(1 2 6 7 8 9 10 11 12 13 14 15 17 18 19 20 21
-                                   22 23 26 27 28 30 33 34 35 36 37)
+LIGHTS          = env_lights || %w(1 2 3 4 5 6 7 8 9 10)
 
 ###############################################################################
 # Helper Functions
