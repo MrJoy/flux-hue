@@ -11,13 +11,25 @@ require "oj"
 #
 # Play with this to see how error rates are affected.
 ###############################################################################
+def env_int(name)
+  tmp = ENV[name].to_i
+  (tmp == 0) ? nil : tmp
+end
+
+def validate_max_sockets!(max_connects, threads)
+  total_conns = max_connects * threads
+  return if total_conns <= 6
+  fail "No more than 6 connections are allowed by the hub at once!  You asked"\
+    " for #{total_conns}!"
+end
+
 MULTI_OPTIONS   = { pipeline:         true,
-                    max_connects:     6 }
+                    max_connects:     (env_int("MAX_CONNECTS") || 6) }
 EASY_OPTIONS    = { timeout:          5,
                     connect_timeout:  5,
                     follow_location:  false,
                     max_redirects:    0 }
-THREAD_COUNT    = 1
+THREAD_COUNT    = env_int("THREADS") || 1
 
 env_iters       = ENV["ITERATIONS"].to_i
 env_iters       = nil if env_iters == 0
@@ -91,7 +103,10 @@ end
 ###############################################################################
 # Main
 ###############################################################################
-puts "Mucking with #{LIGHTS.length} lights..."
+validate_max_sockets!(MULTI_OPTIONS[:max_connects], THREAD_COUNT)
+
+puts "Mucking with #{LIGHTS.length} lights, across #{THREAD_COUNT} threads for"\
+  " #{ITERATIONS} iterations (requests == #{LIGHTS.length * ITERATIONS})."
 
 lights_for_threads  = in_groups(LIGHTS, THREAD_COUNT)
 mutex               = Mutex.new
