@@ -140,9 +140,9 @@ module FluxHue
     NAME_RANGE_MSG    = "Names must be between #{NAME_RANGE.first} and"\
                           " #{NAME_RANGE.last} characters."
 
-    def validate_name!(username)
-      fail InvalidUsername, NAME_RANGE_MSG unless NAME_RANGE
-                                                  .include?(username.length)
+    def validate_name!(name)
+      valid = NAME_RANGE.include?(name.length)
+      fail InvalidValueForParameter, NAME_RANGE_MSG unless valid
     end
 
     KEYS_MAP = {
