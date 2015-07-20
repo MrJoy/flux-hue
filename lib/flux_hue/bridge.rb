@@ -26,8 +26,8 @@ module FluxHue
     def register_user!(username)
       # TODO: Better devicetype value, and allow customizing it!
       response = agent.post(url,
-                            devicetype: "Ruby",
-                            username:   username)
+                            "devicetype"  => "Ruby",
+                            "username"    => username)
       response = response.first if response.is_a?(Array)
 
       handle_error!(response["error"])

@@ -68,15 +68,15 @@ module FluxHue
     end
 
     def light(id)
-      lights.find { |l| l.id == id }
+      lights.find { |l| l.id == id.to_i }
     end
 
     def group(id)
-      groups.find { |g| g.id == id }
+      groups.find { |g| g.id == id.to_i }
     end
 
     def scene(id)
-      scenes.find { |s| s.id == id }
+      scenes.find { |s| s.id == id.to_i }
     end
 
     def url; "#{@bridge.url}/#{username}"; end

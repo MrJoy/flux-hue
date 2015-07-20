@@ -28,7 +28,7 @@ module FluxHue
     end
 
     def name=(new_name)
-      response  = agent.put(url, name: new_name)
+      response  = agent.put(url, "name" => new_name)
       response  = response.first if response.is_a?(Array)
       error     = response["error"]
 
@@ -89,7 +89,8 @@ module FluxHue
     def unpack(hash)
       unpack_hash(hash, KEYS_MAP)
       unpack_hash(@state, STATE_KEYS_MAP)
-      @x, @y = @state["xy"]
+      @id     = @id.to_i if @id
+      @x, @y  = @state["xy"]
     end
 
     def collection_url; "#{client.url}/lights"; end

@@ -12,6 +12,8 @@ module FluxHue
     attr_reader :id, :name, :hue, :saturation, :brightness, :x, :y,
                 :color_temperature, :type
 
+    attr_reader :light_ids
+
     def initialize(client:, id: nil, name: nil, lights: nil, data: {})
       @client     = client
       @id         = id
@@ -26,7 +28,7 @@ module FluxHue
 
     def name=(name)
       @name = agent
-              .successes(apply_group_state(name: name))
+              .successes(apply_group_state("name" => name))
               .first["/groups/#{id}/name"]
     end
 
@@ -34,12 +36,12 @@ module FluxHue
       @light_ids  = cleanse_lights(light_ids)
       @lights     = nil # resets the memoization
 
-      apply_group_state(lights: @light_ids)
+      apply_group_state("lights" => @light_ids)
     end
 
     def <<(light_id)
       @light_ids << light_id
-      apply_group_state(lights: @light_ids)
+      apply_group_state("lights" => @light_ids)
     end
 
     def apply_group_state(attrs)
@@ -60,8 +62,8 @@ module FluxHue
     end
 
     def create!
-      response  = agent.post(collection_url, name:   @name,
-                                             lights: @light_ids)
+      response  = agent.post(collection_url, "name"   => @name,
+                                             "lights" => @light_ids)
 
       success   = agent.successes(response).first
       @id       = success["id"].to_i if success
@@ -101,12 +103,13 @@ module FluxHue
     }
 
     def unpack(data)
-      @lights = nil if data[:lights]
+      @lights = nil if data["lights"]
       unpack_hash(data, GROUP_KEYS_MAP)
 
       return if new?
 
       unpack_hash(@state, STATE_KEYS_MAP)
+      @id         = @id.to_i if @id
       @light_ids  = cleanse_lights(@light_ids)
       @x, @y      = @state["xy"]
     end

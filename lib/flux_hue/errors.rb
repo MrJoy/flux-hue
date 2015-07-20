@@ -39,7 +39,7 @@ module FluxHue
 
   def self.get_error(error)
     # Find error class and return instance
-    klass = ERROR_MAP[error["type"]] || UnknownError
+    klass = ERROR_MAP[error["type"].to_i] || UnknownError
     klass.new(error["description"])
   end
 end

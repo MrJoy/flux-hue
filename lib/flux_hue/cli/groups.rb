@@ -44,6 +44,7 @@ module FluxHue
       def set(id)
         # TODO: Make this work for multiple IDs!
         group               = client.group(id)
+        fail UnknownGroup unless group
 
         name, lights, body  = extract_changes(options)
 

@@ -27,7 +27,7 @@ module FluxHue
     def setup(url, data = nil)
       uri   = URI.parse(url)
       data  = Oj.dump(data) if data
-      [uri, Net::HTTP.new(uri.host), data]
+      [uri, Net::HTTP.new(uri.host, uri.port), data]
     end
 
     def perform(method, url, data)
