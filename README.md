@@ -280,13 +280,16 @@ In addition to the parameters supported by `hue light`, you can also set which l
 
 At present, the Ruby API is rather messy and awkward.  Look at `lib/hue/cli.rb` for usage examples.
 
-```ruby
-client          = FluxHue::Client.new
-# Or:
-client          = FluxHue::Client.new("<bridge_username>", "<bridge_ip>")
+Basics:
 
-bridges         = client.bridges
-default_bridge  = client.bridge
+```ruby
+bridge = HueFlux::Bridge.all.first
+# Or:
+bridge = HueFlux::Bridge.all(ip: "<bridge_ip>").first
+
+client = HueFlux::Client.new(bridge)
+# Or:
+client = HueFlux::Client.new(bridge, username: "<bridge_username>")
 ```
 
 #### Lights
