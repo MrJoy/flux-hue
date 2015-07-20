@@ -87,12 +87,14 @@ module FluxHue
 
       def selected_lights!(ids)
         use_all = ids.find { |id| id.downcase == "all" }
-        ids     = ids.map(&:to_i).sort.uniq
+        ids     = unique_light_ids(ids)
         lights  = client.lights
         lights  = lights.select { |ll| ids.include?(ll.id) } unless use_all
         fail UnknownLight unless use_all || lights.length == ids.length
         lights
       end
+
+      def unique_light_ids(ids); ids.map(&:to_i).sort.uniq; end
     end
   end
 end
