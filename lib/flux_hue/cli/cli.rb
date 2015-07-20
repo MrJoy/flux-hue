@@ -3,54 +3,57 @@
 # TODO: Failure handling for setting names/lights.
 require "terminal-table"
 
+require "forwardable"
+
 module FluxHue
   module CLI
+    # Helper to cleanse and format data from a Light for display.
+    class LightPresenter < Presenter
+      extend Forwardable
+      def initialize(light); @light = light; end
+      def_delegators :@light, :id, :type, :model, :name, :color_mode, :hue,
+                     :saturation, :brightness, :color_temperature, :alert,
+                     :effect, :software_version
+
+      def on?; from_boolean(@light.on?); end
+      def reachable?; from_boolean(@light.reachable?); end
+
+      def x_y
+        [@light.x, @light.y].compact.map { |n| "%0.4f" % n }.join(", ")
+      end
+    end
+
     # CLI interface to library functionality, via Thor.
     class CLI < Base
-      # register(class_name, subcommand_alias, usage_list_string, description_string)
       register(Bridge, "bridges", "bridges", "Discover/work with bridges")
 
-      LIGHT_FIELDS = [
-        "ID",
-        "Type",
-        "Model",
-        "Name",
-        "Status",
-        "Mode",
-        "Hue",
-        "Saturation",
-        "Brightness",
-        "X/Y",
-        "Temp",
-        "Alert",
-        "Effect",
-        "Software Version",
-        "Reachable?",
-      ]
+      LIGHT_FIELDS = {
+        id: "ID",
+        type: "Type",
+        model: "Model",
+        name: "Name",
+        on?: "On?",
+        color_mode: "Mode",
+        hue: "Hue",
+        saturation: "Saturation",
+        brightness: "Brightness",
+        x_y: "X/Y",
+        color_temperature: "Temp",
+        alert: "Alert",
+        effect: "Effect",
+        software_version: "Software Version",
+        reachable?: "Reachable?",
+      }
 
       desc "lights [--order=X,Y,...]", "Find all of the lights on your network"
       shared_access_controlled_options
       method_option :sort, type: :string, aliases: "--order"
       def lights
-        rows = client.lights.each_with_object([]) do |light, r|
-          r << [
-            light.id,
-            light.type,
-            light.model,
-            light.name,
-            (light.off? ? "Off" : "On"),
-            light.color_mode,
-            light.hue,
-            light.saturation,
-            light.brightness,
-            [light.x, light.y].compact.map { |n| "%0.4f" % n }.join(", "),
-            light.color_temperature,
-            light.alert,
-            light.effect,
-            light.software_version,
-            (light.reachable? ? "Yes" : "No"),
-          ]
-        end
+        rows    = client
+                  .lights
+                  .map { |light| LightPresenter.new(light) }
+                  .map { |light| extract_fields(light, LIGHT_FIELDS) }
+
         if options[:sort]
           sorting = parse_list(options[:sort])
           rows.sort! do |a, b|
@@ -59,7 +62,8 @@ module FluxHue
               .find { |n| n != 0 } || 0
           end
         end
-        puts Terminal::Table.new(rows: rows, headings: LIGHT_FIELDS)
+
+        puts render_table(rows, LIGHT_FIELDS)
       end
 
       desc "add", "Search for new lights"
@@ -210,13 +214,6 @@ module FluxHue
       end
 
     private
-
-      def parse_list(raw)
-        (raw || "")
-          .strip
-          .split(/[,\s]+/)
-          .map(&:to_i)
-      end
 
       def parse_lights(raw)
         parse_list(raw)

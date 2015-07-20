@@ -33,14 +33,15 @@ module FluxHue
     # Various properties from the bridge that require a registered `username`
     # to read.
     attr_reader :username, :zigbee_channel, :software_update, :network_mask,
-                :gateway, :dhcp, :known_clients, :portal_connection,
-                :portal_state
+                :gateway, :known_clients, :portal_state
 
     def software_update_summary; (software_update || {})["text"]; end
+    def dhcp?; @dhcp; end
+    def portal_services?; @portal_services; end
+    def portal_connection?; @portal_connection; end
     def link_button?; @link_button; end
     def proxy_address; @proxy_address == "none" ? nil : @proxy_address; end
     def proxy_port; @proxy_port == 0 ? nil : @proxy_port; end
-    def portal_services?; @portal_services; end
     def utc; DateTime.parse(fetch_configuration["utc"]); end
 
     def initialize(bridge, username: nil)
@@ -57,23 +58,9 @@ module FluxHue
       end
     end
 
-    def lights
-      @lights ||= agent
-                  .get(url)["lights"]
-                  .map { |id, dd| Light.new(client: self, id: id, data: dd) }
-    end
-
-    def groups
-      @groups ||= agent
-                  .get("#{url}/groups")
-                  .map { |id, dd| Group.new(client: self, id: id, data: dd) }
-    end
-
-    def scenes
-      @scenes ||= agent
-                  .get("#{url}/scenes")
-                  .map { |id, dd| Scene.new(client: self, id: id, data: dd) }
-    end
+    def lights; @lights ||= fetch_entities("#{url}/lights", Light); end
+    def groups; @groups ||= fetch_entities("#{url}/groups", Group); end
+    def scenes; @scenes ||= fetch_entities("#{url}/scenes", Scene); end
 
     # TODO: Add support for specifying serial numbers.
     def add_lights
@@ -100,6 +87,12 @@ module FluxHue
     def refresh!; unpack(fetch_configuration); end
 
   private
+
+    def fetch_entities(collection_url, entity_class)
+      agent
+        .get(collection_url)
+        .map { |id, dd| entity_class.new(client: self, id: id, data: dd) }
+    end
 
     NAME_RANGE      = 10..40
     NAME_RANGE_MSG  = "Usernames must be between #{NAME_RANGE.first} and"\

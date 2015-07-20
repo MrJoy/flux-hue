@@ -2,6 +2,13 @@ require "thor"
 
 module FluxHue
   module CLI
+    # Base class for classes to help cleanse and format data for display.
+    class Presenter
+    private
+
+      def from_boolean(value); value ? "Yes" : "No"; end
+    end
+
     # Shared functionality used in multiple places in the CLI class.
     class Base < Thor
       class InvalidUsage < Thor::Error; end
@@ -48,6 +55,35 @@ module FluxHue
         @bridge ||= FluxHue::Bridge.all(ip: options[:ip]).first
         fail UnknownBridge unless @bridge
         @client ||= FluxHue::Client.new(@bridge, username: options[:user])
+      end
+
+      def parse_list(raw)
+        (raw || "")
+          .strip
+          .split(/[,\s]+/)
+          .map(&:to_i)
+      end
+
+      def extract_fields(ent, hsh); hsh.keys.map { |prop| ent.send(prop) }; end
+      def pivot_row(rows, hsh); hsh.values.zip(rows.first); end
+
+      def apply_sorting(rows)
+        return rows unless options[:sort]
+
+        sorting = parse_list(options[:sort])
+        rows
+          .sort do |a, b|
+            sorting
+              .map { |k| a[k] <=> b[k] }
+              .find { |n| n != 0 } || 0
+          end
+      end
+
+      def render_table(rows, hsh = nil)
+        params            = { rows: rows }
+        params[:headings] = hsh.values if hsh
+
+        Terminal::Table.new(params)
       end
     end
   end
