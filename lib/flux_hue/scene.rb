@@ -37,6 +37,6 @@ module FluxHue
 
     def unpack(data); unpack_hash(data, SCENE_KEYS_MAP); end
 
-    def base_url; "#{client.url}/scenes/#{id}"; end
+    def url; "#{client.url}/scenes/#{id}"; end
   end
 end

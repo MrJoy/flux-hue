@@ -100,7 +100,7 @@ module FluxHue
 
       def filter_bridges(bridges)
         bridges
-          .sort { |a, b| a.ip <=> b.ip }
+          .sort_by(&:ip)
           .uniq(&:ip)
           .uniq
       end

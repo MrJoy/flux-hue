@@ -93,50 +93,34 @@ module FluxHue
     def apply_group_state(attributes)
       return if new?
 
-      body  = translate_keys(attributes, GROUP_KEYS_MAP)
-      uri   = URI.parse(url)
-      http  = Net::HTTP.new(uri.host)
-
-      JSON(http.request_put(uri.path, JSON.dump(body)).body)
+      agent.put(url, translate_keys(attributes, GROUP_KEYS_MAP))
     end
 
     def apply_state(attributes)
       return if new?
-      body = translate_keys(attributes, STATE_KEYS_MAP)
 
-      uri = URI.parse("#{url}/action")
-      http = Net::HTTP.new(uri.host)
-      response = http.request_put(uri.path, JSON.dump(body))
-      JSON(response.body)
+      agent.put("#{url}/action", translate_keys(attributes, STATE_KEYS_MAP))
     end
 
     def refresh; unpack(JSON(Net::HTTP.get(URI.parse(url)))); end
 
     def create!
-      body = {
-        name:   @name,
-        lights: @light_ids,
-      }
+      response  = client.agent.post(collection_url,
+                                    name:   @name,
+                                    lights: @light_ids)
 
-      uri       = URI.parse(collection_url)
-      http      = Net::HTTP.new(uri.host)
-      response  = http.request_post(uri.path, JSON.dump(body))
-      json      = JSON(response.body)
-      success   = json.find { |resp| resp.key?("success") }
+      success   = response.find { |resp| resp.key?("success") }
       @id       = success["success"]["id"].to_i if success
 
-      @id || json
+      @id || response
     end
 
     def destroy!
-      uri       = URI.parse(url)
-      http      = Net::HTTP.new(uri.host)
-      response  = http.delete(uri.path)
-      json      = JSON(response.body)
-      success   = json.find { |resp| resp.key?("success") }
+      response  = client.agent.delete(url)
+      success   = response.find { |resp| resp.key?("success") }
       @id       = nil if success
 
-      @id.nil? ? true : json
+      @id.nil? ? true : response
     end
 
     def new?; @id.nil?; end

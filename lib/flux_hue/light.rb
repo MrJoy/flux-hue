@@ -123,11 +123,11 @@ module FluxHue
       body                  = translate_keys(attributes, STATE_KEYS_MAP)
       body[:transitiontime] = (transition * 10.0).to_i if transition
 
-      agent.put("#{url}/state", body)
+      client.agent.put("#{url}/state", body)
     end
 
     # Refresh the state of the light.
-    def refresh!; unpack(agent.get(url)); end
+    def refresh!; unpack(client.agent.get(url)); end
 
     # Is the light off?
     def off?; !@state["on"]; end
