@@ -132,4 +132,6 @@ if [[ $ERROR -ne 0 ]]; then
   exit 1
 else
   echo "SUCCESS: No failures."
+  echo
+  head -n 5 tmp/bridge* tmp/lights* | grep -v -- '------------' | grep -v -E 'INFO|ID'
 fi
