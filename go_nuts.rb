@@ -64,27 +64,31 @@ VERBOSE         = env_int("VERBOSE")
 # Tweak this to change the visual effect.
 ###############################################################################
 TRANSITION = env_float("TRANSITION") || 0.0 # In seconds, 1/10th second prec.!
-def random_hue(light_id)
-  ::HUE_ACCRUAL         ||= []
-  # TODO: Make step size / granularity and offset configurable!
-  tmp                     = (HUE_ACCRUAL[light_id] ||= 0)
-  tmp                    += ((rand(16) * 128) + 256)
-  tmp                    -= 65_535 if tmp >= 65_535
-  HUE_ACCRUAL[light_id]   = tmp
+# def random_hue(light_id)
+#   ::HUE_ACCRUAL         ||= []
+#   # TODO: Make step size / granularity and offset configurable!
+#   tmp                     = (HUE_ACCRUAL[light_id] ||= 0)
+#   tmp                    += ((rand(16) * 128) + 256)
+#   tmp                    -= 65_535 if tmp >= 65_535
+#   HUE_ACCRUAL[light_id]   = tmp
+# end
+
+def random_bri(_light_id)
+  (((Math.sin(Time.now.to_f / 1.0) + 1.0) * 0.5) * 256).round
 end
 
-HUE_POSITIONS = env_int("HUE_POSITIONS") || 16
-BRI_POSITIONS = env_int("HUE_POSITIONS") || 8
-def random_hue(_light_id); rand(HUE_POSITIONS) * (65536/HUE_POSITIONS); end
-def random_bri(_light_id); rand(BRI_POSITIONS) * (256/BRI_POSITIONS); end
+# HUE_POSITIONS = env_int("HUE_POSITIONS") || 16
+# BRI_POSITIONS = env_int("BRI_POSITIONS") || 8
+# def random_hue(_light_id); rand(HUE_POSITIONS) * (65536/HUE_POSITIONS); end
+# def random_bri(_light_id); rand(BRI_POSITIONS) * (256/BRI_POSITIONS); end
 
-# def random_hue(_light_id)
-#   @hue_accrual ||= 0
-#   tmp           = (@hue_accrual ||= 0)
-#   tmp          += ((rand(16) * 32) + 128)
-#   tmp          -= 65_535 if tmp >= 65_535
-#   @hue_accrual  = tmp
-# end
+def random_hue(_light_id)
+  @hue_accrual ||= 0
+  tmp           = (@hue_accrual ||= 0)
+  tmp          += ((rand(16) * 32) + 128)
+  tmp          -= 65_535 if tmp >= 65_535
+  @hue_accrual  = tmp
+end
 
 ###############################################################################
 # System Configuration
