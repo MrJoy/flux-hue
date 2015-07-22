@@ -73,22 +73,22 @@ TRANSITION = env_float("TRANSITION") || 0.0 # In seconds, 1/10th second prec.!
 #   HUE_ACCRUAL[light_id]   = tmp
 # end
 
-def random_bri(_light_id)
-  (((Math.sin(Time.now.to_f / 1.0) + 1.0) * 0.5) * 256).round
-end
+# def random_bri(_light_id)
+#   (((Math.sin(Time.now.to_f / 1.0) + 1.0) * 0.5) * 256).round
+# end
 
-# HUE_POSITIONS = env_int("HUE_POSITIONS") || 16
-# BRI_POSITIONS = env_int("BRI_POSITIONS") || 8
-# def random_hue(_light_id); rand(HUE_POSITIONS) * (65536/HUE_POSITIONS); end
-# def random_bri(_light_id); rand(BRI_POSITIONS) * (256/BRI_POSITIONS); end
+HUE_POSITIONS = env_int("HUE_POSITIONS") || 16
+BRI_POSITIONS = env_int("BRI_POSITIONS") || 8
+def random_hue(_light_id); rand(HUE_POSITIONS) * (65536 / HUE_POSITIONS); end
+def random_bri(_light_id); rand(BRI_POSITIONS) * (256 / BRI_POSITIONS); end
 
-def random_hue(_light_id)
-  @hue_accrual ||= 0
-  tmp           = (@hue_accrual ||= 0)
-  tmp          += ((rand(16) * 32) + 128)
-  tmp          -= 65_535 if tmp >= 65_535
-  @hue_accrual  = tmp
-end
+# def random_hue(_light_id)
+#   @hue_accrual ||= 0
+#   tmp           = (@hue_accrual ||= 0)
+#   tmp          += ((rand(16) * 32) + 128)
+#   tmp          -= 65_535 if tmp >= 65_535
+#   @hue_accrual  = tmp
+# end
 
 ###############################################################################
 # System Configuration
@@ -96,7 +96,6 @@ end
 # Set these according to the lights you have.
 ###############################################################################
 DEFAULT_USERNAME  = "1234567890" # Default for lib.
-DEFAULT_LIGHTS    = %w(1 2 3 4 5 6 7 8 9 10)
 
 ###############################################################################
 # Other Configuration
@@ -108,12 +107,17 @@ SKIP_GC = !!env_int("SKIP_GC")
 ###############################################################################
 BRIDGE_IP         = ENV["HUE_BRIDGE_IP"]
 USERNAME          = ENV["HUE_BRIDGE_USERNAME"] || DEFAULT_USERNAME
-# env_lights        = (ENV["LIGHTS"] || "").split(/[\s,]+/)
-# env_lights        = nil if env_lights.length == 0
-# LIGHTS            = (env_lights || DEFAULT_LIGHTS).map(&:to_i)
+env_lights        = (ENV["DIMMABLE_LIGHTS"] || "").split(/[\s,]+/)
+env_lights        = nil if env_lights.length == 0
+DIMMABLE_LIGHTS   = (env_lights || []).map(&:to_i)
 
-COLOR_LIGHTS      = %w(15 18 19 27).map(&:to_i)
-DIMMABLE_LIGHTS   = %w(32).map(&:to_i)
+env_clights       = (ENV["COLOR_LIGHTS"] || "").split(/[\s,]+/)
+env_clights       = nil if env_clights.length == 0
+COLOR_LIGHTS      = (env_clights || []).map(&:to_i)
+
+# COLOR_LIGHTS      = %w(1 2 6 7 8 9 10 11 12 13 14 15 17 18 19 20 21 22 23 26 27
+#                        28 30 33 34 35 36 37).map(&:to_i)
+# DIMMABLE_LIGHTS   = %w(32).map(&:to_i)
 LIGHTS            = COLOR_LIGHTS + DIMMABLE_LIGHTS
 IS_COLOR          = Hash[COLOR_LIGHTS.map { |n| [n.to_i, true] }]
 
@@ -178,8 +182,9 @@ end
 validate_max_sockets!(MULTI_OPTIONS[:max_connects], THREAD_COUNT)
 validate_counts!(LIGHTS.length, THREAD_COUNT)
 
-puts "Mucking with #{LIGHTS.length} lights, across #{THREAD_COUNT} threads for"\
-  " #{ITERATIONS} iterations (requests == #{LIGHTS.length * ITERATIONS})."
+puts "Mucking with #{LIGHTS.length} lights, across #{THREAD_COUNT} threads"\
+  " with #{MULTI_OPTIONS[:max_connects]} connections each for #{ITERATIONS} iterations"\
+  " (requests == #{LIGHTS.length * ITERATIONS})."
 
 lights_for_threads  = in_groups(LIGHTS, THREAD_COUNT)
 mutex               = Mutex.new
