@@ -37,9 +37,14 @@ module FluxHue
            "Find information about all of the lights on your network"
       shared_access_controlled_options
       method_option :sort, type: :string, aliases: "--order"
+      method_option :unreachable, type: :boolean
+      method_option :reachable, type: :boolean
       def inspect
-        rows    = client
-                  .lights
+        lights  = client.lights
+        lights  = lights.select { |ll| ll.reachable? } if options[:reachable]
+        lights  = lights.reject { |ll| ll.reachable? } if options[:unreachable]
+
+        rows    = lights
                   .map { |light| LightPresenter.new(light) }
                   .map { |light| extract_fields(light, LIGHT_FIELDS) }
 
