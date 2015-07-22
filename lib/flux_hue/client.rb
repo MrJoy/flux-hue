@@ -111,7 +111,7 @@ module FluxHue
     end
 
     def validate_user!
-      response = agent.get(state_url)
+      response = agent.get(url)
       response = response.first if response.is_a?(Array)
 
       handle_error!(response["error"])
