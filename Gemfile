@@ -26,6 +26,8 @@ source "https://rubygems.org"
 #     https://github.com/QuickenLoans/ramllint
 #     https://github.com/thebinarypenguin/raml-cop
 # Try:
+#   https://github.com/IFTTT/Kashmir
+#   https://github.com/IFTTT/memoize_via_cache
 #   https://github.com/lostisland/faraday
 #   https://github.com/typhoeus/typhoeus#readme
 #   https://github.com/igrigorik/em-http-request
