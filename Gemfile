@@ -4,6 +4,16 @@
 # rubocop:enable Style/LeadingCommentSpace
 source "https://rubygems.org"
 
+# See:
+#   https://gist.github.com/EmmanuelOga/264060
+#   http://reevoo.github.io/blog/2014/09/12/http-shooting-party/
+#   https://docs.google.com/a/mrjoy.com/spreadsheets/d/1uS3UbQR6GaYsozaF5yQMLmkySY6TO42BIndr2hUW2L4/pub?hl=en&hl=en&output=html
+#   http://www.slideshare.net/HiroshiNakamura/rubyhttp-clients-comparison
+# Try:
+#   https://github.com/lostisland/faraday
+#   https://github.com/typhoeus/typhoeus#readme
+#   https://github.com/igrigorik/em-http-request
+
 gemspec
 
 gem "curb"

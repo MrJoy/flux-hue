@@ -31,3 +31,10 @@
 * Make `order` more friendly by making indexing 1-based, and allowing named column references.
 * Maybe add some statically-defined metadata from the docs about whitepoint and color ranges based on device type?
 * See if brightness/saturation limit of 254 is a rounding issue associated with HS color mode.
+* Look into:
+    * https://github.com/CoralineAda/ephemeral
+    * https://github.com/CoralineAda/poro_plus
+    * https://github.com/CoralineAda/latent_object_detector
+    * https://github.com/CoralineAda/faceted
+    * https://github.com/ahawkins/tnt
+    * https://cycling74.com
