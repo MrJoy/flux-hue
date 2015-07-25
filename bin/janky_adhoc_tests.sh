@@ -5,13 +5,15 @@ IFS=$'\n\t'
 mkdir -p tmp
 rm tmp/*_explicit_ip.txt tmp/*_ssdp.txt tmp/*_nupnp.txt
 
+BRIDGE_IP=${1:-192.168.2.8}
+
 # TODO: Factor this in: http://steveyo.github.io/Hue-Emulator/
 
 export ERRORS=0
 
 COMMAND="bridges"
 SUBCOMMAND="discover"
-HUE_SKIP_NUPNP=1 HUE_SKIP_SSDP=1 HUE_BRIDGE_IP=192.168.2.8 bin/hue ${COMMAND} ${SUBCOMMAND} > tmp/${COMMAND}_${SUBCOMMAND}_explicit_ip.txt 2>&1
+HUE_SKIP_NUPNP=1 HUE_SKIP_SSDP=1 HUE_BRIDGE_IP=${BRIDGE_IP} bin/hue ${COMMAND} ${SUBCOMMAND} > tmp/${COMMAND}_${SUBCOMMAND}_explicit_ip.txt 2>&1
 HUE_SKIP_NUPNP=1 HUE_SKIP_SSDP= HUE_BRIDGE_IP= bin/hue ${COMMAND} ${SUBCOMMAND} > tmp/${COMMAND}_${SUBCOMMAND}_ssdp.txt 2>&1
 HUE_SKIP_NUPNP= HUE_SKIP_SSDP=1 HUE_BRIDGE_IP= bin/hue ${COMMAND} ${SUBCOMMAND} > tmp/${COMMAND}_${SUBCOMMAND}_nupnp.txt 2>&1
 RESULT=$(diff -u tmp/${COMMAND}_${SUBCOMMAND}_explicit_ip.txt tmp/${COMMAND}_${SUBCOMMAND}_ssdp.txt | grep -v -E '^(---|\+\+\+|@@| )')
@@ -39,7 +41,7 @@ fi
 
 COMMAND="bridges"
 SUBCOMMAND="inspect"
-HUE_SKIP_NUPNP=1 HUE_SKIP_SSDP=1 HUE_BRIDGE_IP=192.168.2.8 bin/hue ${COMMAND} ${SUBCOMMAND} > tmp/${COMMAND}_${SUBCOMMAND}_explicit_ip.txt 2>&1
+HUE_SKIP_NUPNP=1 HUE_SKIP_SSDP=1 HUE_BRIDGE_IP=${BRIDGE_IP} bin/hue ${COMMAND} ${SUBCOMMAND} > tmp/${COMMAND}_${SUBCOMMAND}_explicit_ip.txt 2>&1
 HUE_SKIP_NUPNP=1 HUE_SKIP_SSDP= HUE_BRIDGE_IP= bin/hue ${COMMAND} ${SUBCOMMAND} > tmp/${COMMAND}_${SUBCOMMAND}_ssdp.txt 2>&1
 HUE_SKIP_NUPNP= HUE_SKIP_SSDP=1 HUE_BRIDGE_IP= bin/hue ${COMMAND} ${SUBCOMMAND} > tmp/${COMMAND}_${SUBCOMMAND}_nupnp.txt 2>&1
 RESULT=$(diff -u tmp/${COMMAND}_${SUBCOMMAND}_explicit_ip.txt tmp/${COMMAND}_${SUBCOMMAND}_ssdp.txt | grep -v -E '^(---|\+\+\+|@@| )')
@@ -68,7 +70,7 @@ fi
 
 COMMAND="lights"
 SUBCOMMAND="inspect"
-HUE_SKIP_NUPNP=1 HUE_SKIP_SSDP=1 HUE_BRIDGE_IP=192.168.2.8 bin/hue ${COMMAND} ${SUBCOMMAND} > tmp/${COMMAND}_${SUBCOMMAND}_explicit_ip.txt 2>&1
+HUE_SKIP_NUPNP=1 HUE_SKIP_SSDP=1 HUE_BRIDGE_IP=${BRIDGE_IP} bin/hue ${COMMAND} ${SUBCOMMAND} > tmp/${COMMAND}_${SUBCOMMAND}_explicit_ip.txt 2>&1
 HUE_SKIP_NUPNP=1 HUE_SKIP_SSDP= HUE_BRIDGE_IP= bin/hue ${COMMAND} ${SUBCOMMAND} > tmp/${COMMAND}_${SUBCOMMAND}_ssdp.txt 2>&1
 HUE_SKIP_NUPNP= HUE_SKIP_SSDP=1 HUE_BRIDGE_IP= bin/hue ${COMMAND} ${SUBCOMMAND} > tmp/${COMMAND}_${SUBCOMMAND}_nupnp.txt 2>&1
 RESULT=$(diff -u tmp/${COMMAND}_${SUBCOMMAND}_explicit_ip.txt tmp/${COMMAND}_${SUBCOMMAND}_ssdp.txt | grep -v -E '^(---|\+\+\+|@@| )')
