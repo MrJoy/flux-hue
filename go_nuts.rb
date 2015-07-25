@@ -49,7 +49,7 @@ THREAD_COUNT    = env_int("THREADS") || 1
 
 env_iters       = ENV["ITERATIONS"].to_i
 env_iters       = nil if env_iters == 0
-ITERATIONS      = env_iters || 20
+ITERATIONS      = env_iters || 100000
 
 SPREAD_SLEEP    = 0 # 0.007
 TOTAL_SLEEP     = 0 # 0.1
@@ -79,8 +79,13 @@ TRANSITION = env_float("TRANSITION") || 0.0 # In seconds, 1/10th second prec.!
 
 HUE_POSITIONS = env_int("HUE_POSITIONS") || 16
 BRI_POSITIONS = env_int("BRI_POSITIONS") || 8
+MIN_BRI       = env_int("MIN_BRI") || 0
+MAX_BRI       = env_int("MAX_BRI") || 255
 def random_hue(_light_id); rand(HUE_POSITIONS) * (65536 / HUE_POSITIONS); end
-def random_bri(_light_id); rand(BRI_POSITIONS) * (256 / BRI_POSITIONS); end
+def random_bri(_light_id)
+  range = (MAX_BRI - MIN_BRI) + 1
+  ((rand(range) + MIN_BRI) / BRI_POSITIONS.to_f).round * BRI_POSITIONS
+end
 
 # def random_hue(_light_id)
 #   @hue_accrual ||= 0
@@ -188,8 +193,8 @@ puts "Mucking with #{LIGHTS.length} lights, across #{THREAD_COUNT} threads"\
 
 lights_for_threads  = in_groups(LIGHTS, THREAD_COUNT)
 mutex               = Mutex.new
-failures            = 0
-successes           = 0
+@failures           = 0
+@successes          = 0
 
 Thread.abort_on_exception = false
 threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
@@ -210,7 +215,7 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
     Thread.stop
     guard_call(thread_idx) do
       counter = 0
-      while counter < ITERATIONS
+      while (ITERATIONS > 0) ? (counter < ITERATIONS) : true
         l_fail    = 0
         l_succ    = 0
         requests  = lights
@@ -222,8 +227,8 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
         end
 
         mutex.synchronize do
-          failures  += l_fail
-          successes += l_succ
+          @failures  += l_fail
+          @successes += l_succ
         end
 
         counter += 1
@@ -233,19 +238,28 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
   end
 end
 
+
 sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
 if SKIP_GC
   puts "Disabling garbage collection!  BE CAREFUL!"
   GC.disable
 end
 puts "Threads are ready to go, waking them up!"
-threads.each(&:wakeup).each(&:join)
+threads.each(&:wakeup)
 
-requests  = successes + failures
+def show_results
+  requests  = @successes + @failures
 
-puts
-puts "Done."
-puts "* #{requests} requests"
-puts "* #{successes} successful"
-puts "* #{failures} failed"
-puts "* #{'%0.2f' % ((failures / requests.to_f) * 100)}% failure rate"
+  puts
+  puts "Done."
+  puts "* #{requests} requests"
+  puts "* #{@successes} successful"
+  puts "* #{@failures} failed"
+  puts "* #{'%0.2f' % ((@failures / requests.to_f) * 100)}% failure rate"
+  exit 0
+end
+
+trap("HUP") { show_results }
+
+threads.each(&:join)
+show_results
