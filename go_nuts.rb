@@ -141,16 +141,16 @@ def hue_server; "http://#{BRIDGE_IP}"; end
 def hue_base; "#{hue_server}/api/#{USERNAME}"; end
 def hue_endpoint(light_id); "#{hue_base}/lights/#{light_id}/state"; end
 
-def hue_request(light_id, hue, transition)
+def hue_request(light_id, transition)
   if IS_COLOR.key?(light_id)
-    data  = { "hue"            => random_hue(light_id) }
+    data  = { "hue" => random_hue(light_id) }
   else
-    data  = { "bri"            => random_bri(light_id) }
+    data  = { "bri" => random_bri(light_id) }
   end
   data    = data.merge("transitiontime" => (transition * 10.0).round(0))
-  req     = { method:           :put,
-              url:              hue_endpoint(light_id),
-              put_data:         Oj.dump(data) }
+  req     = { method:   :put,
+              url:      hue_endpoint(light_id),
+              put_data: Oj.dump(data) }
   req.merge(EASY_OPTIONS)
 end
 
@@ -214,7 +214,7 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
         l_fail    = 0
         l_succ    = 0
         requests  = lights
-                    .map { |lid| hue_request(lid, random_hue(lid), TRANSITION) }
+                    .map { |lid| hue_request(lid, TRANSITION) }
                     .map { |req| req.merge(handlers) }
 
         Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
