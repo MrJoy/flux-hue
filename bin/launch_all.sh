@@ -15,6 +15,7 @@ HUE_BRIDGE_IP=192.168.2.8 ./bin/hue lights set 1 2 6 7 8 9 10 11 12 13 14 15 17 
 HUE_BRIDGE_IP=192.168.2.45 ./bin/hue lights set 7 8 4 5 6 --state=on --sat=$SAT --bri=$MAX_BRI
 HUE_BRIDGE_IP=192.168.2.46 ./bin/hue lights set 1 2 3 --state=on --sat=$SAT --bri=$MAX_BRI
 
+sleep 3
 
 { HUE_BRIDGE_IP=192.168.2.8 COLOR_LIGHTS="1 2 6 7 8 9 10 11 12 13 14 15 17 18 19 20 21 22 23 26 27 28 30 33 34 35 36 37" DIMMABLE_LIGHTS="3 4 5 16 24 25" ./bin/go_nuts.rb & }
 JOB1=$!
