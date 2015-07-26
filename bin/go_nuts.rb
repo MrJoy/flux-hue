@@ -388,6 +388,7 @@ def print_results(elapsed, requests, successes, failures, hard_timeouts, soft_ti
   important("* #{soft_timeouts} soft timeouts (#{ratio(soft_timeouts, elapsed)}/sec)")
   all_failures = failures + hard_timeouts + soft_timeouts
   important("* #{ratio(all_failures * 100, requests)}% failure rate")
+  important("* #{elapsed.round(3)} seconds elapsed (#{ratio(elapsed, ITERATIONS)}/iteration)")
 end
 
 def show_results
