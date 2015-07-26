@@ -149,11 +149,11 @@ SKIP_GC           = !!env_int("SKIP_GC")
 ###############################################################################
 # Bring together defaults and env vars, initialize things, etc...
 ###############################################################################
-BRIDGE            = ARGV.shift || "Bridge-01"
-BRIDGE_IP         = LIGHTING_CONFIGS[BRIDGE][:ip]
-USERNAME          = LIGHTING_CONFIGS[BRIDGE][:username]
-DIMMABLE_LIGHTS   = LIGHTING_CONFIGS[BRIDGE][:dimmable].map(&:to_i)
-COLOR_LIGHTS      = LIGHTING_CONFIGS[BRIDGE][:color].map(&:to_i)
+CONFIG            = ARGV.shift || "Bridge-01"
+BRIDGE_IP         = LIGHTING_CONFIGS[CONFIG][:ip]
+USERNAME          = LIGHTING_CONFIGS[CONFIG][:username]
+DIMMABLE_LIGHTS   = LIGHTING_CONFIGS[CONFIG][:dimmable].map(&:to_i)
+COLOR_LIGHTS      = LIGHTING_CONFIGS[CONFIG][:color].map(&:to_i)
 
 LIGHTS            = COLOR_LIGHTS + DIMMABLE_LIGHTS
 IS_COLOR          = Hash[COLOR_LIGHTS.map { |n| [n.to_i, true] }]
