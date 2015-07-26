@@ -310,7 +310,7 @@ threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
                                   # Hit bridge rate limit / possibly ZigBee
                                   # limit?.
                                   l_sto += 1
-                                  printf "!"
+                                  printf "~"
                                 else
                                   l_succ += 1
                                   printf "." if VERBOSE
