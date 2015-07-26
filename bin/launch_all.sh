@@ -20,27 +20,38 @@ export MAX_CONNECTS=6
 # Whether or not to show success information.
 export VERBOSE=0
 
-###############################################################################
-trap '(kill -HUP $JOB1; sleep 0.5; kill -HUP $JOB2; sleep 0.5; kill -HUP $JOB3) 2>/dev/null' EXIT
-trap '(kill -HUP $JOB1; sleep 0.5; kill -HUP $JOB2; sleep 0.5; kill -HUP $JOB3) 2>/dev/null' QUIT
-trap '(kill -HUP $JOB1; sleep 0.5; kill -HUP $JOB2; sleep 0.5; kill -HUP $JOB3) 2>/dev/null' KILL
+export CONFIGS=(
+  Bridge-01
+  Bridge-02
+  Bridge-03
+)
 
-{ ./bin/go_nuts.rb Bridge-01 & }
+###############################################################################
+HANDLER='(kill -HUP $JOB1; sleep 1; kill -HUP $JOB2; sleep 1; kill -HUP $JOB3) 2>/dev/null'
+trap "$HANDLER" EXIT
+trap "$HANDLER" QUIT
+trap "$HANDLER" KILL
+
+{ time ./bin/go_nuts.rb ${CONFIGS[0]} & }
 JOB1=$!
-{ ./bin/go_nuts.rb Bridge-02 & }
+{ time ./bin/go_nuts.rb ${CONFIGS[1]} & }
 JOB2=$!
-{ ./bin/go_nuts.rb Bridge-03 & }
+{ time ./bin/go_nuts.rb ${CONFIGS[2]} & }
 JOB3=$!
 
-echo "Sleeping while $JOB1, $JOB2, and $JOB3 run..."
-sleep 30
+if [[ $ITERATIONS == 0 ]]; then
+  echo "Sleeping while $JOB1, $JOB2, and $JOB3 run..."
+  sleep 30
 
-echo
-echo "Cleaning up."
-(
-  kill -HUP $JOB1
-  sleep 0.5
-  kill -HUP $JOB2
-  sleep 0.5
-  kill -HUP $JOB3
-) 2>/dev/null
+  echo
+  echo "Cleaning up."
+  (
+    kill -HUP $JOB1
+    sleep 1
+    kill -HUP $JOB2
+    sleep 1
+    kill -HUP $JOB3
+  ) 2>/dev/null
+else
+  wait
+fi
