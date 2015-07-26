@@ -288,7 +288,6 @@ threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
 
     # TODO: Get timing stats, figure out if timeouts are in ms or sec, capture
     # TODO: info about failure causes, etc.
-    # rubocop:disable Style/Semicolon
     handlers  = { on_failure: lambda do |easy, _|
                                 case easy.response_code
                                 when 404
@@ -314,7 +313,6 @@ threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
                                   printf "." if VERBOSE
                                 end
                               end }
-    # rubocop:enable Style/Semicolon
 
     Thread.stop
     guard_call(thread_idx) do
