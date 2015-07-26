@@ -253,8 +253,7 @@ end
 # validate_max_sockets!(MULTI_OPTIONS[:max_connects], effective_thread_count)
 
 debug("Mucking with #{LIGHTS.length} lights, across #{effective_thread_count}"\
-  " threads with #{MULTI_OPTIONS[:max_connects]} connections each."\
-  " connections each.")
+  " threads with #{MULTI_OPTIONS[:max_connects]} connections each.")
 
 if ITERATIONS > 0
   reqs = LIGHTS.length * ITERATIONS
