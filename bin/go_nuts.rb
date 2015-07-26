@@ -109,8 +109,8 @@ THREAD_COUNT    = env_int("THREADS") || 1
 ITERATIONS      = env_int("ITERATIONS", true) || 20
 
 SPREAD_SLEEP    = 0 # 0.007
-TOTAL_SLEEP     = 0 # 0.1
-FIXED_SLEEP     = 0 # 0.03
+TOTAL_SLEEP     = 0.08 # 0.1
+FIXED_SLEEP     = 0.08 # 0.03
 VARIABLE_SLEEP  = TOTAL_SLEEP - FIXED_SLEEP
 
 VERBOSE         = env_int("VERBOSE")
