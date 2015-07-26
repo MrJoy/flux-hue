@@ -34,13 +34,42 @@ def env_float(name)
 end
 
 ###############################################################################
+# Bridges and Lights
+###############################################################################
+
+LIGHTING_CONFIGS = {
+  "Bridge-01" => {
+    ip:       "192.168.2.8",
+    username: "1234567890",
+    color:    %w(1 2 6 7 8 9 10 11 12 13 14 15 17 18 19 20 21 22 23 26 27 28 30
+                 33 34 35 36 37),
+    dimmable: %w(3 4 5 16 24 25),
+  },
+  "Bridge-02" => {
+    ip:       "192.168.2.45",
+    username: "1234567890",
+    color:    %w(7 8),
+    dimmable: %w(4 5 6),
+  },
+  "Bridge-03" => {
+    ip:       "192.168.2.46",
+    username: "1234567890",
+    color:    %w(1 2 3),
+    dimmable: %w(),
+  },
+}
+
+###############################################################################
 # Timing Configuration
 #
 # Play with this to see how error rates are affected.
 ###############################################################################
 
+# Curl::CURLOPT_TCP_NODELAY => true
+
 MULTI_OPTIONS   = { pipeline:         true,
-                    max_connects:     (env_int("MAX_CONNECTS") || 6) }
+                    max_connects:     (env_int("MAX_CONNECTS") || 6),
+                     }
 EASY_OPTIONS    = { timeout:          5,
                     connect_timeout:  5,
                     follow_location:  false,
@@ -49,7 +78,7 @@ THREAD_COUNT    = env_int("THREADS") || 1
 
 env_iters       = ENV["ITERATIONS"].to_i
 env_iters       = nil if env_iters == 0
-ITERATIONS      = env_iters || 100000
+ITERATIONS      = env_iters || 100_000
 
 SPREAD_SLEEP    = 0 # 0.007
 TOTAL_SLEEP     = 0 # 0.1
@@ -81,7 +110,8 @@ HUE_POSITIONS = env_int("HUE_POSITIONS") || 16
 BRI_POSITIONS = env_int("BRI_POSITIONS") || 8
 MIN_BRI       = env_int("MIN_BRI") || 0
 MAX_BRI       = env_int("MAX_BRI") || 255
-def random_hue(_light_id); rand(HUE_POSITIONS) * (65536 / HUE_POSITIONS); end
+def random_hue(_light_id); rand(HUE_POSITIONS) * (65_536 / HUE_POSITIONS); end
+
 def random_bri(_light_id)
   range = (MAX_BRI - MIN_BRI) + 1
   ((rand(range) + MIN_BRI) / BRI_POSITIONS.to_f).round * BRI_POSITIONS
@@ -96,33 +126,19 @@ end
 # end
 
 ###############################################################################
-# System Configuration
-#
-# Set these according to the lights you have.
-###############################################################################
-DEFAULT_USERNAME  = "1234567890" # Default for lib.
-
-###############################################################################
 # Other Configuration
 ###############################################################################
-SKIP_GC = !!env_int("SKIP_GC")
+SKIP_GC           = !!env_int("SKIP_GC")
 
 ###############################################################################
 # Bring together defaults and env vars, initialize things, etc...
 ###############################################################################
-BRIDGE_IP         = ENV["HUE_BRIDGE_IP"]
-USERNAME          = ENV["HUE_BRIDGE_USERNAME"] || DEFAULT_USERNAME
-env_lights        = (ENV["DIMMABLE_LIGHTS"] || "").split(/[\s,]+/)
-env_lights        = nil if env_lights.length == 0
-DIMMABLE_LIGHTS   = (env_lights || []).map(&:to_i)
+BRIDGE            = ARGV.shift || "Bridge-01"
+BRIDGE_IP         = LIGHTING_CONFIGS[BRIDGE][:ip]
+USERNAME          = LIGHTING_CONFIGS[BRIDGE][:username]
+DIMMABLE_LIGHTS   = LIGHTING_CONFIGS[BRIDGE][:dimmable].map(&:to_i)
+COLOR_LIGHTS      = LIGHTING_CONFIGS[BRIDGE][:color].map(&:to_i)
 
-env_clights       = (ENV["COLOR_LIGHTS"] || "").split(/[\s,]+/)
-env_clights       = nil if env_clights.length == 0
-COLOR_LIGHTS      = (env_clights || []).map(&:to_i)
-
-# COLOR_LIGHTS      = %w(1 2 6 7 8 9 10 11 12 13 14 15 17 18 19 20 21 22 23 26 27
-#                        28 30 33 34 35 36 37).map(&:to_i)
-# DIMMABLE_LIGHTS   = %w(32).map(&:to_i)
 LIGHTS            = COLOR_LIGHTS + DIMMABLE_LIGHTS
 IS_COLOR          = Hash[COLOR_LIGHTS.map { |n| [n.to_i, true] }]
 
@@ -184,12 +200,12 @@ end
 ###############################################################################
 # Main
 ###############################################################################
-validate_max_sockets!(MULTI_OPTIONS[:max_connects], THREAD_COUNT)
+# validate_max_sockets!(MULTI_OPTIONS[:max_connects], THREAD_COUNT)
 validate_counts!(LIGHTS.length, THREAD_COUNT)
 
 puts "Mucking with #{LIGHTS.length} lights, across #{THREAD_COUNT} threads"\
-  " with #{MULTI_OPTIONS[:max_connects]} connections each for #{ITERATIONS} iterations"\
-  " (requests == #{LIGHTS.length * ITERATIONS})."
+  " with #{MULTI_OPTIONS[:max_connects]} connections each for #{ITERATIONS}"\
+  " iterations (requests == #{LIGHTS.length * ITERATIONS})."
 
 lights_for_threads  = in_groups(LIGHTS, THREAD_COUNT)
 mutex               = Mutex.new
@@ -238,24 +254,36 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
   end
 end
 
-
 sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
 if SKIP_GC
   puts "Disabling garbage collection!  BE CAREFUL!"
   GC.disable
 end
 puts "Threads are ready to go, waking them up!"
+@start_time = Time.now.to_f
 threads.each(&:wakeup)
 
-def show_results
-  requests  = @successes + @failures
+def compute_results(start_time, end_time, successes, failures)
+  elapsed   = end_time - start_time
+  requests  = successes + failures
+  [elapsed, requests]
+end
 
+def print_results(elapsed, requests, successes, failures)
   puts
   puts "Done."
-  puts "* #{requests} requests"
-  puts "* #{@successes} successful"
-  puts "* #{@failures} failed"
-  puts "* #{'%0.2f' % ((@failures / requests.to_f) * 100)}% failure rate"
+  puts "* #{requests} requests (#{requests / elapsed}/sec)"
+  puts "* #{successes} successful (#{successes / elapsed}/sec)"
+  puts "* #{failures} failed (#{failures / elapsed}/sec)"
+  puts "* #{'%0.2f' % ((failures / requests.to_f) * 100)}% failure rate"
+end
+
+def show_results
+  elapsed, requests = compute_results(@start_time,
+                                      Time.now.to_f,
+                                      @successes,
+                                      @failures)
+  print_results(elapsed, requests, @successes, @failures)
   exit 0
 end
 

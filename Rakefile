@@ -22,7 +22,7 @@ desc "Open a Ruby console to Pry."
 task :console do
   # rubocop:disable Lint/Debugger
   require "pry"
-  require "hue"
+  require "flux_hue"
   binding.pry
   # rubocop:enable Lint/Debugger
 end
