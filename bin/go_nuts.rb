@@ -256,7 +256,9 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
                     .map { |lid| hue_request(lid, TRANSITION) }
                     .map { |req| req.merge(handlers) }
 
-        Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
+        Curl::Multi.http(requests.dup, MULTI_OPTIONS) do # |easy|
+          # Apparently performed for each request?  Or when idle?  Or...
+
           # dns_cache_timeout head header_size header_str headers
           # http_connect_code last_effective_url last_result low_speed_limit
           # low_speed_time num_connects on_header os_errno redirect_count
@@ -272,7 +274,6 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
           # -1.0 when a transfer times out(?).
           # downloaded_bytes downloaded_content_length uploaded_bytes
           # uploaded_content_length
-          # Apparently performed for each request?  Or when idle?  Or...
         end
 
         mutex.synchronize do
