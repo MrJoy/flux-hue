@@ -2,6 +2,10 @@
 unset HUE_BRIDGE_IP
 unset HUE_BRIDGE_USERNAME
 
+trap '(kill -HUP $JOB1; sleep 0.5; kill -HUP $JOB2; sleep 0.5; kill -HUP $JOB3) 2>/dev/null' EXIT
+trap '(kill -HUP $JOB1; sleep 0.5; kill -HUP $JOB2; sleep 0.5; kill -HUP $JOB3) 2>/dev/null' QUIT
+trap '(kill -HUP $JOB1; sleep 0.5; kill -HUP $JOB2; sleep 0.5; kill -HUP $JOB3) 2>/dev/null' KILL
+
 # Min/max brightness for dimmable lights:
 export MIN_BRI=0
 export MAX_BRI=63
