@@ -40,9 +40,7 @@ module FluxHue
       method_option :unreachable, type: :boolean
       method_option :reachable, type: :boolean
       def inspect
-        lights  = client.lights
-        lights  = lights.select { |ll| ll.reachable? } if options[:reachable]
-        lights  = lights.reject { |ll| ll.reachable? } if options[:unreachable]
+        lights  = apply_light_filters(client.lights, options)
 
         rows    = lights
                   .map { |light| LightPresenter.new(light) }
@@ -78,6 +76,12 @@ module FluxHue
       end
 
     private
+
+      def apply_light_filters(lights, options)
+        lights  = lights.select(&:reachable?) if options[:reachable]
+        lights  = lights.reject(&:reachable?) if options[:unreachable]
+        lights
+      end
 
       def detect_changes!(lights, body, name)
         change_state  = body.length > 0
