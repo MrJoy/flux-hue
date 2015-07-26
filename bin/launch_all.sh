@@ -32,11 +32,11 @@ trap "$HANDLER" EXIT
 trap "$HANDLER" QUIT
 trap "$HANDLER" KILL
 
-{ time ./bin/go_nuts.rb ${CONFIGS[0]} & }
+{ ./bin/go_nuts.rb ${CONFIGS[0]} & }
 export JOB1=$!
-{ time ./bin/go_nuts.rb ${CONFIGS[1]} & }
+{ ./bin/go_nuts.rb ${CONFIGS[1]} & }
 export JOB2=$!
-{ time ./bin/go_nuts.rb ${CONFIGS[2]} & }
+{ ./bin/go_nuts.rb ${CONFIGS[2]} & }
 export JOB3=$!
 
 if [[ $ITERATIONS == 0 ]]; then
