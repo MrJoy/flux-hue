@@ -100,7 +100,7 @@ module FluxHue
         ids     = unique_light_ids(ids)
         lights  = client.lights
         lights  = lights.select { |ll| ids.include?(ll.id) } unless use_all
-        lights  = lights.reject { |ll| !ll.reachable? }
+        lights  = lights.select(&:reachable?)
         fail UnknownLight unless use_all || lights.length == ids.length
         lights
       end
