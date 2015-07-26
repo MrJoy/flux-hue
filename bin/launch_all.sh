@@ -7,15 +7,15 @@ export MIN_BRI=31
 export MAX_BRI=127
 
 # Saturation for color lights:
-export HUE_SATURATION=95
+export HUE_SATURATION=255
 
 # Run indefinitely, don't let GC muck with shit.
 export ITERATIONS=0
 export SKIP_GC=1
 
 # Determine how we handle concurrency -- threads vs. async I/O.
-export THREADS=1
-export MAX_CONNECTS=4
+export THREADS=7
+export MAX_CONNECTS=1
 
 # Whether or not to show success information.
 export VERBOSE=0
