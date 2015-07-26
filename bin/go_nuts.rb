@@ -159,17 +159,24 @@ def hue_server; "http://#{BRIDGE_IP}"; end
 def hue_base; "#{hue_server}/api/#{USERNAME}"; end
 def hue_endpoint(light_id); "#{hue_base}/lights/#{light_id}/state"; end
 
+def with_transition_time(data, transition)
+  data.merge("transitiontime" => (transition * 10.0).round(0))
+end
+
+def make_req_struct(light_id, transition, data)
+  tmp = { method:   :put,
+          url:      hue_endpoint(light_id),
+          put_data: Oj.dump(with_transition_time(data, transition)) }
+  tmp.merge(EASY_OPTIONS)
+end
+
 def hue_request(light_id, transition)
   if IS_COLOR.key?(light_id)
     data  = { "hue" => random_hue(light_id) }
   else
     data  = { "bri" => random_bri(light_id) }
   end
-  data    = data.merge("transitiontime" => (transition * 10.0).round(0))
-  req     = { method:   :put,
-              url:      hue_endpoint(light_id),
-              put_data: Oj.dump(data) }
-  req.merge(EASY_OPTIONS)
+  make_req_struct(light_id, transition, data)
 end
 
 # rubocop:disable Lint/RescueException
@@ -304,14 +311,16 @@ def compute_results(start_time, end_time, successes, failures, timeouts)
   [elapsed, requests]
 end
 
+def ratio(num, denom); (num / denom.to_f).round(3); end
+
 def print_results(elapsed, requests, successes, failures, timeouts)
   puts
-  puts "* #{requests} requests (#{(requests / elapsed).round(3)}/sec)"
-  puts "* #{successes} successful (#{(successes / elapsed).round(3)}/sec)"
-  puts "* #{failures} failed (#{(failures / elapsed).round(3)}/sec)"
-  puts "* #{timeouts} timed out (#{(timeouts / elapsed).round(3)}/sec)"
+  puts "* #{requests} requests (#{ratio(requests, elapsed)}/sec)"
+  puts "* #{successes} successful (#{ratio(successes, elapsed)}/sec)"
+  puts "* #{failures} failed (#{ratio(failures, elapsed)}/sec)"
+  puts "* #{timeouts} timed out (#{ratio(timeouts, elapsed)}/sec)"
   all_failures = failures + timeouts
-  puts "* #{'%0.2f' % ((all_failures / requests.to_f) * 100)}% failure rate"
+  puts "* #{ratio(all_failures * 100, requests)}% failure rate"
 end
 
 def show_results
