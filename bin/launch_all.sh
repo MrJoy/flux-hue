@@ -41,7 +41,7 @@ export JOB3=$!
 
 if [[ $ITERATIONS == 0 ]]; then
   echo "Sleeping while $JOB1, $JOB2, and $JOB3 run..."
-  sleep 30
+  sleep 120
 
   echo
   echo "Cleaning up."
