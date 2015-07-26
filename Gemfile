@@ -25,6 +25,7 @@ source "https://rubygems.org"
 #     https://github.com/nogates/vigia
 #     https://github.com/QuickenLoans/ramllint
 #     https://github.com/thebinarypenguin/raml-cop
+#     https://github.com/mcuadros/go-candyjs
 # Try:
 #   https://github.com/IFTTT/Kashmir
 #   https://github.com/IFTTT/memoize_via_cache
