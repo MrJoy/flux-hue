@@ -292,7 +292,7 @@ threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
     handlers  = { on_failure: lambda do |easy, _|
                                 case easy.response_code
                                 when 404
-                                  # Hit rate limit.
+                                  # Hit Bridge hardware limit.
                                   l_fail += 1
                                   printf "*"
                                 when 0
@@ -303,7 +303,17 @@ threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
                                   error("WAT: #{easy.response_code}")
                                 end
                               end,
-                  on_success: ->(*_) { l_succ += 1; printf "." if VERBOSE } }
+                  on_success: lambda do |easy|
+                                if easy.body =~ /error/
+                                  # Hit bridge rate limit / possibly ZigBee
+                                  # limit?.
+                                  l_fail += 1
+                                  printf "!"
+                                else
+                                  l_succ += 1
+                                  printf "." if VERBOSE
+                                end
+                              end }
     # rubocop:enable Style/Semicolon
 
     Thread.stop
