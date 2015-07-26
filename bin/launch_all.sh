@@ -14,8 +14,8 @@ export ITERATIONS=0
 export SKIP_GC=1
 
 # Determine how we handle concurrency -- threads vs. async I/O.
-export THREADS=2
-export MAX_CONNECTS=3
+export THREADS=1
+export MAX_CONNECTS=6
 
 # Whether or not to show success information.
 export VERBOSE=0
