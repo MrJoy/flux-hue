@@ -288,9 +288,9 @@ end
 def print_results(elapsed, requests, successes, failures)
   puts
   puts "Done."
-  puts "* #{requests} requests (#{requests / elapsed}/sec)"
-  puts "* #{successes} successful (#{successes / elapsed}/sec)"
-  puts "* #{failures} failed (#{failures / elapsed}/sec)"
+  puts "* #{requests} requests (#{(requests / elapsed).round(3)}/sec)"
+  puts "* #{successes} successful (#{(successes / elapsed).round(3)}/sec)"
+  puts "* #{failures} failed (#{(failures / elapsed).round(3)}/sec)"
   puts "* #{'%0.2f' % ((failures / requests.to_f) * 100)}% failure rate"
 end
 
