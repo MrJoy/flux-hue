@@ -200,8 +200,13 @@ end
 validate_counts!(LIGHTS.length, THREAD_COUNT)
 
 puts "Mucking with #{LIGHTS.length} lights, across #{THREAD_COUNT} threads"\
-  " with #{MULTI_OPTIONS[:max_connects]} connections each for #{ITERATIONS}"\
-  " iterations (requests == #{LIGHTS.length * ITERATIONS})."
+  " with #{MULTI_OPTIONS[:max_connects]} connections each."
+if ITERATIONS > 0
+  reqs = LIGHTS.length * ITERATIONS
+  puts "Running for #{ITERATIONS} iterations (requests == #{reqs})."
+else
+  puts "Running until we're killed.  Send SIGHUP to terminate with stats."
+end
 
 lights_for_threads  = in_groups(LIGHTS, THREAD_COUNT)
 mutex               = Mutex.new
