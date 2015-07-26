@@ -207,13 +207,15 @@ end
 # validate_max_sockets!(MULTI_OPTIONS[:max_connects], THREAD_COUNT)
 validate_counts!(LIGHTS.length, THREAD_COUNT)
 
-puts "Mucking with #{LIGHTS.length} lights, across #{THREAD_COUNT} threads"\
-  " with #{MULTI_OPTIONS[:max_connects]} connections each."
-if ITERATIONS > 0
-  reqs = LIGHTS.length * ITERATIONS
-  puts "Running for #{ITERATIONS} iterations (requests == #{reqs})."
-else
-  puts "Running until we're killed.  Send SIGHUP to terminate with stats."
+if VERBOSE
+  puts "Mucking with #{LIGHTS.length} lights, across #{THREAD_COUNT} threads"\
+    " with #{MULTI_OPTIONS[:max_connects]} connections each."
+  if ITERATIONS > 0
+    reqs = LIGHTS.length * ITERATIONS
+    puts "Running for #{ITERATIONS} iterations (requests == #{reqs})."
+  else
+    puts "Running until we're killed.  Send SIGHUP to terminate with stats."
+  end
 end
 
 lights_for_threads  = in_groups(LIGHTS, THREAD_COUNT)
@@ -230,7 +232,7 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
     l_fail = 0
     l_succ = 0
     lights = lights_for_threads[thread_idx]
-    puts "Thread ##{thread_idx}, handling #{lights.count} lights."
+    puts "Thread ##{thread_idx}, handling #{lights.count} lights." if VERBOSE
 
     # TODO: Get timing stats, figure out if timeouts are in ms or sec, capture
     # TODO: info about failure causes, etc.
@@ -298,10 +300,10 @@ end
 
 sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
 if SKIP_GC
-  puts "Disabling garbage collection!  BE CAREFUL!"
+  puts "Disabling garbage collection!  BE CAREFUL!" if VERBOSE
   GC.disable
 end
-puts "Threads are ready to go, waking them up!"
+puts "Threads are ready to go, waking them up!" if VERBOSE
 @start_time = Time.now.to_f
 threads.each(&:wakeup)
 
