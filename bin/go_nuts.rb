@@ -270,12 +270,13 @@ mutex               = Mutex.new
 @successes          = 0
 
 puts "#{CONFIG}: Initializing lights..." if VERBOSE
-Curl::Multi.http(LIGHTS.map { |lid| hue_init(lid) }, MULTI_OPTIONS) do |easy|
+Curl::Multi.http(LIGHTS.sort.uniq.map { |lid| hue_init(lid) }, MULTI_OPTIONS) do |easy|
   if easy.response_code != 200
     puts "#{CONFIG}: Failed to initialize light (will try again): #{easy.url}"
     add(easy)
   end
 end
+sleep(0.5)
 
 Thread.abort_on_exception = false
 threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
