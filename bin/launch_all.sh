@@ -27,7 +27,7 @@ export CONFIGS=(
 )
 
 ###############################################################################
-HANDLER='(kill -HUP $JOB1; sleep 1; kill -HUP $JOB2; sleep 1; kill -HUP $JOB3) 2>/dev/null'
+HANDLER='(kill -HUP $JOB1; sleep 1; kill -HUP $JOB2; sleep 1; kill -HUP $JOB3; sleep 1) 2>/dev/null'
 trap "$HANDLER" EXIT
 trap "$HANDLER" QUIT
 trap "$HANDLER" KILL
@@ -51,6 +51,7 @@ if [[ $ITERATIONS == 0 ]]; then
     kill -HUP $JOB2
     sleep 1
     kill -HUP $JOB3
+    sleep 1
   # )
   echo "Done?"
 else
