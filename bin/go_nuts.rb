@@ -264,7 +264,8 @@ end
 
 lights_for_threads  = in_groups(LIGHTS, effective_thread_count)
 mutex               = Mutex.new
-@timeouts           = 0
+@hard_timeouts      = 0
+@soft_timeouts      = 0
 @failures           = 0
 @successes          = 0
 
@@ -280,10 +281,11 @@ Thread.abort_on_exception = false
 threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
   sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
   Thread.new do
-    l_tout = 0
-    l_fail = 0
-    l_succ = 0
-    lights = lights_for_threads[thread_idx]
+    l_hto   = 0
+    l_sto   = 0
+    l_fail  = 0
+    l_succ  = 0
+    lights  = lights_for_threads[thread_idx]
     debug("Thread ##{thread_idx}, handling #{lights.count} lights.")
 
     # TODO: Get timing stats, figure out if timeouts are in ms or sec, capture
@@ -296,7 +298,7 @@ threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
                                   printf "*"
                                 when 0
                                   # Hit timeout.
-                                  l_tout += 1
+                                  l_hto += 1
                                   printf "-"
                                 else
                                   error("WAT: #{easy.response_code}")
@@ -306,7 +308,7 @@ threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
                                 if easy.body =~ /error/
                                   # Hit bridge rate limit / possibly ZigBee
                                   # limit?.
-                                  l_fail += 1
+                                  l_sto += 1
                                   printf "!"
                                 else
                                   l_succ += 1
@@ -318,7 +320,8 @@ threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
     guard_call(thread_idx) do
       counter = 0
       while (ITERATIONS > 0) ? (counter < ITERATIONS) : true
-        l_tout    = 0
+        l_hto     = 0
+        l_sto     = 0
         l_fail    = 0
         l_succ    = 0
         requests  = lights
@@ -346,9 +349,10 @@ threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
         end
 
         mutex.synchronize do
-          @timeouts  += l_tout
-          @failures  += l_fail
-          @successes += l_succ
+          @hard_timeouts += l_hto
+          @soft_timeouts += l_sto
+          @failures      += l_fail
+          @successes     += l_succ
         end
 
         counter += 1
@@ -367,21 +371,22 @@ debug("Threads are ready to go, waking them up!")
 @start_time = Time.now.to_f
 threads.each(&:wakeup)
 
-def compute_results(start_time, end_time, successes, failures, timeouts)
+def compute_results(start_time, end_time, successes, failures, hard_timeouts, soft_timeouts)
   elapsed   = end_time - start_time
-  requests  = successes + failures + timeouts
+  requests  = successes + failures + hard_timeouts + soft_timeouts
   [elapsed, requests]
 end
 
 def ratio(num, denom); (num / denom.to_f).round(3); end
 
-def print_results(elapsed, requests, successes, failures, timeouts)
+def print_results(elapsed, requests, successes, failures, hard_timeouts, soft_timeouts)
   important("")
   important("* #{requests} requests (#{ratio(requests, elapsed)}/sec)")
   important("* #{successes} successful (#{ratio(successes, elapsed)}/sec)")
   important("* #{failures} failed (#{ratio(failures, elapsed)}/sec)")
-  important("* #{timeouts} timed out (#{ratio(timeouts, elapsed)}/sec)")
-  all_failures = failures + timeouts
+  important("* #{hard_timeouts} hard timeouts (#{ratio(hard_timeouts, elapsed)}/sec)")
+  important("* #{soft_timeouts} soft timeouts (#{ratio(soft_timeouts, elapsed)}/sec)")
+  all_failures = failures + hard_timeouts + soft_timeouts
   important("* #{ratio(all_failures * 100, requests)}% failure rate")
 end
 
@@ -390,8 +395,9 @@ def show_results
                                       Time.now.to_f,
                                       @successes,
                                       @failures,
-                                      @timeouts)
-  print_results(elapsed, requests, @successes, @failures, @timeouts)
+                                      @hard_timeouts,
+                                      @soft_timeouts)
+  print_results(elapsed, requests, @successes, @failures, @hard_timeouts, @soft_timeouts)
   exit 0
 end
 
