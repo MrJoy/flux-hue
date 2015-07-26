@@ -23,9 +23,10 @@ Bundler.setup
 require "curb"
 require "oj"
 
-def env_int(name)
+def env_int(name, allow_zero = false)
   tmp = ENV[name].to_i
-  (tmp == 0) ? nil : tmp
+  tmp = nil if tmp == 0 && !allow_zero
+  tmp
 end
 
 def env_float(name)
@@ -74,7 +75,7 @@ EASY_OPTIONS    = { timeout:          5,
                     follow_location:  false,
                     max_redirects:    0 }
 THREAD_COUNT    = env_int("THREADS") || 1
-ITERATIONS      = env_int("ITERATIONS") || 20
+ITERATIONS      = env_int("ITERATIONS", true) || 20
 
 SPREAD_SLEEP    = 0 # 0.007
 TOTAL_SLEEP     = 0 # 0.1
@@ -218,6 +219,7 @@ Thread.abort_on_exception = false
 threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
   sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
   Thread.new do
+    l_tout = 0
     l_fail = 0
     l_succ = 0
     lights = lights_for_threads[thread_idx]
@@ -227,7 +229,6 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
     # TODO: info about failure causes, etc.
     # rubocop:disable Style/Semicolon
     handlers  = { on_failure: lambda do |easy, _|
-                                puts easy.response_code
                                 case easy.response_code
                                 when 404
                                   # Hit rate limit.
