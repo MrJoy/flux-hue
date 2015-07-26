@@ -239,7 +239,7 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
                     .map { |req| req.merge(handlers) }
 
         Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
-          # Apparently performed for each request!
+          # Apparently performed for each request?  Or when idle?  Or...
         end
 
         mutex.synchronize do
