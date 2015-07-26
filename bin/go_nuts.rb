@@ -306,7 +306,6 @@ end
 
 def print_results(elapsed, requests, successes, failures, timeouts)
   puts
-  puts "Done."
   puts "* #{requests} requests (#{(requests / elapsed).round(3)}/sec)"
   puts "* #{successes} successful (#{(successes / elapsed).round(3)}/sec)"
   puts "* #{failures} failed (#{(failures / elapsed).round(3)}/sec)"
