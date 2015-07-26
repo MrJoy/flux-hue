@@ -33,11 +33,11 @@ trap "$HANDLER" QUIT
 trap "$HANDLER" KILL
 
 { time ./bin/go_nuts.rb ${CONFIGS[0]} & }
-JOB1=$!
+export JOB1=$!
 { time ./bin/go_nuts.rb ${CONFIGS[1]} & }
-JOB2=$!
+export JOB2=$!
 { time ./bin/go_nuts.rb ${CONFIGS[2]} & }
-JOB3=$!
+export JOB3=$!
 
 if [[ $ITERATIONS == 0 ]]; then
   echo "Sleeping while $JOB1, $JOB2, and $JOB3 run..."
@@ -45,13 +45,14 @@ if [[ $ITERATIONS == 0 ]]; then
 
   echo
   echo "Cleaning up."
-  (
+  # (
     kill -HUP $JOB1
     sleep 1
     kill -HUP $JOB2
     sleep 1
     kill -HUP $JOB3
-  ) 2>/dev/null
+  # )
+  echo "Done?"
 else
   wait
 fi
