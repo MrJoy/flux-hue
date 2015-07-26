@@ -35,6 +35,18 @@ def env_float(name)
 end
 
 ###############################################################################
+# Janky Logging
+###############################################################################
+def prefixed(msg)
+  msg = "#{CONFIG}: #{msg}" if msg && msg != ""
+  puts msg
+end
+
+def error(msg); prefixed(msg); end
+def debug(msg); prefixed(msg) if VERBOSE; end
+def important(msg); prefixed(msg); end
+
+###############################################################################
 # Bridges and Lights
 ###############################################################################
 
@@ -211,9 +223,9 @@ end
 def guard_call(thread_idx, &block)
   block.call
 rescue Exception => e
-  puts "Exception for thread ##{thread_idx}, got:"
-  puts "\t#{e.message}"
-  puts "\t#{e.backtrace.join("\n\t")}"
+  error("Exception for thread ##{thread_idx}, got:")
+  error("\t#{e.message}")
+  error("\t#{e.backtrace.join("\n\t")}")
 end
 # rubocop:enable Lint/RescueException
 
@@ -234,20 +246,20 @@ end
 ###############################################################################
 effective_thread_count    = THREAD_COUNT
 if THREAD_COUNT > LIGHTS.length
-  puts "Clamping to #{LIGHTS.length} threads because we have too few lights."
+  error("Clamping to #{LIGHTS.length} threads because we have too few lights.")
   effective_thread_count  = LIGHTS.length
 end
 # validate_max_sockets!(MULTI_OPTIONS[:max_connects], effective_thread_count)
 
-if VERBOSE
-  puts "Mucking with #{LIGHTS.length} lights, across #{effective_thread_count}"\
-    " threads with #{MULTI_OPTIONS[:max_connects]} connections each."
-  if ITERATIONS > 0
-    reqs = LIGHTS.length * ITERATIONS
-    puts "Running for #{ITERATIONS} iterations (requests == #{reqs})."
-  else
-    puts "Running until we're killed.  Send SIGHUP to terminate with stats."
-  end
+info("Mucking with #{LIGHTS.length} lights, across #{effective_thread_count}"\
+  " threads with #{MULTI_OPTIONS[:max_connects]} connections each."\
+  " connections each.")
+
+if ITERATIONS > 0
+  reqs = LIGHTS.length * ITERATIONS
+  debug("Running for #{ITERATIONS} iterations (requests == #{reqs}).")
+else
+  debug("Running until we're killed.  Send SIGHUP to terminate with stats.")
 end
 
 lights_for_threads  = in_groups(LIGHTS, effective_thread_count)
@@ -256,10 +268,10 @@ mutex               = Mutex.new
 @failures           = 0
 @successes          = 0
 
-puts "Initializing lights..." if VERBOSE
+puts "#{CONFIG}: Initializing lights..." if VERBOSE
 Curl::Multi.http(LIGHTS.map { |lid| hue_init(lid) }, MULTI_OPTIONS) do |easy|
   if easy.response_code != 200
-    puts "Failed to initialize light (will try again): #{easy.url}"
+    puts "#{CONFIG}: Failed to initialize light (will try again): #{easy.url}"
     add(easy)
   end
 end
@@ -272,7 +284,7 @@ threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
     l_fail = 0
     l_succ = 0
     lights = lights_for_threads[thread_idx]
-    puts "Thread ##{thread_idx}, handling #{lights.count} lights." if VERBOSE
+    debug("Thread ##{thread_idx}, handling #{lights.count} lights.")
 
     # TODO: Get timing stats, figure out if timeouts are in ms or sec, capture
     # TODO: info about failure causes, etc.
@@ -288,7 +300,7 @@ threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
                                   l_tout += 1
                                   printf "-"
                                 else
-                                  puts "WAT: #{easy.response_code}"
+                                  error("WAT: #{easy.response_code}")
                                 end
                               end,
                   on_success: ->(*_) { l_succ += 1; printf "." if VERBOSE } }
@@ -340,10 +352,10 @@ end
 
 sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
 if SKIP_GC
-  puts "Disabling garbage collection!  BE CAREFUL!" if VERBOSE
+  debug("Disabling garbage collection!  BE CAREFUL!")
   GC.disable
 end
-puts "Threads are ready to go, waking them up!" if VERBOSE
+debug("Threads are ready to go, waking them up!")
 @start_time = Time.now.to_f
 threads.each(&:wakeup)
 
@@ -356,13 +368,13 @@ end
 def ratio(num, denom); (num / denom.to_f).round(3); end
 
 def print_results(elapsed, requests, successes, failures, timeouts)
-  puts
-  puts "* #{requests} requests (#{ratio(requests, elapsed)}/sec)"
-  puts "* #{successes} successful (#{ratio(successes, elapsed)}/sec)"
-  puts "* #{failures} failed (#{ratio(failures, elapsed)}/sec)"
-  puts "* #{timeouts} timed out (#{ratio(timeouts, elapsed)}/sec)"
+  important("")
+  important("* #{requests} requests (#{ratio(requests, elapsed)}/sec)")
+  important("* #{successes} successful (#{ratio(successes, elapsed)}/sec)")
+  important("* #{failures} failed (#{ratio(failures, elapsed)}/sec)")
+  important("* #{timeouts} timed out (#{ratio(timeouts, elapsed)}/sec)")
   all_failures = failures + timeouts
-  puts "* #{ratio(all_failures * 100, requests)}% failure rate"
+  important("* #{ratio(all_failures * 100, requests)}% failure rate")
 end
 
 def show_results
