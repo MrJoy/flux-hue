@@ -103,6 +103,7 @@ TRANSITION = env_float("TRANSITION") || 0.0 # In seconds, 1/10th second prec.!
 #   (((Math.sin(Time.now.to_f / 1.0) + 1.0) * 0.5) * 256).round
 # end
 
+SATURATION    = env_int("HUE_SATURATION") || 255
 HUE_POSITIONS = env_int("HUE_POSITIONS") || 16
 BRI_POSITIONS = env_int("BRI_POSITIONS") || 8
 MIN_BRI       = env_int("MIN_BRI") || 0
@@ -170,6 +171,15 @@ def make_req_struct(light_id, transition, data)
   tmp.merge(EASY_OPTIONS)
 end
 
+def hue_init(light_id)
+  if IS_COLOR.key?(light_id)
+    data  = { "on" => true, "bri" => 255, "sat" => SATURATION, "hue" => 0 }
+  else
+    data  = { "on" => true, "bri" => MIN_BRI }
+  end
+  make_req_struct(light_id, 0, data)
+end
+
 def hue_request(light_id, transition)
   if IS_COLOR.key?(light_id)
     data  = { "hue" => random_hue(light_id) }
@@ -223,6 +233,14 @@ mutex               = Mutex.new
 @timeouts           = 0
 @failures           = 0
 @successes          = 0
+
+puts "Initializing lights..." if VERBOSE
+Curl::Multi.http(LIGHTS.map { |lid| hue_init(lid) }, MULTI_OPTIONS) do |easy|
+  if easy.response_code != 200
+    puts "Failed to initialize light (will try again): #{easy.url}"
+    add(easy)
+  end
+end
 
 Thread.abort_on_exception = false
 threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
