@@ -251,7 +251,7 @@ if THREAD_COUNT > LIGHTS.length
 end
 # validate_max_sockets!(MULTI_OPTIONS[:max_connects], effective_thread_count)
 
-info("Mucking with #{LIGHTS.length} lights, across #{effective_thread_count}"\
+debug("Mucking with #{LIGHTS.length} lights, across #{effective_thread_count}"\
   " threads with #{MULTI_OPTIONS[:max_connects]} connections each."\
   " connections each.")
 
