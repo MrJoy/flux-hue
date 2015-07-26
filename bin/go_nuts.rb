@@ -210,6 +210,7 @@ end
 
 lights_for_threads  = in_groups(LIGHTS, THREAD_COUNT)
 mutex               = Mutex.new
+@timeouts           = 0
 @failures           = 0
 @successes          = 0
 
@@ -225,7 +226,21 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
     # TODO: Get timing stats, figure out if timeouts are in ms or sec, capture
     # TODO: info about failure causes, etc.
     # rubocop:disable Style/Semicolon
-    handlers  = { on_failure: ->(*_) { l_fail += 1; printf "*" },
+    handlers  = { on_failure: lambda do |easy, _|
+                                puts easy.response_code
+                                case easy.response_code
+                                when 404
+                                  # Hit rate limit.
+                                  l_fail += 1
+                                  printf "*"
+                                when 0
+                                  # Hit timeout.
+                                  l_tout += 1
+                                  printf "-"
+                                else
+                                  puts "WAT: #{easy.response_code}"
+                                end
+                              end,
                   on_success: ->(*_) { l_succ += 1; printf "." if VERBOSE } }
     # rubocop:enable Style/Semicolon
 
@@ -233,6 +248,7 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
     guard_call(thread_idx) do
       counter = 0
       while (ITERATIONS > 0) ? (counter < ITERATIONS) : true
+        l_tout    = 0
         l_fail    = 0
         l_succ    = 0
         requests  = lights
@@ -259,6 +275,7 @@ threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
         end
 
         mutex.synchronize do
+          @timeouts  += l_tout
           @failures  += l_fail
           @successes += l_succ
         end
@@ -279,27 +296,30 @@ puts "Threads are ready to go, waking them up!"
 @start_time = Time.now.to_f
 threads.each(&:wakeup)
 
-def compute_results(start_time, end_time, successes, failures)
+def compute_results(start_time, end_time, successes, failures, timeouts)
   elapsed   = end_time - start_time
-  requests  = successes + failures
+  requests  = successes + failures + timeouts
   [elapsed, requests]
 end
 
-def print_results(elapsed, requests, successes, failures)
+def print_results(elapsed, requests, successes, failures, timeouts)
   puts
   puts "Done."
   puts "* #{requests} requests (#{(requests / elapsed).round(3)}/sec)"
   puts "* #{successes} successful (#{(successes / elapsed).round(3)}/sec)"
   puts "* #{failures} failed (#{(failures / elapsed).round(3)}/sec)"
-  puts "* #{'%0.2f' % ((failures / requests.to_f) * 100)}% failure rate"
+  puts "* #{timeouts} timed out (#{(timeouts / elapsed).round(3)}/sec)"
+  all_failures = failures + timeouts
+  puts "* #{'%0.2f' % ((all_failures / requests.to_f) * 100)}% failure rate"
 end
 
 def show_results
   elapsed, requests = compute_results(@start_time,
                                       Time.now.to_f,
                                       @successes,
-                                      @failures)
-  print_results(elapsed, requests, @successes, @failures)
+                                      @failures,
+                                      @timeouts)
+  print_results(elapsed, requests, @successes, @failures, @timeouts)
   exit 0
 end
 
