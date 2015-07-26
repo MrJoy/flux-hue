@@ -214,12 +214,16 @@ end
 ###############################################################################
 # Main
 ###############################################################################
-# validate_max_sockets!(MULTI_OPTIONS[:max_connects], THREAD_COUNT)
-validate_counts!(LIGHTS.length, THREAD_COUNT)
+effective_thread_count    = THREAD_COUNT
+if THREAD_COUNT > LIGHTS.length
+  puts "Clamping to #{LIGHTS.length} threads because we have too few lights."
+  effective_thread_count  = LIGHTS.length
+end
+# validate_max_sockets!(MULTI_OPTIONS[:max_connects], effective_thread_count)
 
 if VERBOSE
-  puts "Mucking with #{LIGHTS.length} lights, across #{THREAD_COUNT} threads"\
-    " with #{MULTI_OPTIONS[:max_connects]} connections each."
+  puts "Mucking with #{LIGHTS.length} lights, across #{effective_thread_count}"\
+    " threads with #{MULTI_OPTIONS[:max_connects]} connections each."
   if ITERATIONS > 0
     reqs = LIGHTS.length * ITERATIONS
     puts "Running for #{ITERATIONS} iterations (requests == #{reqs})."
@@ -228,7 +232,7 @@ if VERBOSE
   end
 end
 
-lights_for_threads  = in_groups(LIGHTS, THREAD_COUNT)
+lights_for_threads  = in_groups(LIGHTS, effective_thread_count)
 mutex               = Mutex.new
 @timeouts           = 0
 @failures           = 0
@@ -243,7 +247,7 @@ Curl::Multi.http(LIGHTS.map { |lid| hue_init(lid) }, MULTI_OPTIONS) do |easy|
 end
 
 Thread.abort_on_exception = false
-threads   = (0..(THREAD_COUNT - 1)).map do |thread_idx|
+threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
   sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
   Thread.new do
     l_tout = 0
