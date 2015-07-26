@@ -95,6 +95,7 @@ module FluxHue
       def extract_changes(opts); [clean_body(opts), opts[:name]]; end
 
       def selected_lights!(ids)
+        # TODO: More proper determination of what is/isn't valid for light IDs!
         use_all = ids.find { |id| id.downcase == "all" }
         ids     = unique_light_ids(ids)
         lights  = client.lights
