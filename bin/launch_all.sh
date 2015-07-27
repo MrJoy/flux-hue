@@ -9,9 +9,13 @@ unset HUE_BRIDGE_USERNAME
 # (Initial) saturation for color lights:
 export SATURATION=255
 
-export TIMESCALE_H=2.0
-export TIMESCALE_S=7.0
-export TRANSITION=0.2
+export TIMESCALE_H=1.0
+export TIMESCALE_S=3.0
+export TIMESCALE_B=5.0
+export TRANSITION=0.3
+
+export MIN_BRI=128
+export MAX_BRI=255
 
 # Run indefinitely, don't let GC muck with shit.
 export ITERATIONS=0
