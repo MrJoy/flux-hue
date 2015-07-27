@@ -9,6 +9,14 @@ source "https://rubygems.org"
 #   http://reevoo.github.io/blog/2014/09/12/http-shooting-party/
 #   https://docs.google.com/a/mrjoy.com/spreadsheets/d/1uS3UbQR6GaYsozaF5yQMLmkySY6TO42BIndr2hUW2L4/pub?hl=en&hl=en&output=html
 #   http://www.slideshare.net/HiroshiNakamura/rubyhttp-clients-comparison
+#   https://github.com/karlstav/cava
+#   http://www.fftw.org/fftw3_doc/Wisdom.html#Wisdom
+#     https://rubygems.org/gems/fftw3
+#     https://rubygems.org/gems/hornetseye-fftw3
+#     https://rubygems.org/gems/ruby-fftw3
+#     http://www.fftw.org/fftw3_doc/Words-of-Wisdom_002dSaving-Plans.html#Words-of-Wisdom_002dSaving-Plans
+#     http://www.fftw.org/links.html
+#     http://www.fftw.org/pruned.html
 #   http://raml.org
 #     https://github.com/coub/raml_ruby
 #     https://github.com/cybertk/abao/
