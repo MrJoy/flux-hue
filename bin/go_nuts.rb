@@ -186,7 +186,7 @@ USERNAME          = LIGHTING_CONFIGS[CONFIG][:username]
 DIMMABLE_LIGHTS   = LIGHTING_CONFIGS[CONFIG][:dimmable].map(&:to_i)
 COLOR_LIGHTS      = LIGHTING_CONFIGS[CONFIG][:color].map(&:to_i)
 
-LIGHTS            = (COLOR_LIGHTS + DIMMABLE_LIGHTS) * THREAD_COUNT
+LIGHTS            = (COLOR_LIGHTS + DIMMABLE_LIGHTS) * (ENV["OVERRAMP"].to_i ? THREAD_COUNT : 1)
 IS_COLOR          = Hash[COLOR_LIGHTS.map { |n| [n.to_i, true] }]
 
 ###############################################################################
