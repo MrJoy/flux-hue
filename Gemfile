@@ -38,7 +38,8 @@ source "https://rubygems.org"
 
 gemspec
 
-gem "curb"
+gem "curb",             require: false
+gem "perlin",           require: false
 
 group :development do
   gem "rake",           require: false

@@ -20,6 +20,7 @@
 require "rubygems"
 require "bundler/setup"
 Bundler.setup
+require "perlin"
 require "curb"
 require "oj"
 
@@ -149,8 +150,18 @@ MIN_BRI       = env_int("MIN_BRI") || 0
 MAX_BRI       = env_int("MAX_BRI") || 255
 TIMESCALE_H   = env_float("TIMESCALE_H") || 1.0
 TIMESCALE_S   = env_float("TIMESCALE_S") || 2.0
-def random_hue(_light_id)
-  idx = (Math.sin(TIMESCALE_H * Time.now.to_f) + 1) * 0.5
+
+PERSISTENCE   = 8.0
+OCTAVES       = 8
+BASIS_TIME    = Time.now.to_f
+SEED          = BASIS_TIME.to_i % 1000
+PERLIN        = Perlin::Generator.new SEED, PERSISTENCE, OCTAVES
+
+def random_hue(light_id)
+  # idx = (Math.sin(TIMESCALE_H * Time.now.to_f) + 1) * 0.5
+  elapsed = Time.now.to_f - BASIS_TIME
+  idx     = (PERLIN[light_id, elapsed * TIMESCALE_H] + 1) * 0.5
+  # puts("%0.5f" % idx)
   ((idx * (MAX_HUE - MIN_HUE)) + MIN_HUE).to_i
 end
 

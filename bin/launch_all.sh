@@ -11,7 +11,7 @@ export SATURATION=255
 
 export TIMESCALE_H=2.0
 export TIMESCALE_S=7.0
-export TRANSITION=0.4
+export TRANSITION=0.2
 
 # Run indefinitely, don't let GC muck with shit.
 export ITERATIONS=0
