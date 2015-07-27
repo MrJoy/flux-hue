@@ -120,36 +120,25 @@ VERBOSE         = env_int("VERBOSE")
 #
 # Tweak this to change the visual effect.
 ###############################################################################
-TRANSITION = env_float("TRANSITION") || 0.0 # In seconds, 1/10th second prec.!
-# def random_hue(light_id)
-#   ::HUE_ACCRUAL         ||= []
-#   # TODO: Make step size / granularity and offset configurable!
-#   tmp                     = (HUE_ACCRUAL[light_id] ||= 0)
-#   tmp                    += ((rand(16) * 128) + 256)
-#   tmp                    -= 65_535 if tmp >= 65_535
-#   HUE_ACCRUAL[light_id]   = tmp
-# end
-
-# def random_bri(_light_id)
-#   (((Math.sin(Time.now.to_f / 1.0) + 1.0) * 0.5) * 256).round
-# end
+TRANSITION    = env_float("TRANSITION") || 0.0 # In seconds, 1/10th sec. prec!
 
 # Ballpark estimation of Jen's palette:
 # Hue:        48000..51000
 # Saturation:   168..255
 # Brightness     ??..255
-MAX_HUE = 51_000
-MIN_HUE = 48_000
-MAX_SAT = 255
-MIN_SAT = 212
+MAX_HUE       = 51_000
+MIN_HUE       = 48_000
+MAX_SAT       = 255
+MIN_SAT       = 212
+MIN_BRI       = env_int("MIN_BRI", true) || 0
+MAX_BRI       = env_int("MAX_BRI") || 255
 
 SATURATION    = env_int("SATURATION") || 255
 HUE_POSITIONS = env_int("HUE_POSITIONS") || 16
 BRI_POSITIONS = env_int("BRI_POSITIONS") || 8
-MIN_BRI       = env_int("MIN_BRI") || 0
-MAX_BRI       = env_int("MAX_BRI") || 255
 TIMESCALE_H   = env_float("TIMESCALE_H") || 1.0
-TIMESCALE_S   = env_float("TIMESCALE_S") || 2.0
+TIMESCALE_S   = env_float("TIMESCALE_S") || 3.0
+TIMESCALE_B   = env_float("TIMESCALE_B") || 5.0
 
 PERSISTENCE   = 8.0
 OCTAVES       = 8
@@ -157,31 +146,28 @@ BASIS_TIME    = Time.now.to_f
 SEED          = BASIS_TIME.to_i % 1000
 PERLIN        = Perlin::Generator.new SEED, PERSISTENCE, OCTAVES
 
-def random_hue(light_id)
+def p(x, s)
   # idx = (Math.sin(TIMESCALE_H * Time.now.to_f) + 1) * 0.5
   elapsed = Time.now.to_f - BASIS_TIME
-  idx     = (PERLIN[light_id, elapsed * TIMESCALE_H] + 1) * 0.5
-  # puts("%0.5f" % idx)
-  ((idx * (MAX_HUE - MIN_HUE)) + MIN_HUE).to_i
+  idx     = (PERLIN[x, elapsed * s] + 1) * 0.5
+  # puts("<%0.5f>" % idx)
+  idx
 end
 
-def random_sat(_light_id)
-  idx = (Math.sin(TIMESCALE_S * Time.now.to_f) + 1) * 0.5
-  ((idx * (MAX_SAT - MIN_SAT)) + MIN_SAT).to_i
+def random_hue(_light_id)
+  # ((p(light_id, TIMESCALE_H) * (MAX_HUE - MIN_HUE)) + MIN_HUE).to_i
+  (((Math.sin(TIMESCALE_H * Time.now.to_f) + 1) * 0.5 * (MAX_HUE - MIN_HUE)) + MIN_HUE).to_i
 end
 
-def random_bri(_light_id)
-  range = (MAX_BRI - MIN_BRI) + 1
-  ((rand(range) + MIN_BRI) / BRI_POSITIONS.to_f).round * BRI_POSITIONS
+def random_sat(light_id)
+  ((p(light_id, TIMESCALE_S) * (MAX_SAT - MIN_SAT)) + MIN_SAT).to_i
 end
 
-# def random_hue(_light_id)
-#   @hue_accrual ||= 0
-#   tmp           = (@hue_accrual ||= 0)
-#   tmp          += ((rand(16) * 32) + 128)
-#   tmp          -= 65_535 if tmp >= 65_535
-#   @hue_accrual  = tmp
-# end
+def random_bri(light_id)
+  tmp = ((p(light_id, TIMESCALE_B) * (MAX_BRI - MIN_BRI)) + MIN_BRI).to_i
+  # puts "<#{tmp}>"
+  tmp
+end
 
 ###############################################################################
 # Other Configuration
