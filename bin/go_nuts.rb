@@ -229,7 +229,7 @@ end
 def hue_request(light_id, transition)
   if IS_COLOR.key?(light_id)
     data  = { "hue" => random_hue(light_id),
-              "sat" => random_sat(light_id) }
+              "bri" => random_bri(light_id) }
   else
     data  = { "bri" => random_bri(light_id) }
   end
