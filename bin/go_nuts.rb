@@ -137,18 +137,26 @@ TRANSITION = env_float("TRANSITION") || 0.0 # In seconds, 1/10th second prec.!
 # Hue:        48000..51000
 # Saturation:   168..255
 # Brightness     ??..255
-MAX_HUE=51000
-MIN_HUE=48000
+MAX_HUE = 51_000
+MIN_HUE = 48_000
+MAX_SAT = 255
+MIN_SAT = 212
 
-SATURATION    = env_int("HUE_SATURATION") || 255
+SATURATION    = env_int("SATURATION") || 255
 HUE_POSITIONS = env_int("HUE_POSITIONS") || 16
 BRI_POSITIONS = env_int("BRI_POSITIONS") || 8
 MIN_BRI       = env_int("MIN_BRI") || 0
 MAX_BRI       = env_int("MAX_BRI") || 255
-TIMESCALE     = env_float("TIMESCALE") || 1.0
+TIMESCALE_H   = env_float("TIMESCALE_H") || 1.0
+TIMESCALE_S   = env_float("TIMESCALE_S") || 2.0
 def random_hue(_light_id)
-  idx = (Math.sin(TIMESCALE * Time.now.to_f) + 1) * 0.5
+  idx = (Math.sin(TIMESCALE_H * Time.now.to_f) + 1) * 0.5
   ((idx * (MAX_HUE - MIN_HUE)) + MIN_HUE).to_i
+end
+
+def random_sat(_light_id)
+  idx = (Math.sin(TIMESCALE_S * Time.now.to_f) + 1) * 0.5
+  ((idx * (MAX_SAT - MIN_SAT)) + MIN_SAT).to_i
 end
 
 def random_bri(_light_id)
@@ -223,7 +231,8 @@ end
 
 def hue_request(light_id, transition)
   if IS_COLOR.key?(light_id)
-    data  = { "hue" => random_hue(light_id) }
+    data  = { "hue" => random_hue(light_id),
+              "sat" => random_sat(light_id) }
   else
     data  = { "bri" => random_bri(light_id) }
   end

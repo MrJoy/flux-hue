@@ -3,14 +3,15 @@ unset HUE_BRIDGE_IP
 unset HUE_BRIDGE_USERNAME
 
 # Min/max brightness for dimmable lights:
-export MIN_BRI=31
-export MAX_BRI=127
+# export MIN_BRI=31
+# export MAX_BRI=127
 
-# Saturation for color lights:
-export HUE_SATURATION=255
+# (Initial) saturation for color lights:
+export SATURATION=255
 
-export TIMESCALE=1.0
-export TRANSITION=0.3
+export TIMESCALE_H=2.0
+export TIMESCALE_S=7.0
+export TRANSITION=0.4
 
 # Run indefinitely, don't let GC muck with shit.
 export ITERATIONS=0
