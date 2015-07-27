@@ -50,15 +50,12 @@ if [[ $ITERATIONS == 0 ]]; then
 
   echo
   echo "Cleaning up."
-  # (
-    kill -HUP $JOB1
-    sleep 1
-    kill -HUP $JOB2
-    sleep 1
-    kill -HUP $JOB3
-    sleep 1
-  # )
-  echo "Done?"
+  kill -HUP $JOB1
+  sleep 1
+  kill -HUP $JOB2
+  sleep 1
+  kill -HUP $JOB3
+  sleep 1
 else
   wait
 fi
