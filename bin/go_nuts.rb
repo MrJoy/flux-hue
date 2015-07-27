@@ -138,7 +138,11 @@ HUE_POSITIONS = env_int("HUE_POSITIONS") || 16
 BRI_POSITIONS = env_int("BRI_POSITIONS") || 8
 MIN_BRI       = env_int("MIN_BRI") || 0
 MAX_BRI       = env_int("MAX_BRI") || 255
-def random_hue(_light_id); rand(HUE_POSITIONS) * (65_536 / HUE_POSITIONS); end
+TIMESCALE     = env_float("TIMESCALE") || 1.0
+def random_hue(_light_id)
+  ((Math.sin(TIMESCALE * Time.now.to_f) + 1) * 0.5 * 65_536).to_i
+  # rand(HUE_POSITIONS) * (65_536 / HUE_POSITIONS)
+end
 
 def random_bri(_light_id)
   range = (MAX_BRI - MIN_BRI) + 1

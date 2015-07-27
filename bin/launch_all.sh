@@ -9,6 +9,9 @@ export MAX_BRI=127
 # Saturation for color lights:
 export HUE_SATURATION=255
 
+export TIMESCALE=1.0
+export TRANSITION=0.3
+
 # Run indefinitely, don't let GC muck with shit.
 export ITERATIONS=0
 export SKIP_GC=1
