@@ -133,6 +133,13 @@ TRANSITION = env_float("TRANSITION") || 0.0 # In seconds, 1/10th second prec.!
 #   (((Math.sin(Time.now.to_f / 1.0) + 1.0) * 0.5) * 256).round
 # end
 
+# Ballpark estimation of Jen's palette:
+# Hue:        48000..51000
+# Saturation:   168..255
+# Brightness     ??..255
+MAX_HUE=51000
+MIN_HUE=48000
+
 SATURATION    = env_int("HUE_SATURATION") || 255
 HUE_POSITIONS = env_int("HUE_POSITIONS") || 16
 BRI_POSITIONS = env_int("BRI_POSITIONS") || 8
@@ -140,8 +147,8 @@ MIN_BRI       = env_int("MIN_BRI") || 0
 MAX_BRI       = env_int("MAX_BRI") || 255
 TIMESCALE     = env_float("TIMESCALE") || 1.0
 def random_hue(_light_id)
-  ((Math.sin(TIMESCALE * Time.now.to_f) + 1) * 0.5 * 65_536).to_i
-  # rand(HUE_POSITIONS) * (65_536 / HUE_POSITIONS)
+  idx = (Math.sin(TIMESCALE * Time.now.to_f) + 1) * 0.5
+  ((idx * (MAX_HUE - MIN_HUE)) + MIN_HUE).to_i
 end
 
 def random_bri(_light_id)
