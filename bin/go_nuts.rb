@@ -98,7 +98,7 @@ LIGHTING_CONFIGS = {
 
 # Curl::CURLOPT_TCP_NODELAY => true
 
-MULTI_OPTIONS   = { pipeline:         true,
+MULTI_OPTIONS   = { pipeline:         false,
                     max_connects:     (env_int("MAX_CONNECTS") || 6) }
 EASY_OPTIONS    = { timeout:          5,
                     connect_timeout:  5,
@@ -108,8 +108,8 @@ THREAD_COUNT    = env_int("THREADS") || 1
 ITERATIONS      = env_int("ITERATIONS", true) || 20
 
 SPREAD_SLEEP    = 0.05 # 0.007
-TOTAL_SLEEP     = 0.08 # 0.1
-FIXED_SLEEP     = 0.08 # 0.03
+TOTAL_SLEEP     = 0.01 # 0.1
+FIXED_SLEEP     = 0.01 # 0.03
 VARIABLE_SLEEP  = TOTAL_SLEEP - FIXED_SLEEP
 
 VERBOSE         = env_int("VERBOSE")
