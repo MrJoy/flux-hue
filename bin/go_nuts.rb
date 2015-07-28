@@ -118,16 +118,16 @@ INIT_HUE      = env_int("INIT_HUE", true) || 49_500
 INIT_SAT      = env_int("INIT_SAT", true) || 127
 INIT_BRI      = env_int("INIT_BRI", true) || 127
 
-TIMESCALE_H   = env_float("TIMESCALE_H") || 1.0
-TIMESCALE_S   = env_float("TIMESCALE_S") || 3.0
-TIMESCALE_B   = env_float("TIMESCALE_B") || 5.0
+TIMESCALE_H   = env_float("TIMESCALE_H") || 0.5
+TIMESCALE_S   = env_float("TIMESCALE_S") || 1.0
+TIMESCALE_B   = env_float("TIMESCALE_B") || 2.0
 
 HUE_FUNC      = ENV.key?("HUE_FUNC") ? ENV["HUE_FUNC"] : "wave"
 SAT_FUNC      = ENV.key?("SAT_FUNC") ? ENV["SAT_FUNC"] : "none"
 BRI_FUNC      = ENV.key?("BRI_FUNC") ? ENV["BRI_FUNC"] : "perlin"
 
-PERSISTENCE   = 8.0
-OCTAVES       = 8
+PERSISTENCE   = 1
+OCTAVES       = 1
 BASIS_TIME    = Time.now.to_f # Large Y values frighten and confuse our
                               # Perlin generator...
 SEED          = BASIS_TIME.to_i % 1000 # Large seeds frighten and confuse our

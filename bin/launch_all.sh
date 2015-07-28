@@ -35,9 +35,9 @@ export SAT_FUNC=none
 export BRI_FUNC=perlin
 
 # How rapid the effects move (unrelated to speed of light updates):
-export TIMESCALE_H=1.0
-export TIMESCALE_S=3.0
-export TIMESCALE_B=5.0
+export TIMESCALE_H=0.5
+export TIMESCALE_S=1.0
+export TIMESCALE_B=2.0
 
 # How long an individual change takes to apply (in seconds, at 1/10th sec
 # precision):
