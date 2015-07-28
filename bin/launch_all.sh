@@ -35,13 +35,14 @@ export SAT_FUNC=none
 export BRI_FUNC=perlin
 
 # How rapid the effects move (unrelated to speed of light updates):
-export TIMESCALE_H=0.5
+export TIMESCALE_H=0.2
 export TIMESCALE_S=1.0
 export TIMESCALE_B=2.0
+# TODO: Allow scaling X component for Perlin function as well...
 
 # How long an individual change takes to apply (in seconds, at 1/10th sec
 # precision):
-export TRANSITION=0
+export TRANSITION=0.4
 
 
 ###############################################################################
@@ -51,8 +52,8 @@ export MIN_HUE=48000
 export MAX_HUE=51000
 export MIN_SAT=212
 export MAX_SAT=254
-export MIN_BRI=0
-export MAX_BRI=254
+export MIN_BRI=63
+export MAX_BRI=127
 
 ###############################################################################
 # Simulation Duration

@@ -105,6 +105,7 @@ VERBOSE         = env_int("VERBOSE")
 # Tweak this to change the visual effect.
 ###############################################################################
 TRANSITION    = env_float("TRANSITION") || 0.0 # In seconds, 1/10th sec. prec!
+SWEEP_LENGTH  = 1.0
 
 # Ballpark estimation of Jen's palette:
 MAX_HUE       = env_int("MIN_HUE", true) || 51_000
@@ -211,6 +212,7 @@ end
 def hue_server; "http://#{BRIDGE_IP}"; end
 def hue_base; "#{hue_server}/api/#{USERNAME}"; end
 def hue_light_endpoint(light_id); "#{hue_base}/lights/#{light_id}/state"; end
+def hue_all_endpoint; "#{hue_base}/groups/0/action"; end
 
 def with_transition_time(data, transition)
   data.merge("transitiontime" => (transition * 10.0).round(0))
@@ -317,6 +319,38 @@ end
 sleep(0.5)
 
 Thread.abort_on_exception = false
+sweep_thread = Thread.new do
+  # l_hto   = 0
+  # l_sto   = 0
+  # l_fail  = 0
+  # l_succ  = 0
+
+  guard_call(0) do
+    loop do
+      # l_hto       = 0
+      # l_sto       = 0
+      # l_fail      = 0
+      # l_succ      = 0
+
+      before_time = Time.now.to_f
+      tmp         = HUE_GEN["wave"].call(0)
+      data        = with_transition_time({ "hue" => tmp }, SWEEP_LENGTH)
+      http        = Curl.put(hue_all_endpoint, Oj.dump(data))
+      # TODO: Handle response here, a la main thread...
+      # puts "#{http.response_code} / #{http.body_str}"
+
+      # mutex.synchronize do
+      #   @hard_timeouts += l_hto
+      #   @soft_timeouts += l_sto
+      #   @failures      += l_fail
+      #   @successes     += l_succ
+      # end
+
+      sleep 0.05 while (Time.now.to_f - before_time) <= SWEEP_LENGTH
+    end
+  end
+end
+
 threads = (0..(effective_thread_count - 1)).map do |thread_idx|
   sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
   Thread.new do
@@ -445,4 +479,5 @@ end
 trap("HUP") { show_results }
 
 threads.each(&:join)
+sweep_thread.terminate
 show_results
