@@ -53,7 +53,7 @@ export MAX_HUE=51000
 export MIN_SAT=212
 export MAX_SAT=254
 export MIN_BRI=63
-export MAX_BRI=127
+export MAX_BRI=191
 
 ###############################################################################
 # Simulation Duration
