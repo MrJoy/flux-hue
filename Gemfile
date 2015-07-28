@@ -5,6 +5,7 @@
 source "https://rubygems.org"
 
 # See:
+#   https://github.com/junegunn/perlin_noise
 #   https://gist.github.com/EmmanuelOga/264060
 #   http://reevoo.github.io/blog/2014/09/12/http-shooting-party/
 #   https://docs.google.com/a/mrjoy.com/spreadsheets/d/1uS3UbQR6GaYsozaF5yQMLmkySY6TO42BIndr2hUW2L4/pub?hl=en&hl=en&output=html
