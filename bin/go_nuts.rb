@@ -217,6 +217,15 @@ def validate_max_sockets!(max_connects, threads)
     " for #{total_conns}!"
 end
 
+def message_count_for_functions(hue_func, sat_func, bri_func)
+  counter = 0
+  counter += 1 if HUE_GEN.key?(hue_func)
+  counter += 1 if SAT_GEN.key?(sat_func)
+  counter += 1 if BRI_GEN.key?(bri_func)
+  counter = 2 if counter > 2
+  counter
+end
+
 def hue_server; "http://#{BRIDGE_IP}"; end
 def hue_base; "#{hue_server}/api/#{USERNAME}"; end
 def hue_light_endpoint(light_id); "#{hue_base}/lights/#{light_id}/state"; end
@@ -285,14 +294,16 @@ validate_func_for!("hue", HUE_FUNC, HUE_GEN)
 validate_func_for!("sat", SAT_FUNC, SAT_GEN)
 validate_func_for!("bri", BRI_FUNC, BRI_GEN)
 
-debug("Mucking with #{num_lights} lights, across #{effective_thread_count}"\
-  " threads with #{MULTI_OPTIONS[:max_connects]} connections each.")
+msg_count = message_count_for_functions(HUE_FUNC, SAT_FUNC, BRI_FUNC)
+debug "Mucking with #{num_lights} lights, across #{effective_thread_count}"\
+  " threads with #{MULTI_OPTIONS[:max_connects]} connections each.  Expect"\
+  " each update to send #{msg_count} ZigBee messages."
 
 if ITERATIONS > 0
   reqs = num_lights * ITERATIONS
-  debug("Running for #{ITERATIONS} iterations (requests == #{reqs}).")
+  debug "Running for #{ITERATIONS} iterations (requests == #{reqs})."
 else
-  debug("Running until we're killed.  Send SIGHUP to terminate with stats.")
+  debug "Running until we're killed.  Send SIGHUP to terminate with stats."
 end
 
 lights_for_threads  = in_groups(LIGHTS, effective_thread_count)
@@ -302,7 +313,7 @@ mutex               = Mutex.new
 @failures           = 0
 @successes          = 0
 
-puts "#{CONFIG}: Initializing lights..." if VERBOSE
+info "Initializing lights..."
 Curl::Multi.http(LIGHTS.sort.uniq.map { |lid| hue_init(lid) }, MULTI_OPTIONS) do |easy|
   if easy.response_code != 200
     puts "#{CONFIG}: Failed to initialize light (will try again): #{easy.url}"
