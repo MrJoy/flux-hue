@@ -138,14 +138,15 @@ TRANSITION    = env_float("TRANSITION") || 0.0 # In seconds, 1/10th sec. prec!
 # Hue:        48000..51000
 # Saturation:   168..255
 # Brightness     ??..255
-MAX_HUE       = 51_000
-MIN_HUE       = 48_000
-MAX_SAT       = 255
-MIN_SAT       = 212
-MIN_BRI       = env_int("MIN_BRI", true) || 0
-MAX_BRI       = env_int("MAX_BRI") || 255
+MAX_HUE       = env_int("MIN_HUE", true) || 51_000
+MIN_HUE       = env_int("MAX_HUE", true) || 48_000
+MAX_SAT       = env_int("MIN_SAT", true) || 254
+MIN_SAT       = env_int("MAX_SAT", true) || 212
+MIN_BRI       = env_int("MIN_BRI", true) || 127
+MAX_BRI       = env_int("MAX_BRI", true) || 254
 
-SATURATION    = env_int("SATURATION") || 255
+INIT_SAT      = env_int("INIT_SAT", true) || 254
+INIT_BRI      = env_int("INIT_BRI", true) || 254
 HUE_POSITIONS = env_int("HUE_POSITIONS") || 16
 BRI_POSITIONS = env_int("BRI_POSITIONS") || 8
 TIMESCALE_H   = env_float("TIMESCALE_H") || 1.0
@@ -231,7 +232,10 @@ end
 
 def hue_init(light_id)
   if IS_COLOR.key?(light_id)
-    data  = { "on" => true, "bri" => 255, "sat" => SATURATION, "hue" => 0 }
+    data  = { "on"  => true,
+              "bri" => INIT_BRI,
+              "sat" => INIT_SAT,
+              "hue" => INIT_HUE }
   else
     data  = { "on" => true, "bri" => MIN_BRI }
   end
