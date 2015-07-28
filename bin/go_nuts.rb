@@ -71,6 +71,12 @@ LIGHTING_CONFIGS = {
     color:    %w(1 2 3 4 7 5 6),
     dimmable: %w(),
   },
+  "Bridge-03" => {
+    ip:       "192.168.2.51",
+    username: "1234567890",
+    color:    %w(1 2 3 4 5 6 7),
+    dimmable: %w(),
+  },
   "Bridge-01-Only1" => {
     ip:       "192.168.2.8",
     username: "1234567890",
