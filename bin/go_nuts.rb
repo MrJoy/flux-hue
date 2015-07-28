@@ -313,10 +313,10 @@ mutex               = Mutex.new
 @failures           = 0
 @successes          = 0
 
-info "Initializing lights..."
+debug "Initializing lights..."
 Curl::Multi.http(LIGHTS.sort.uniq.map { |lid| hue_init(lid) }, MULTI_OPTIONS) do |easy|
   if easy.response_code != 200
-    puts "#{CONFIG}: Failed to initialize light (will try again): #{easy.url}"
+    error "Failed to initialize light (will try again): #{easy.url}"
     add(easy)
   end
 end
