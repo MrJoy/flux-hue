@@ -33,10 +33,11 @@ export CONFIGS=(
   Bridge-01
   Bridge-02
   Bridge-03
+  Bridge-04
 )
 
 ###############################################################################
-HANDLER='(kill -HUP $JOB1; sleep 1; kill -HUP $JOB2; sleep 1; kill -HUP $JOB3; sleep 1) 2>/dev/null'
+HANDLER='(kill -HUP $JOB1; sleep 1; kill -HUP $JOB2; sleep 1; kill -HUP $JOB3; sleep 1;  kill -HUP $JOB4; sleep 1) 2>/dev/null'
 trap "$HANDLER" EXIT
 trap "$HANDLER" QUIT
 trap "$HANDLER" KILL
@@ -46,6 +47,8 @@ export JOB1=$!
 { ./bin/go_nuts.rb ${CONFIGS[1]} & }
 export JOB2=$!
 { ./bin/go_nuts.rb ${CONFIGS[2]} & }
+export JOB3=$!
+{ ./bin/go_nuts.rb ${CONFIGS[3]} & }
 export JOB3=$!
 
 if [[ $ITERATIONS == 0 ]]; then
@@ -59,6 +62,8 @@ if [[ $ITERATIONS == 0 ]]; then
   kill -HUP $JOB2
   sleep 1
   kill -HUP $JOB3
+  sleep 1
+  kill -HUP $JOB4
   sleep 1
 else
   wait
