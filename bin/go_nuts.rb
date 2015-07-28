@@ -135,9 +135,6 @@ VERBOSE         = env_int("VERBOSE")
 TRANSITION    = env_float("TRANSITION") || 0.0 # In seconds, 1/10th sec. prec!
 
 # Ballpark estimation of Jen's palette:
-# Hue:        48000..51000
-# Saturation:   168..255
-# Brightness     ??..255
 MAX_HUE       = env_int("MIN_HUE", true) || 51_000
 MIN_HUE       = env_int("MAX_HUE", true) || 48_000
 MAX_SAT       = env_int("MIN_SAT", true) || 254
@@ -147,8 +144,7 @@ MAX_BRI       = env_int("MAX_BRI", true) || 254
 
 INIT_SAT      = env_int("INIT_SAT", true) || 254
 INIT_BRI      = env_int("INIT_BRI", true) || 254
-HUE_POSITIONS = env_int("HUE_POSITIONS") || 16
-BRI_POSITIONS = env_int("BRI_POSITIONS") || 8
+
 TIMESCALE_H   = env_float("TIMESCALE_H") || 1.0
 TIMESCALE_S   = env_float("TIMESCALE_S") || 3.0
 TIMESCALE_B   = env_float("TIMESCALE_B") || 5.0
@@ -159,27 +155,30 @@ BASIS_TIME    = Time.now.to_f
 SEED          = BASIS_TIME.to_i % 1000
 PERLIN        = Perlin::Generator.new SEED, PERSISTENCE, OCTAVES
 
-def p(x, s)
-  # idx = (Math.sin(TIMESCALE_H * Time.now.to_f) + 1) * 0.5
+def perlin(x, s, min, max)
+  # Ugly hack because the Perlin lib we're using doesn't like extreme Y values,
+  # apparently.  It starts spitting zeroes back at us.
   elapsed = Time.now.to_f - BASIS_TIME
-  idx     = (PERLIN[x, elapsed * s] + 1) * 0.5
-  # puts("<%0.5f>" % idx)
-  idx
+  (((PERLIN[x, elapsed * s] + 1) * 0.5 * (max - min)) + min).to_i
 end
 
-def random_hue(_light_id)
-  # ((p(light_id, TIMESCALE_H) * (MAX_HUE - MIN_HUE)) + MIN_HUE).to_i
-  (((Math.sin(TIMESCALE_H * Time.now.to_f) + 1) * 0.5 * (MAX_HUE - MIN_HUE)) + MIN_HUE).to_i
+def wave(_x, s, min, max)
+  (((Math.sin(s * Time.now.to_f) + 1) * 0.5 * (max - min)) + min).to_i
+end
+
+def random_hue(light_id)
+  # perlin(light_id, TIMESCALE_H, MIN_HUE, MAX_HUE)
+  wave(light_id, TIMESCALE_H, MIN_HUE, MAX_HUE)
 end
 
 def random_sat(light_id)
-  ((p(light_id, TIMESCALE_S) * (MAX_SAT - MIN_SAT)) + MIN_SAT).to_i
+  perlin(light_id, TIMESCALE_S, MIN_SAT, MAX_SAT)
+  # wave(light_id, TIMESCALE_S, MIN_SAT, MAX_SAT)
 end
 
 def random_bri(light_id)
-  tmp = ((p(light_id, TIMESCALE_B) * (MAX_BRI - MIN_BRI)) + MIN_BRI).to_i
-  # puts "<#{tmp}>"
-  tmp
+  perlin(light_id, TIMESCALE_B, MIN_BRI, MAX_BRI)
+  # wave(light_id, TIMESCALE_B, MIN_BRI, MAX_BRI)
 end
 
 ###############################################################################
