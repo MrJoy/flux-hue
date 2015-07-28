@@ -49,7 +49,7 @@ export JOB2=$!
 { ./bin/go_nuts.rb ${CONFIGS[2]} & }
 export JOB3=$!
 { ./bin/go_nuts.rb ${CONFIGS[3]} & }
-export JOB3=$!
+export JOB4=$!
 
 if [[ $ITERATIONS == 0 ]]; then
   echo "Sleeping while $JOB1, $JOB2, and $JOB3 run..."
