@@ -7,24 +7,24 @@ unset HUE_BRIDGE_USERNAME
 # export MAX_BRI=127
 
 # (Initial) saturation for color lights:
-# export INIT_SAT=127
-# export INIT_BRI=127
-# export INIT_HUE=49500
+export INIT_SAT=254
+export INIT_BRI=127
+export INIT_HUE=49500
 
 # export TIMESCALE_H=1.0
 # export TIMESCALE_S=3.0
-# export TIMESCALE_B=5.0
+export TIMESCALE_B=5.0
 
-# export HUE_FUNC=wave
-# export SAT_FUNC=none
-# export BRI_FUNC=perlin
+export HUE_FUNC=none
+export SAT_FUNC=none
+export BRI_FUNC=perlin
 
 # export MIN_HUE=48000
 # export MAX_HUE=51000
 # export MIN_SAT=212
 # export MAX_SAT=254
-# export MIN_BRI=127
-# export MAX_BRI=254
+export MIN_BRI=0
+export MAX_BRI=254
 
 export TRANSITION=0.3
 
