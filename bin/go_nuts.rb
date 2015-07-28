@@ -51,68 +51,29 @@ def important(msg); prefixed(msg); end
 ###############################################################################
 # Bridges and Lights
 ###############################################################################
+COMMON_USERNAME = "1234567890"
+BRIDGE_01       = { ip:       "192.168.2.8",
+                    username: COMMON_USERNAME,
+                    lights:   %w(37 36 26 17 19 35 21) }
+BRIDGE_02       = { ip:       "192.168.2.45",
+                    username: COMMON_USERNAME,
+                    lights:   %w(16 18 15 11 13 14 12) }
+BRIDGE_03       = { ip:       "192.168.2.46",
+                    username: COMMON_USERNAME,
+                    lights:   %w(1 2 3 4 7 5 6) }
+BRIDGE_04       = { ip:       "192.168.2.51",
+                    username: COMMON_USERNAME,
+                    lights:   %w(1 2 3 4 5 6 7) }
 
 LIGHTING_CONFIGS = {
-  "Bridge-01" => {
-    ip:       "192.168.2.8",
-    username: "1234567890",
-    lights:   %w(37 36 26 17 19 35 21),
-  },
-  "Bridge-02" => {
-    ip:       "192.168.2.45",
-    username: "1234567890",
-    lights:   %w(16 18 15 11 13 14 12),
-  },
-  "Bridge-03" => {
-    ip:       "192.168.2.46",
-    username: "1234567890",
-    lights:   %w(1 2 3 4 7 5 6),
-  },
-  "Bridge-04" => {
-    ip:       "192.168.2.51",
-    username: "1234567890",
-    lights:   %w(1 2 3 4 5 6 7),
-  },
-  "Bridge-01-Solo" => {
-    ip:       "192.168.2.8",
-    username: "1234567890",
-    lights:   ["37"],
-  },
-  "Bridge-02-Solo" => {
-    ip:       "192.168.2.45",
-    username: "1234567890",
-    lights:   ["16"],
-  },
-  "Bridge-03-Solo" => {
-    ip:       "192.168.2.46",
-    username: "1234567890",
-    lights:   ["1"],
-  },
-  "Bridge-04-Solo" => {
-    ip:       "192.168.2.51",
-    username: "1234567890",
-    lights:   ["1"],
-  },
-  "Bridge-01-Solo" => {
-    ip:       "192.168.2.8",
-    username: "1234567890",
-    lights:   ["37"],
-  },
-  "Bridge-02-Loop1" => {
-    ip:       "192.168.2.45",
-    username: "1234567890",
-    lights:   (["16"] * 30),
-  },
-  "Bridge-03-Loop1" => {
-    ip:       "192.168.2.46",
-    username: "1234567890",
-    lights:   (["1"] * 30),
-  },
-  "Bridge-04-Loop1" => {
-    ip:       "192.168.2.51",
-    username: "1234567890",
-    lights:   (["1"] * 30),
-  },
+  "Bridge-01"       => BRIDGE_01,
+  "Bridge-02"       => BRIDGE_02,
+  "Bridge-03"       => BRIDGE_03,
+  "Bridge-04"       => BRIDGE_04,
+  "Bridge-01-Solo"  => BRIDGE_01.dup.merge(lights: [BRIDGE_01[:lights].first]),
+  "Bridge-02-Solo"  => BRIDGE_02.dup.merge(lights: [BRIDGE_02[:lights].first]),
+  "Bridge-03-Solo"  => BRIDGE_03.dup.merge(lights: [BRIDGE_03[:lights].first]),
+  "Bridge-04-Solo"  => BRIDGE_04.dup.merge(lights: [BRIDGE_04[:lights].first]),
 }
 
 ###############################################################################
