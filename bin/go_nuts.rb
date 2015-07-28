@@ -73,22 +73,22 @@ LIGHTING_CONFIGS = {
     username: "1234567890",
     lights:   %w(1 2 3 4 5 6 7),
   },
-  "Bridge-01-Only1" => {
+  "Bridge-01-Loop1" => {
     ip:       "192.168.2.8",
     username: "1234567890",
     lights:   (["37"] * 30),
   },
-  "Bridge-02-Only1" => {
+  "Bridge-02-Loop1" => {
     ip:       "192.168.2.45",
     username: "1234567890",
     lights:   (["16"] * 30),
   },
-  "Bridge-03-Only1" => {
+  "Bridge-03-Loop1" => {
     ip:       "192.168.2.46",
     username: "1234567890",
     lights:   (["1"] * 30),
   },
-  "Bridge-04-Only1" => {
+  "Bridge-04-Loop1" => {
     ip:       "192.168.2.51",
     username: "1234567890",
     lights:   (["1"] * 30),
