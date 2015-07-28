@@ -164,6 +164,7 @@ BRI_GEN = {
 # Other Configuration
 ###############################################################################
 SKIP_GC           = !!env_int("SKIP_GC")
+DEBUG_COMPONENT   = ENV["DEBUG_COMPONENT"]
 
 ###############################################################################
 # Bring together defaults and env vars, initialize things, etc...
@@ -234,6 +235,12 @@ def hue_request(light_id, transition)
   data["hue"] = HUE_GEN[HUE_FUNC].call(light_id) if HUE_GEN[HUE_FUNC]
   data["sat"] = SAT_GEN[SAT_FUNC].call(light_id) if SAT_GEN[SAT_FUNC]
   data["bri"] = BRI_GEN[BRI_FUNC].call(light_id) if BRI_GEN[BRI_FUNC]
+
+  case DEBUG_COMPONENT
+  when "bri" then STDERR.puts((["*"] * ((data["bri"] - MIN_BRI) / 2)).join)
+  when "sat" then STDERR.puts((["*"] * ((data["sat"] - MIN_SAT) / 2)).join)
+  when "hue" then STDERR.puts((["*"] * ((data["hue"] - MIN_HUE) / 100)).join)
+  end
 
   make_req_struct(light_id, transition, data)
 end
