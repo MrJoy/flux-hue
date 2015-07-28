@@ -295,7 +295,7 @@ end
 sleep(0.5)
 
 Thread.abort_on_exception = false
-threads   = (0..(effective_thread_count - 1)).map do |thread_idx|
+threads = (0..(effective_thread_count - 1)).map do |thread_idx|
   sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
   Thread.new do
     l_hto   = 0
