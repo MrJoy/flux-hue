@@ -113,10 +113,8 @@ EASY_OPTIONS    = { timeout:          5,
 THREAD_COUNT    = env_int("THREADS") || 1
 ITERATIONS      = env_int("ITERATIONS", true) || 20
 
-SPREAD_SLEEP    = 0.05 # 0.007
-TOTAL_SLEEP     = 0.0 # 0.1
-FIXED_SLEEP     = 0.0 # 0.03
-VARIABLE_SLEEP  = TOTAL_SLEEP - FIXED_SLEEP
+SPREAD_SLEEP    = env_float("SPREAD_SLEEP") || 0.05
+BETWEEN_SLEEP   = env_float("BETWEEN_SLEEP") || 0.0
 
 VERBOSE         = env_int("VERBOSE")
 
@@ -401,7 +399,7 @@ threads = (0..(effective_thread_count - 1)).map do |thread_idx|
         end
 
         counter += 1
-        sleep(FIXED_SLEEP + rand(VARIABLE_SLEEP)) unless TOTAL_SLEEP == 0
+        sleep(BETWEEN_SLEEP) unless BETWEEN_SLEEP == 0
       end
     end
   end
