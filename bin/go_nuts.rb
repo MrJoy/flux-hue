@@ -147,9 +147,11 @@ BRI_FUNC      = ENV.key?("BRI_FUNC") ? ENV["BRI_FUNC"] : "perlin"
 
 PERSISTENCE   = 8.0
 OCTAVES       = 8
-BASIS_TIME    = Time.now.to_f
-SEED          = BASIS_TIME.to_i % 1000
-PERLIN        = Perlin::Generator.new SEED, PERSISTENCE, OCTAVES
+BASIS_TIME    = Time.now.to_f # Large Y values frighten and confuse our
+                              # Perlin generator...
+SEED          = BASIS_TIME.to_i % 1000 # Large seeds frighten and confuse our
+                                       # Perlin generator...
+PERLIN        = Perlin::Generator.new(SEED, PERSISTENCE, OCTAVES)
 
 def perlin(x, s, min, max)
   # Ugly hack because the Perlin lib we're using doesn't like extreme Y values,
