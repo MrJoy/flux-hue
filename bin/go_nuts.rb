@@ -295,7 +295,8 @@ mutex               = Mutex.new
 @successes          = 0
 
 debug "Initializing lights..."
-Curl::Multi.http(LIGHTS.sort.uniq.map { |lid| hue_init(lid) }, MULTI_OPTIONS) do |easy|
+init_reqs = LIGHTS.sort.uniq.map { |lid| hue_init(lid) }
+Curl::Multi.http(init_reqs, MULTI_OPTIONS) do |easy|
   if easy.response_code != 200
     error "Failed to initialize light (will try again): #{easy.url}"
     add(easy)
