@@ -32,8 +32,8 @@ def env_int(name, allow_zero = false)
 end
 
 def env_float(name)
-  tmp = ENV[name].to_f
-  (tmp == 0.0) ? nil : tmp
+  return nil unless ENV.key?(name)
+  ENV[name].to_f
 end
 
 ###############################################################################
@@ -56,50 +56,42 @@ LIGHTING_CONFIGS = {
   "Bridge-01" => {
     ip:       "192.168.2.8",
     username: "1234567890",
-    color:    %w(37 36 26 17 19 35 21),
-    dimmable: %w(),
+    lights:   %w(37 36 26 17 19 35 21),
   },
   "Bridge-02" => {
     ip:       "192.168.2.45",
     username: "1234567890",
-    color:    %w(16 18 15 11 13 14 12),
-    dimmable: %w(),
+    lights:   %w(16 18 15 11 13 14 12),
   },
   "Bridge-03" => {
     ip:       "192.168.2.46",
     username: "1234567890",
-    color:    %w(1 2 3 4 7 5 6),
-    dimmable: %w(),
+    lights:   %w(1 2 3 4 7 5 6),
   },
-  "Bridge-03" => {
+  "Bridge-04" => {
     ip:       "192.168.2.51",
     username: "1234567890",
-    color:    %w(1 2 3 4 5 6 7),
-    dimmable: %w(),
+    lights:   %w(1 2 3 4 5 6 7),
   },
   "Bridge-01-Only1" => {
     ip:       "192.168.2.8",
     username: "1234567890",
-    color:    (["37"] * 30),
-    dimmable: %w(),
+    lights:   (["37"] * 30),
   },
   "Bridge-02-Only1" => {
     ip:       "192.168.2.45",
     username: "1234567890",
-    color:    (["16"] * 30),
-    dimmable: %w(),
+    lights:   (["16"] * 30),
   },
   "Bridge-03-Only1" => {
     ip:       "192.168.2.46",
     username: "1234567890",
-    color:    (["1"] * 30),
-    dimmable: %w(),
+    lights:   (["1"] * 30),
   },
   "Bridge-04-Only1" => {
     ip:       "192.168.2.51",
     username: "1234567890",
-    color:    (["1"] * 30),
-    dimmable: %w(),
+    lights:   (["1"] * 30),
   },
 }
 
@@ -109,7 +101,8 @@ LIGHTING_CONFIGS = {
 # Play with this to see how error rates are affected.
 ###############################################################################
 
-# Curl::CURLOPT_TCP_NODELAY => true
+# TODO: Try to figure out how to set Curl::CURLOPT_TCP_NODELAY => true
+# TODO: Disable Curl from sending keepalives by trying HTTP/1.0.
 
 MULTI_OPTIONS   = { pipeline:         false,
                     max_connects:     (env_int("MAX_CONNECTS") || 6) }
@@ -142,12 +135,17 @@ MIN_SAT       = env_int("MAX_SAT", true) || 212
 MIN_BRI       = env_int("MIN_BRI", true) || 127
 MAX_BRI       = env_int("MAX_BRI", true) || 254
 
-INIT_SAT      = env_int("INIT_SAT", true) || 254
-INIT_BRI      = env_int("INIT_BRI", true) || 254
+INIT_HUE      = env_int("INIT_HUE", true) || 49_500
+INIT_SAT      = env_int("INIT_SAT", true) || 127
+INIT_BRI      = env_int("INIT_BRI", true) || 127
 
 TIMESCALE_H   = env_float("TIMESCALE_H") || 1.0
 TIMESCALE_S   = env_float("TIMESCALE_S") || 3.0
 TIMESCALE_B   = env_float("TIMESCALE_B") || 5.0
+
+HUE_FUNC      = ENV.key?("HUE_FUNC") ? ENV["HUE_FUNC"] : "wave"
+SAT_FUNC      = ENV.key?("SAT_FUNC") ? ENV["SAT_FUNC"] : "none"
+BRI_FUNC      = ENV.key?("BRI_FUNC") ? ENV["BRI_FUNC"] : "perlin"
 
 PERSISTENCE   = 8.0
 OCTAVES       = 8
@@ -166,20 +164,20 @@ def wave(_x, s, min, max)
   (((Math.sin(s * Time.now.to_f) + 1) * 0.5 * (max - min)) + min).to_i
 end
 
-def random_hue(light_id)
-  # perlin(light_id, TIMESCALE_H, MIN_HUE, MAX_HUE)
-  wave(light_id, TIMESCALE_H, MIN_HUE, MAX_HUE)
-end
+HUE_GEN = {
+  "perlin"  => proc { |l_id| perlin(l_id, TIMESCALE_H, MIN_HUE, MAX_HUE) },
+  "wave"    => proc { |l_id| wave(l_id, TIMESCALE_H, MIN_HUE, MAX_HUE) },
+}
 
-def random_sat(light_id)
-  perlin(light_id, TIMESCALE_S, MIN_SAT, MAX_SAT)
-  # wave(light_id, TIMESCALE_S, MIN_SAT, MAX_SAT)
-end
+SAT_GEN = {
+  "perlin"  => proc { |l_id| perlin(l_id, TIMESCALE_S, MIN_SAT, MAX_SAT) },
+  "wave"    => proc { |l_id| wave(l_id, TIMESCALE_S, MIN_SAT, MAX_SAT) },
+}
 
-def random_bri(light_id)
-  perlin(light_id, TIMESCALE_B, MIN_BRI, MAX_BRI)
-  # wave(light_id, TIMESCALE_B, MIN_BRI, MAX_BRI)
-end
+BRI_GEN = {
+  "perlin"  => proc { |l_id| perlin(l_id, TIMESCALE_B, MIN_BRI, MAX_BRI) },
+  "wave"    => proc { |l_id| wave(l_id, TIMESCALE_B, MIN_BRI, MAX_BRI) },
+}
 
 ###############################################################################
 # Other Configuration
@@ -192,15 +190,20 @@ SKIP_GC           = !!env_int("SKIP_GC")
 CONFIG            = ARGV.shift || "Bridge-01"
 BRIDGE_IP         = LIGHTING_CONFIGS[CONFIG][:ip]
 USERNAME          = LIGHTING_CONFIGS[CONFIG][:username]
-DIMMABLE_LIGHTS   = LIGHTING_CONFIGS[CONFIG][:dimmable].map(&:to_i)
-COLOR_LIGHTS      = LIGHTING_CONFIGS[CONFIG][:color].map(&:to_i)
 
-LIGHTS            = (COLOR_LIGHTS + DIMMABLE_LIGHTS) * ((ENV["OVERRAMP"].to_i != 0) ? THREAD_COUNT : 1)
-IS_COLOR          = Hash[COLOR_LIGHTS.map { |n| [n.to_i, true] }]
+ramp_factor       = ENV["OVERRAMP"].to_i
+ramp_factor       = (ramp_factor > 0) ? (THREAD_COUNT * ramp_factor) : 1
+LIGHTS            = LIGHTING_CONFIGS[CONFIG][:lights].map(&:to_i) * ramp_factor
 
 ###############################################################################
 # Helper Functions
 ###############################################################################
+def validate_func_for!(component, value, functions)
+  return if functions.key?(value)
+  return if value == "none"
+  error "Unknown value for #{component.upcase}_FUNC: `#{value}`!"
+end
+
 def validate_counts!(lights, threads)
   return if threads <= lights
 
@@ -216,7 +219,7 @@ end
 
 def hue_server; "http://#{BRIDGE_IP}"; end
 def hue_base; "#{hue_server}/api/#{USERNAME}"; end
-def hue_endpoint(light_id); "#{hue_base}/lights/#{light_id}/state"; end
+def hue_light_endpoint(light_id); "#{hue_base}/lights/#{light_id}/state"; end
 
 def with_transition_time(data, transition)
   data.merge("transitiontime" => (transition * 10.0).round(0))
@@ -224,30 +227,24 @@ end
 
 def make_req_struct(light_id, transition, data)
   tmp = { method:   :put,
-          url:      hue_endpoint(light_id),
+          url:      hue_light_endpoint(light_id),
           put_data: Oj.dump(with_transition_time(data, transition)) }
   tmp.merge(EASY_OPTIONS)
 end
 
 def hue_init(light_id)
-  if IS_COLOR.key?(light_id)
-    data  = { "on"  => true,
-              "bri" => INIT_BRI,
-              "sat" => INIT_SAT,
-              "hue" => INIT_HUE }
-  else
-    data  = { "on" => true, "bri" => MIN_BRI }
-  end
-  make_req_struct(light_id, 0, data)
+  make_req_struct(light_id, 0,  "on"  => true,
+                                "bri" => INIT_BRI,
+                                "sat" => INIT_SAT,
+                                "hue" => INIT_HUE)
 end
 
 def hue_request(light_id, transition)
-  if IS_COLOR.key?(light_id)
-    data  = { "hue" => random_hue(light_id),
-              "bri" => random_bri(light_id) }
-  else
-    data  = { "bri" => random_bri(light_id) }
-  end
+  data = {}
+  data["hue"] = HUE_GEN[HUE_FUNC].call(light_id) if HUE_GEN[HUE_FUNC]
+  data["sat"] = SAT_GEN[SAT_FUNC].call(light_id) if SAT_GEN[SAT_FUNC]
+  data["bri"] = BRI_GEN[BRI_FUNC].call(light_id) if BRI_GEN[BRI_FUNC]
+
   make_req_struct(light_id, transition, data)
 end
 
@@ -277,17 +274,22 @@ end
 # Main
 ###############################################################################
 effective_thread_count    = THREAD_COUNT
-if THREAD_COUNT > LIGHTS.length
-  error("Clamping to #{LIGHTS.length} threads because we have too few lights.")
-  effective_thread_count  = LIGHTS.length
+num_lights                = LIGHTS.length
+if THREAD_COUNT > num_lights
+  important("Clamping to #{num_lights} threads because we have too few lights.")
+  effective_thread_count  = num_lights
 end
 # validate_max_sockets!(MULTI_OPTIONS[:max_connects], effective_thread_count)
 
-debug("Mucking with #{LIGHTS.length} lights, across #{effective_thread_count}"\
+validate_func_for!("hue", HUE_FUNC, HUE_GEN)
+validate_func_for!("sat", SAT_FUNC, SAT_GEN)
+validate_func_for!("bri", BRI_FUNC, BRI_GEN)
+
+debug("Mucking with #{num_lights} lights, across #{effective_thread_count}"\
   " threads with #{MULTI_OPTIONS[:max_connects]} connections each.")
 
 if ITERATIONS > 0
-  reqs = LIGHTS.length * ITERATIONS
+  reqs = num_lights * ITERATIONS
   debug("Running for #{ITERATIONS} iterations (requests == #{reqs}).")
 else
   debug("Running until we're killed.  Send SIGHUP to terminate with stats.")
@@ -420,7 +422,8 @@ def print_results(elapsed, requests, successes, failures, hard_timeouts, soft_ti
   important("* #{soft_timeouts} soft timeouts (#{ratio(soft_timeouts, elapsed)}/sec)")
   all_failures = failures + hard_timeouts + soft_timeouts
   important("* #{ratio(all_failures * 100, requests)}% failure rate")
-  important("* #{elapsed.round(3)} seconds elapsed (#{ratio(elapsed, ITERATIONS)}/iteration)")
+  suffix = " (#{ratio(elapsed, ITERATIONS)}/iteration)" if ITERATIONS > 0
+  important("* #{elapsed.round(3)} seconds elapsed#{suffix}")
 end
 
 def show_results
