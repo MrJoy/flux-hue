@@ -230,17 +230,22 @@ def hue_init(light_id)
                                 "hue" => INIT_HUE)
 end
 
+def bar(value, offset, scale); (["*"] * ((value - offset) / scale)).join; end
+
+def do_component_debugging!(data)
+  case DEBUG_COMPONENT
+  when "bri" then STDERR.puts(bar(data["bri"], MIN_BRI, 2))
+  when "sat" then STDERR.puts(bar(data["sat"], MIN_SAT, 2))
+  when "hue" then STDERR.puts(bar(data["hue"], MIN_HUE, 1000))
+  end
+end
+
 def hue_request(light_id, transition)
   data = {}
   data["hue"] = HUE_GEN[HUE_FUNC].call(light_id) if HUE_GEN[HUE_FUNC]
   data["sat"] = SAT_GEN[SAT_FUNC].call(light_id) if SAT_GEN[SAT_FUNC]
   data["bri"] = BRI_GEN[BRI_FUNC].call(light_id) if BRI_GEN[BRI_FUNC]
-
-  case DEBUG_COMPONENT
-  when "bri" then STDERR.puts((["*"] * ((data["bri"] - MIN_BRI) / 2)).join)
-  when "sat" then STDERR.puts((["*"] * ((data["sat"] - MIN_SAT) / 2)).join)
-  when "hue" then STDERR.puts((["*"] * ((data["hue"] - MIN_HUE) / 100)).join)
-  end
+  do_component_debugging!(data)
 
   make_req_struct(light_id, transition, data)
 end
