@@ -105,7 +105,7 @@ VERBOSE         = env_int("VERBOSE")
 # Tweak this to change the visual effect.
 ###############################################################################
 TRANSITION    = env_float("TRANSITION") || 0.0 # In seconds, 1/10th sec. prec!
-SWEEP_LENGTH  = 1.0
+SWEEP_LENGTH  = 2.0
 
 # Ballpark estimation of Jen's palette:
 MAX_HUE       = env_int("MIN_HUE", true) || 51_000
@@ -324,6 +324,7 @@ sweep_thread = Thread.new do
   # l_sto   = 0
   # l_fail  = 0
   # l_succ  = 0
+  hue_target = MAX_HUE
 
   guard_call(0) do
     loop do
@@ -333,8 +334,9 @@ sweep_thread = Thread.new do
       # l_succ      = 0
 
       before_time = Time.now.to_f
-      tmp         = HUE_GEN["wave"].call(0)
-      data        = with_transition_time({ "hue" => tmp }, SWEEP_LENGTH)
+      # tmp         = HUE_GEN["wave"].call(0)
+      hue_target = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
+      data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
       http        = Curl.put(hue_all_endpoint, Oj.dump(data))
       # TODO: Handle response here, a la main thread...
       # puts "#{http.response_code} / #{http.body_str}"
