@@ -35,7 +35,10 @@ source "https://rubygems.org"
 #     https://github.com/QuickenLoans/ramllint
 #     https://github.com/thebinarypenguin/raml-cop
 #     https://github.com/mcuadros/go-candyjs
+#  https://github.com/birkirb/hue-lib
 # Try:
+#   https://github.com/arirusso/unimidi
+#     https://github.com/arirusso/micromidi
 #   https://github.com/IFTTT/Kashmir
 #   https://github.com/IFTTT/memoize_via_cache
 #   https://github.com/lostisland/faraday
