@@ -72,7 +72,10 @@ module FluxHue
     end
 
     def group(id)
-      groups.find { |g| g.id == id.to_i }
+      id = id.to_i
+      return Group.new(client: self, id: id) if id == 0
+
+      groups.find { |g| g.id == id }
     end
 
     def scene(id)
