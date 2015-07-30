@@ -55,13 +55,13 @@ COMMON_USERNAME = "1234567890"
 BRIDGE_01       = { ip:       "192.168.2.8",
                     username: COMMON_USERNAME,
                     lights:   %w(37 36 26 17 19 35 21) }
-BRIDGE_02       = { ip:       "192.168.2.45",
+BRIDGE_02       = { ip:       "192.168.2.6",
                     username: COMMON_USERNAME,
                     lights:   %w(16 18 15 11 13 14 12) }
-BRIDGE_03       = { ip:       "192.168.2.46",
+BRIDGE_03       = { ip:       "192.168.2.7",
                     username: COMMON_USERNAME,
                     lights:   %w(1 2 3 4 7 5 6) }
-BRIDGE_04       = { ip:       "192.168.2.51",
+BRIDGE_04       = { ip:       "192.168.2.9",
                     username: COMMON_USERNAME,
                     lights:   %w(1 2 3 4 5 6 7) }
 
