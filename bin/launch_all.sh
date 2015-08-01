@@ -63,6 +63,7 @@ export MAX_BRI=191
 ###############################################################################
 # Run for a fixed number of iterations, or until we're killed (0):
 export ITERATIONS=0
+export RUN_FOREVER=1
 
 
 ###############################################################################
@@ -101,7 +102,12 @@ export JOB3=$!
 { ./bin/go_nuts.rb ${CONFIGS[3]} & }
 export JOB4=$!
 
-if [[ $ITERATIONS == 0 ]]; then
+if [[ $ITERATIONS != 0 ]]; then
+  export RUN_FOREVER=1
+fi
+
+
+if [[ $RUN_FOREVER == 0 ]]; then
   echo "Sleeping while $JOB1, $JOB2, and $JOB3 run..."
   sleep 120
 
@@ -116,5 +122,10 @@ if [[ $ITERATIONS == 0 ]]; then
   kill -HUP $JOB4
   sleep 1
 else
+  if [[ $ITERATIONS != 0 ]]; then
+    echo "Waiting for jobs to finish..."
+  else
+    echo "Waiting until you kill me."
+  fi
   wait
 fi
