@@ -174,9 +174,7 @@ CONFIG            = ARGV.shift || "Bridge-01"
 BRIDGE_IP         = LIGHTING_CONFIGS[CONFIG][:ip]
 USERNAME          = LIGHTING_CONFIGS[CONFIG][:username]
 
-ramp_factor       = ENV["OVERRAMP"].to_i
-ramp_factor       = (ramp_factor > 0) ? (THREAD_COUNT * ramp_factor) : 1
-LIGHTS            = LIGHTING_CONFIGS[CONFIG][:lights].map(&:to_i) * ramp_factor
+LIGHTS            = LIGHTING_CONFIGS[CONFIG][:lights].map(&:to_i)
 
 ###############################################################################
 # Helper Functions

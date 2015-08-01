@@ -22,8 +22,6 @@ export BETWEEN_SLEEP=0.0
 # Determine how we handle concurrency -- threads vs. async I/O.
 export THREADS=1
 export MAX_CONNECTS=3
-# When using multiple threads, have multiple threads work on the same lights:
-export OVERRAMP=0
 
 
 ###############################################################################
