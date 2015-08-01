@@ -9,7 +9,7 @@ AllCops:
     - 'etc/**/*'
 
 Metrics/LineLength:
-  Max: 80
+  Max: 100
 
 Style/AccessModifierIndentation:
   EnforcedStyle: outdent
