@@ -20,7 +20,7 @@
 require "rubygems"
 require "bundler/setup"
 Bundler.setup
-require "perlin"
+require "perlin_noise"
 require "curb"
 require "oj"
 
@@ -133,13 +133,16 @@ BASIS_TIME    = Time.now.to_f # Large Y values frighten and confuse our
                               # Perlin generator...
 SEED          = BASIS_TIME.to_i % 1000 # Large seeds frighten and confuse our
                                        # Perlin generator...
-PERLIN        = Perlin::Generator.new(SEED, PERSISTENCE, OCTAVES)
+PERLIN        = Perlin::Noise.new 2
+# contrast = Perlin::Curve.contrast(Perlin::Curve::CUBIC, 3)
 
 def perlin(x, s, min, max)
   # Ugly hack because the Perlin lib we're using doesn't like extreme Y values,
   # apparently.  It starts spitting zeroes back at us.
   elapsed = Time.now.to_f - BASIS_TIME
-  (((PERLIN[x, elapsed * s] + 1) * 0.5 * (max - min)) + min).to_i
+  tmp = (((PERLIN[x, elapsed * s] + 1) * 0.5 * (max - min)) + min).to_i
+  puts tmp
+  tmp
 end
 
 def wave(_x, s, min, max)
@@ -324,31 +327,7 @@ sweep_thread = Thread.new do
   # l_succ  = 0
   hue_target = MAX_HUE
 
-  guard_call(0) do
-    loop do
-      # l_hto       = 0
-      # l_sto       = 0
-      # l_fail      = 0
-      # l_succ      = 0
-
-      before_time = Time.now.to_f
-      # tmp         = HUE_GEN["wave"].call(0)
-      hue_target = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
-      data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
-      http        = Curl.put(hue_all_endpoint, Oj.dump(data))
-      # TODO: Handle response here, a la main thread...
-      # puts "#{http.response_code} / #{http.body_str}"
-
-      # mutex.synchronize do
-      #   @hard_timeouts += l_hto
-      #   @soft_timeouts += l_sto
-      #   @failures      += l_fail
-      #   @successes     += l_succ
-      # end
-
-      sleep 0.05 while (Time.now.to_f - before_time) <= SWEEP_LENGTH
-    end
-  end
+gi
 end
 
 threads = (0..(effective_thread_count - 1)).map do |thread_idx|

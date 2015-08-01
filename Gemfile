@@ -51,7 +51,7 @@ source "https://rubygems.org"
 gemspec
 
 gem "curb",             require: false
-gem "perlin",           require: false
+gem "perlin_noise",     require: false
 
 group :development do
   gem "rake",           require: false
