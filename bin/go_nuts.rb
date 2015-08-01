@@ -237,11 +237,13 @@ end
 def bar(value, offset, scale); (["*"] * ((value - offset) / scale)).join; end
 
 def do_component_debugging!(data)
+  debug_info = []
   case DEBUG_COMPONENT
-  when "bri" then STDERR.puts(bar(data["bri"], MIN_BRI, 2))
-  when "sat" then STDERR.puts(bar(data["sat"], MIN_SAT, 2))
-  when "hue" then STDERR.puts(bar(data["hue"], MIN_HUE, 1000))
+  when "bri" then debug_info << bar(data["bri"], MIN_BRI, 2)
+  when "sat" then debug_info << bar(data["sat"], MIN_SAT, 2)
+  when "hue" then debug_info << bar(data["hue"], MIN_HUE, 1000)
   end
+  debug(debug_info.join(", ")) if debug_info.length > 0
 end
 
 def hue_request(light_id, transition)
