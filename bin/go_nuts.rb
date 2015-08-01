@@ -309,6 +309,7 @@ mutex               = Mutex.new
 @failures           = 0
 @successes          = 0
 
+# TODO: Hoist this into a separate script.
 debug "Initializing lights..."
 init_reqs = LIGHTS.sort.uniq.map { |lid| hue_init(lid) }
 Curl::Multi.http(init_reqs, MULTI_OPTIONS) do |easy|
@@ -327,7 +328,32 @@ sweep_thread = Thread.new do
   # l_succ  = 0
   hue_target = MAX_HUE
 
-gi
+  guard_call(0) do
+    loop do
+      # l_hto       = 0
+      # l_sto       = 0
+      # l_fail      = 0
+      # l_succ      = 0
+
+      before_time = Time.now.to_f
+      # tmp         = HUE_GEN["wave"].call(0)
+      hue_target = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
+      data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
+      # http        =
+      Curl.put(hue_all_endpoint, Oj.dump(data))
+      # TODO: Handle response here, a la main thread...
+      # puts "#{http.response_code} / #{http.body_str}"
+
+      # mutex.synchronize do
+      #   @hard_timeouts += l_hto
+      #   @soft_timeouts += l_sto
+      #   @failures      += l_fail
+      #   @successes     += l_succ
+      # end
+
+      sleep 0.05 while (Time.now.to_f - before_time) <= SWEEP_LENGTH
+    end
+  end
 end
 
 threads = (0..(effective_thread_count - 1)).map do |thread_idx|
