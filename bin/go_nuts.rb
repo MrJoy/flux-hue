@@ -52,7 +52,7 @@ def important(msg); prefixed(msg); end
 # Bridges and Lights
 ###############################################################################
 COMMON_USERNAME = "1234567890"
-BRIDGE_01       = { ip:       "192.168.2.8",
+BRIDGE_01       = { ip:       "192.168.2.10",
                     username: COMMON_USERNAME,
                     lights:   %w(37 36 26 17 19 35 21) }
 BRIDGE_02       = { ip:       "192.168.2.6",
