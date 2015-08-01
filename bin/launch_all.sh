@@ -28,6 +28,9 @@ export MAX_CONNECTS=3
 ###############################################################################
 # Visual Effects
 ###############################################################################
+# Whether to use background sweep thread for saw-tooth pattern on hue:
+export USE_SWEEP=0
+
 # Which effects to apply to which components:
 export HUE_FUNC=none
 export SAT_FUNC=none

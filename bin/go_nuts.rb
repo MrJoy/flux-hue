@@ -104,6 +104,7 @@ VERBOSE         = env_int("VERBOSE")
 #
 # Tweak this to change the visual effect.
 ###############################################################################
+USE_SWEEP     = (env_int("USE_SWEEP", true) || 1) != 0
 TRANSITION    = env_float("TRANSITION") || 0.0 # In seconds, 1/10th sec. prec!
 SWEEP_LENGTH  = 2.0
 
@@ -321,37 +322,39 @@ end
 sleep(0.5)
 
 Thread.abort_on_exception = false
-sweep_thread = Thread.new do
-  # l_hto   = 0
-  # l_sto   = 0
-  # l_fail  = 0
-  # l_succ  = 0
-  hue_target = MAX_HUE
+if USE_SWEEP
+  sweep_thread = Thread.new do
+    # l_hto   = 0
+    # l_sto   = 0
+    # l_fail  = 0
+    # l_succ  = 0
+    hue_target = MAX_HUE
 
-  guard_call(0) do
-    loop do
-      # l_hto       = 0
-      # l_sto       = 0
-      # l_fail      = 0
-      # l_succ      = 0
+    guard_call(0) do
+      loop do
+        # l_hto       = 0
+        # l_sto       = 0
+        # l_fail      = 0
+        # l_succ      = 0
 
-      before_time = Time.now.to_f
-      # tmp         = HUE_GEN["wave"].call(0)
-      hue_target = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
-      data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
-      # http        =
-      Curl.put(hue_all_endpoint, Oj.dump(data))
-      # TODO: Handle response here, a la main thread...
-      # puts "#{http.response_code} / #{http.body_str}"
+        before_time = Time.now.to_f
+        # tmp         = HUE_GEN["wave"].call(0)
+        hue_target = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
+        data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
+        # http        =
+        Curl.put(hue_all_endpoint, Oj.dump(data))
+        # TODO: Handle response here, a la main thread...
+        # puts "#{http.response_code} / #{http.body_str}"
 
-      # mutex.synchronize do
-      #   @hard_timeouts += l_hto
-      #   @soft_timeouts += l_sto
-      #   @failures      += l_fail
-      #   @successes     += l_succ
-      # end
+        # mutex.synchronize do
+        #   @hard_timeouts += l_hto
+        #   @soft_timeouts += l_sto
+        #   @failures      += l_fail
+        #   @successes     += l_succ
+        # end
 
-      sleep 0.05 while (Time.now.to_f - before_time) <= SWEEP_LENGTH
+        sleep 0.05 while (Time.now.to_f - before_time) <= SWEEP_LENGTH
+      end
     end
   end
 end
@@ -484,5 +487,5 @@ end
 trap("HUP") { show_results }
 
 threads.each(&:join)
-sweep_thread.terminate
+sweep_thread.terminate if USE_SWEEP
 show_results
