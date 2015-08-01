@@ -14,6 +14,7 @@ export INIT_HUE=49500
 # Timing and Concurrency
 ###############################################################################
 # Spread out spawning of threads:
+# TODO: Move the use of this down to the wakeup iteration.
 export SPREAD_SLEEP=0.0
 
 # Spread out individual threads' loops:
@@ -53,6 +54,7 @@ export MAX_SAT=254
 export MIN_BRI=63
 export MAX_BRI=191
 
+
 ###############################################################################
 # Simulation Duration
 ###############################################################################
@@ -79,6 +81,7 @@ export CONFIGS=(
   Bridge-03
   Bridge-04
 )
+
 
 ###############################################################################
 HANDLER='(kill -HUP $JOB1; sleep 1; kill -HUP $JOB2; sleep 1; kill -HUP $JOB3; sleep 1;  kill -HUP $JOB4; sleep 1) 2>/dev/null'
