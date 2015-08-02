@@ -408,7 +408,7 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
                     .map { |(idx, lid)| hue_request(config, idx, lid, TRANSITION) }
                     .map { |req| req.merge(handlers) }
 
-        Curl::Multi.http(requests.dup, MULTI_OPTIONS) do # |easy|
+        Curl::Multi.http(requests, MULTI_OPTIONS) do # |easy|
           # Apparently performed for each request?  Or when idle?  Or...
 
           # dns_cache_timeout head header_size header_str headers
