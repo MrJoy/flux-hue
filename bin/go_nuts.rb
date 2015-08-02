@@ -50,34 +50,6 @@ def debug(msg); prefixed(msg) if VERBOSE; end
 def important(msg); prefixed(msg); end
 
 ###############################################################################
-# Bridges and Lights
-###############################################################################
-COMMON_USERNAME = "1234567890"
-BRIDGE_01       = { ip:       "192.168.2.10",
-                    username: COMMON_USERNAME,
-                    lights:   %w(37 36 26 17 19 35 21) }
-BRIDGE_02       = { ip:       "192.168.2.6",
-                    username: COMMON_USERNAME,
-                    lights:   %w(16 18 15 11 13 14 12) }
-BRIDGE_03       = { ip:       "192.168.2.7",
-                    username: COMMON_USERNAME,
-                    lights:   %w(1 2 3 4 7 5 6) }
-BRIDGE_04       = { ip:       "192.168.2.9",
-                    username: COMMON_USERNAME,
-                    lights:   %w(1 2 3 4 5 6 7) }
-
-LIGHTING_CONFIGS = {
-  "Bridge-01"       => BRIDGE_01,
-  "Bridge-02"       => BRIDGE_02,
-  "Bridge-03"       => BRIDGE_03,
-  "Bridge-04"       => BRIDGE_04,
-  "Bridge-01-Solo"  => BRIDGE_01.dup.merge(lights: [BRIDGE_01[:lights].first]),
-  "Bridge-02-Solo"  => BRIDGE_02.dup.merge(lights: [BRIDGE_02[:lights].first]),
-  "Bridge-03-Solo"  => BRIDGE_03.dup.merge(lights: [BRIDGE_03[:lights].first]),
-  "Bridge-04-Solo"  => BRIDGE_04.dup.merge(lights: [BRIDGE_04[:lights].first]),
-}
-
-###############################################################################
 # Timing Configuration
 #
 # Play with this to see how error rates are affected.
@@ -87,14 +59,14 @@ LIGHTING_CONFIGS = {
 # TODO: Disable Curl from sending keepalives by trying HTTP/1.0.
 
 MULTI_OPTIONS   = { pipeline:         false,
-                    max_connects:     (env_int("MAX_CONNECTS") || 6) }
+                    max_connects:     (env_int("MAX_CONNECTS") || 3) }
 EASY_OPTIONS    = { timeout:          5,
                     connect_timeout:  5,
                     follow_location:  false,
                     max_redirects:    0 }
-ITERATIONS      = env_int("ITERATIONS", true) || 20
+ITERATIONS      = env_int("ITERATIONS", true) || 0
 
-SPREAD_SLEEP    = env_float("SPREAD_SLEEP") || 0.05
+SPREAD_SLEEP    = env_float("SPREAD_SLEEP") || 0.0
 BETWEEN_SLEEP   = env_float("BETWEEN_SLEEP") || 0.0
 
 VERBOSE         = env_int("VERBOSE")
@@ -104,30 +76,33 @@ VERBOSE         = env_int("VERBOSE")
 #
 # Tweak this to change the visual effect.
 ###############################################################################
+# TODO: Move all of these into the config...
 USE_SWEEP     = (env_int("USE_SWEEP", true) || 1) != 0
-TRANSITION    = env_float("TRANSITION") || 0.0 # In seconds, 1/10th sec. prec!
+TRANSITION    = env_float("TRANSITION") || 0.4 # In seconds, 1/10th sec. prec!
 SWEEP_LENGTH  = 2.0
 
 # Ballpark estimation of Jen's palette:
-MAX_HUE       = env_int("MIN_HUE", true) || 51_000
-MIN_HUE       = env_int("MAX_HUE", true) || 48_000
-MAX_SAT       = env_int("MIN_SAT", true) || 254
-MIN_SAT       = env_int("MAX_SAT", true) || 212
-MIN_BRI       = env_int("MIN_BRI", true) || 127
-MAX_BRI       = env_int("MAX_BRI", true) || 254
+MIN_HUE       = env_int("MIN_HUE", true) || 48_000
+MAX_HUE       = env_int("MAX_HUE", true) || 51_000
+MIN_SAT       = env_int("MIN_SAT", true) || 212
+MAX_SAT       = env_int("MAX_SAT", true) || 254
+MIN_BRI       = env_int("MIN_BRI", true) || 63
+MAX_BRI       = env_int("MAX_BRI", true) || 191
 
 INIT_HUE      = env_int("INIT_HUE", true) || 49_500
-INIT_SAT      = env_int("INIT_SAT", true) || 127
+INIT_SAT      = env_int("INIT_SAT", true) || 254
 INIT_BRI      = env_int("INIT_BRI", true) || 127
 
-TIMESCALE_H   = env_float("TIMESCALE_H") || 0.5
+TIMESCALE_H   = env_float("TIMESCALE_H") || 0.2
 TIMESCALE_S   = env_float("TIMESCALE_S") || 1.0
 TIMESCALE_B   = env_float("TIMESCALE_B") || 2.0
 
-HUE_FUNC      = ENV.key?("HUE_FUNC") ? ENV["HUE_FUNC"] : "wave"
+HUE_FUNC      = ENV.key?("HUE_FUNC") ? ENV["HUE_FUNC"] : "none"
 SAT_FUNC      = ENV.key?("SAT_FUNC") ? ENV["SAT_FUNC"] : "none"
 BRI_FUNC      = ENV.key?("BRI_FUNC") ? ENV["BRI_FUNC"] : "perlin"
 
+# TODO: Build out a variety of noise configurations.  Parameterize them, and
+# TODO: allow meta-parameterization as well.
 PERSISTENCE   = 1
 OCTAVES       = 1
 # TODO: Dump [BASIS_TIME, Time.now.to_f] on termination and read on start to
@@ -146,7 +121,6 @@ def perlin(x, s, min, max)
   # apparently.  It starts spitting zeroes back at us.
   elapsed = Time.now.to_f - BASIS_TIME
   tmp = (((PERLIN[x, elapsed * s] + 1) * 0.5 * (max - min)) + min).to_i
-  puts tmp
   tmp
 end
 
@@ -192,6 +166,8 @@ end
 def hue_server(config); "http://#{config['ip']}"; end
 def hue_base(config); "#{hue_server(config)}/api/#{config['username']}"; end
 def hue_light_endpoint(config, light_id); "#{hue_base(config)}/lights/#{light_id}/state"; end
+# TODO: Generalize this to configurable group ID per bridge so we can differentiate
+# TODO: accent lighting from normal lighting.
 def hue_all_endpoint; "#{hue_base}/groups/0/action"; end
 
 def with_transition_time(data, transition)

@@ -3,25 +3,17 @@ unset HUE_BRIDGE_IP
 unset HUE_BRIDGE_USERNAME
 
 ###############################################################################
-# Initial Values for Lights
-###############################################################################
-export INIT_SAT=254
-export INIT_BRI=127
-export INIT_HUE=49500
-
-
-###############################################################################
 # Timing and Concurrency
 ###############################################################################
 # Spread out spawning of threads:
-export SPREAD_SLEEP=0.0
+# export SPREAD_SLEEP=0.0
 
 # Spread out individual threads' loops:
-export BETWEEN_SLEEP=0.0
+# export BETWEEN_SLEEP=0.0
 
 # Determine how we handle concurrency -- threads vs. async I/O.
-export THREADS=1
-export MAX_CONNECTS=3
+# export THREADS=1
+# export MAX_CONNECTS=3
 
 
 ###############################################################################
@@ -49,12 +41,12 @@ export TRANSITION=0.4
 ###############################################################################
 # Color Palette
 ###############################################################################
-export MIN_HUE=48000
-export MAX_HUE=51000
-export MIN_SAT=212
-export MAX_SAT=254
-export MIN_BRI=63
-export MAX_BRI=191
+# export MIN_HUE=48000
+# export MAX_HUE=51000
+# export MIN_SAT=212
+# export MAX_SAT=254
+# export MIN_BRI=63
+# export MAX_BRI=191
 
 
 ###############################################################################
