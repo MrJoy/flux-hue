@@ -40,14 +40,14 @@ end
 ###############################################################################
 # Janky Logging
 ###############################################################################
-def prefixed(msg)
-  msg = "#{CONFIG}: #{msg}" if msg && msg != ""
+def prefixed(bridge_name, msg)
+  msg = "#{bridge_name}: #{msg}" if msg && msg != "" && bridge_name
   puts msg
 end
 
-def error(msg); prefixed(msg); end
-def debug(msg); prefixed(msg) if VERBOSE; end
-def important(msg); prefixed(msg); end
+def error(bridge_name = nil, msg); prefixed(bridge_name, msg); end
+def debug(bridge_name = nil, msg); prefixed(bridge_name, msg) if VERBOSE; end
+def important(bridge_name = nil, msg); prefixed(bridge_name, msg); end
 
 ###############################################################################
 # Timing Configuration
@@ -201,9 +201,9 @@ end
 def guard_call(bridge_name, &block)
   block.call
 rescue Exception => e
-  error("Exception for thread ##{bridge_name}, got:")
-  error("\t#{e.message}")
-  error("\t#{e.backtrace.join("\n\t")}")
+  error bridge_name, "Exception for thread ##{bridge_name}, got:"
+  error bridge_name, "\t#{e.message}"
+  error bridge_name, "\t#{e.backtrace.join("\n\t")}"
 end
 # rubocop:enable Lint/RescueException
 
@@ -298,7 +298,7 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
     l_sto   = 0
     l_fail  = 0
     l_succ  = 0
-    debug("Thread #{bridge_name}, handling #{lights.count} lights.")
+    debug bridge_name, "Thread set to handle #{indexed_lights.count} lights."
 
     # TODO: Get timing stats, figure out if timeouts are in ms or sec, capture
     # TODO: info about failure causes, etc.
@@ -313,7 +313,7 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
                                   l_hto += 1
                                   printf "-"
                                 else
-                                  error("WAT: #{easy.response_code}")
+                                  error bridge_name, "WAT: #{easy.response_code}"
                                 end
                               end,
                   on_success: lambda do |easy|
@@ -377,10 +377,10 @@ end
 
 sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
 if SKIP_GC
-  debug("Disabling garbage collection!  BE CAREFUL!")
+  debug "Disabling garbage collection!  BE CAREFUL!"
   GC.disable
 end
-debug("Threads are ready to go, waking them up!")
+debug "Threads are ready to go, waking them up."
 @start_time = Time.now.to_f
 threads.each(&:wakeup)
 
@@ -393,16 +393,16 @@ end
 def ratio(num, denom); (num / denom.to_f).round(3); end
 
 def print_results(elapsed, requests, successes, failures, hard_timeouts, soft_timeouts)
-  important("")
-  important("* #{requests} requests (#{ratio(requests, elapsed)}/sec)")
-  important("* #{successes} successful (#{ratio(successes, elapsed)}/sec)")
-  important("* #{failures} failed (#{ratio(failures, elapsed)}/sec)")
-  important("* #{hard_timeouts} hard timeouts (#{ratio(hard_timeouts, elapsed)}/sec)")
-  important("* #{soft_timeouts} soft timeouts (#{ratio(soft_timeouts, elapsed)}/sec)")
+  important ""
+  important "* #{requests} requests (#{ratio(requests, elapsed)}/sec)"
+  important "* #{successes} successful (#{ratio(successes, elapsed)}/sec)"
+  important "* #{failures} failed (#{ratio(failures, elapsed)}/sec)"
+  important "* #{hard_timeouts} hard timeouts (#{ratio(hard_timeouts, elapsed)}/sec)"
+  important "* #{soft_timeouts} soft timeouts (#{ratio(soft_timeouts, elapsed)}/sec)"
   all_failures = failures + hard_timeouts + soft_timeouts
-  important("* #{ratio(all_failures * 100, requests)}% failure rate")
+  important "* #{ratio(all_failures * 100, requests)}% failure rate"
   suffix = " (#{ratio(elapsed, ITERATIONS)}/iteration)" if ITERATIONS > 0
-  important("* #{elapsed.round(3)} seconds elapsed#{suffix}")
+  important "* #{elapsed.round(3)} seconds elapsed#{suffix}"
 end
 
 def show_results
