@@ -208,7 +208,10 @@ class Results
 
 protected
 
-  def ratio(num, denom); (num / denom.to_f).round(3); end
+  def ratio(num, denom)
+    return nil unless num && denom && denom > 0
+    num / denom.to_f
+  end
 end
 
 ###############################################################################
@@ -428,20 +431,20 @@ debug "Threads are ready to go, waking them up."
 global_results.begin!
 threads.each(&:run)
 
-def ratio(num, denom); (num / denom.to_f).round(3); end
+
+def format_float(num); num ? num.round(2) : "-"; end
 
 # TODO: Show per-bridge and aggregate stats.
 def print_results(results)
   important ""
-  important "* #{results.elapsed.round(3)} seconds elapsed (#{results.start_time}..#{results.end_time})"
-  important "* #{results.requests} requests (#{results.requests_sec}/sec)"
-  important "* #{results.successes} successful (#{results.successes_sec}/sec)"
-  important "* #{results.failures} failed (#{results.failures_sec}/sec)"
-  important "* #{results.hard_timeouts} hard timeouts (#{results.hard_timeouts_sec}/sec)"
-  important "* #{results.soft_timeouts} soft timeouts (#{results.soft_timeouts_sec}/sec)"
-  important "* #{results.failure_rate}% failure rate"
-  suffix = " (#{(results.elapsed / ITERATIONS.to_f * 100).round(3)}/iteration)" if ITERATIONS > 0
-  important "* #{results.elapsed.round(3)} seconds elapsed#{suffix}"
+  important "* #{results.requests} requests (#{format_float(results.requests_sec)}/sec)"
+  important "* #{results.successes} successful (#{format_float(results.successes_sec)}/sec)"
+  important "* #{results.failures} failed (#{format_float(results.failures_sec)}/sec)"
+  important "* #{results.hard_timeouts} hard timeouts (#{format_float(results.hard_timeouts_sec)}/sec)"
+  important "* #{results.soft_timeouts} soft timeouts (#{format_float(results.soft_timeouts_sec)}/sec)"
+  important "* #{format_float(results.failure_rate)}% failure rate"
+  suffix = " (#{format_float(results.elapsed / ITERATIONS.to_f)}/iteration)" if ITERATIONS > 0
+  important "* #{format_float(results.elapsed)} seconds elapsed#{suffix}"
 end
 
 def finalize_results(results)
