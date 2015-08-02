@@ -14,7 +14,6 @@ export INIT_HUE=49500
 # Timing and Concurrency
 ###############################################################################
 # Spread out spawning of threads:
-# TODO: Move the use of this down to the wakeup iteration.
 export SPREAD_SLEEP=0.0
 
 # Spread out individual threads' loops:

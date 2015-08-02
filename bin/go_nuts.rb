@@ -333,7 +333,6 @@ if USE_SWEEP
 end
 
 threads = lights_for_threads.map do |(bridge_name, lights)|
-  sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
   Thread.new do
     indexed_lights = []
     lights.each_with_index do |light_id, index|
@@ -376,6 +375,7 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
                               end }
 
     Thread.stop
+    sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
     guard_call(bridge_name) do
       counter = 0
       while (ITERATIONS > 0) ? (counter < ITERATIONS) : true
