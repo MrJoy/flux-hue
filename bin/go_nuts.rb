@@ -406,14 +406,18 @@ def print_results(elapsed, requests, successes, failures, hard_timeouts, soft_ti
   important "* #{elapsed.round(3)} seconds elapsed#{suffix}"
 end
 
+@shown = false
 def show_results
-  elapsed, requests = compute_results(@start_time,
-                                      Time.now.to_f,
-                                      @successes,
-                                      @failures,
-                                      @hard_timeouts,
-                                      @soft_timeouts)
-  print_results(elapsed, requests, @successes, @failures, @hard_timeouts, @soft_timeouts)
+  if !@shown
+    @shown = true
+    elapsed, requests = compute_results(@start_time,
+                                        Time.now.to_f,
+                                        @successes,
+                                        @failures,
+                                        @hard_timeouts,
+                                        @soft_timeouts)
+    print_results(elapsed, requests, @successes, @failures, @hard_timeouts, @soft_timeouts)
+  end
   exit 0
 end
 
