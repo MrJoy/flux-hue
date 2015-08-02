@@ -168,7 +168,7 @@ def hue_base(config); "#{hue_server(config)}/api/#{config['username']}"; end
 def hue_light_endpoint(config, light_id); "#{hue_base(config)}/lights/#{light_id}/state"; end
 # TODO: Generalize this to configurable group ID per bridge so we can differentiate
 # TODO: accent lighting from normal lighting.
-def hue_all_endpoint; "#{hue_base}/groups/0/action"; end
+def hue_all_endpoint(config); "#{hue_base(config)}/groups/0/action"; end
 
 def with_transition_time(data, transition)
   data.merge("transitiontime" => (transition * 10.0).round(0))
