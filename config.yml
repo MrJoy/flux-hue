@@ -1,18 +1,18 @@
 ---
 common_username: &common_username "1234567890"
 bridges:
-- name: "Bridge-01"
-  ip: "192.168.2.10"
-  username: *common_username
-- name: "Bridge-02"
-  ip: "192.168.2.6"
-  username: *common_username
-- name: "Bridge-03"
-  ip: "192.168.2.7"
-  username: *common_username
-- name: "Bridge-04"
-  ip: "192.168.2.9"
-  username: *common_username
+  "Bridge-01":
+    ip: "192.168.2.10"
+    username: *common_username
+  "Bridge-02":
+    ip: "192.168.2.6"
+    username: *common_username
+  "Bridge-03":
+    ip: "192.168.2.7"
+    username: *common_username
+  "Bridge-04":
+    ip: "192.168.2.9"
+    username: *common_username
 main_lights:
 - ["Bridge-01", 37]
 - ["Bridge-01", 36]

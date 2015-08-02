@@ -383,7 +383,7 @@ if SKIP_GC
 end
 debug "Threads are ready to go, waking them up."
 @start_time = Time.now.to_f
-threads.each(&:wakeup)
+threads.each(&:run)
 
 def compute_results(start_time, end_time, successes, failures, hard_timeouts, soft_timeouts)
   elapsed   = end_time - start_time
@@ -418,6 +418,8 @@ def show_results
 end
 
 trap("HUP") { show_results }
+trap("QUIT") { show_results }
+trap("INT") { show_results }
 
 threads.each(&:join)
 sweep_thread.terminate if USE_SWEEP
