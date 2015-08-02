@@ -91,7 +91,6 @@ EASY_OPTIONS    = { timeout:          5,
                     connect_timeout:  5,
                     follow_location:  false,
                     max_redirects:    0 }
-THREAD_COUNT    = env_int("THREADS") || 1
 ITERATIONS      = env_int("ITERATIONS", true) || 20
 
 SPREAD_SLEEP    = env_float("SPREAD_SLEEP") || 0.05
@@ -174,11 +173,7 @@ DEBUG_COMPONENT   = ENV["DEBUG_COMPONENT"]
 ###############################################################################
 # Bring together defaults and env vars, initialize things, etc...
 ###############################################################################
-CONFIG            = ARGV.shift || "Bridge-01"
-BRIDGE_IP         = LIGHTING_CONFIGS[CONFIG][:ip]
-USERNAME          = LIGHTING_CONFIGS[CONFIG][:username]
-
-LIGHTS            = LIGHTING_CONFIGS[CONFIG][:lights].map(&:to_i)
+CONFIG            = YAML.load(File.read("config.yml"))
 
 ###############################################################################
 # Helper Functions
@@ -211,18 +206,18 @@ def message_count_for_functions(hue_func, sat_func, bri_func)
   counter
 end
 
-def hue_server; "http://#{BRIDGE_IP}"; end
-def hue_base; "#{hue_server}/api/#{USERNAME}"; end
-def hue_light_endpoint(light_id); "#{hue_base}/lights/#{light_id}/state"; end
+def hue_server(config); "http://#{config['ip']}"; end
+def hue_base(config); "#{hue_server(config)}/api/#{config['username']}"; end
+def hue_light_endpoint(config, light_id); "#{hue_base(config)}/lights/#{light_id}/state"; end
 def hue_all_endpoint; "#{hue_base}/groups/0/action"; end
 
 def with_transition_time(data, transition)
   data.merge("transitiontime" => (transition * 10.0).round(0))
 end
 
-def make_req_struct(light_id, transition, data)
+def make_req_struct(config, light_id, transition, data)
   tmp = { method:   :put,
-          url:      hue_light_endpoint(light_id),
+          url:      hue_light_endpoint(config, light_id),
           put_data: Oj.dump(with_transition_time(data, transition)) }
   tmp.merge(EASY_OPTIONS)
 end
@@ -234,45 +229,30 @@ def hue_init(light_id)
                                 "hue" => INIT_HUE)
 end
 
-def bar(value, offset, scale); (["*"] * ((value - offset) / scale)).join; end
-
-def do_component_debugging!(data)
-  debug_info = []
-  case DEBUG_COMPONENT
-  when "bri" then debug_info << bar(data["bri"], MIN_BRI, 2)
-  when "sat" then debug_info << bar(data["sat"], MIN_SAT, 2)
-  when "hue" then debug_info << bar(data["hue"], MIN_HUE, 1000)
-  end
-  debug(debug_info.join(", ")) if debug_info.length > 0
-end
-
-def hue_request(light_id, transition)
+def hue_request(config, index, light_id, transition)
   data = {}
-  data["hue"] = HUE_GEN[HUE_FUNC].call(light_id) if HUE_GEN[HUE_FUNC]
-  data["sat"] = SAT_GEN[SAT_FUNC].call(light_id) if SAT_GEN[SAT_FUNC]
-  data["bri"] = BRI_GEN[BRI_FUNC].call(light_id) if BRI_GEN[BRI_FUNC]
-  do_component_debugging!(data)
+  data["hue"] = HUE_GEN[HUE_FUNC].call(index) if HUE_GEN[HUE_FUNC]
+  data["sat"] = SAT_GEN[SAT_FUNC].call(index) if SAT_GEN[SAT_FUNC]
+  data["bri"] = BRI_GEN[BRI_FUNC].call(index) if BRI_GEN[BRI_FUNC]
 
-  make_req_struct(light_id, transition, data)
+  make_req_struct(config, light_id, transition, data)
 end
 
 # rubocop:disable Lint/RescueException
-def guard_call(thread_idx, &block)
+def guard_call(bridge_name, &block)
   block.call
 rescue Exception => e
-  error("Exception for thread ##{thread_idx}, got:")
+  error("Exception for thread ##{bridge_name}, got:")
   error("\t#{e.message}")
   error("\t#{e.backtrace.join("\n\t")}")
 end
 # rubocop:enable Lint/RescueException
 
-def in_groups(entities, num_groups)
-  groups = (1..num_groups).map { [] }
-  idx                = 0
-  entities.each do |entity|
-    groups[idx] << entity
-    idx  += 1
-    idx   = 0 if idx >= num_groups
+def in_groups(entities)
+  groups = {}
+  entities.each do |(bridge_name, light_id)|
+    groups[bridge_name] ||= []
+    groups[bridge_name] << light_id
   end
 
   groups
@@ -281,14 +261,6 @@ end
 ###############################################################################
 # Main
 ###############################################################################
-effective_thread_count    = THREAD_COUNT
-num_lights                = LIGHTS.length
-if THREAD_COUNT > num_lights
-  important("Clamping to #{num_lights} threads because we have too few lights.")
-  effective_thread_count  = num_lights
-end
-# validate_max_sockets!(MULTI_OPTIONS[:max_connects], effective_thread_count)
-
 validate_func_for!("hue", HUE_FUNC, HUE_GEN)
 validate_func_for!("sat", SAT_FUNC, SAT_GEN)
 validate_func_for!("bri", BRI_FUNC, BRI_GEN)
@@ -299,13 +271,12 @@ debug "Mucking with #{num_lights} lights, across #{effective_thread_count}"\
   " each update to send #{msg_count} ZigBee messages."
 
 if ITERATIONS > 0
-  reqs = num_lights * ITERATIONS
-  debug "Running for #{ITERATIONS} iterations (requests == #{reqs})."
+  debug "Running for #{ITERATIONS} iterations."
 else
   debug "Running until we're killed.  Send SIGHUP to terminate with stats."
 end
 
-lights_for_threads  = in_groups(LIGHTS, effective_thread_count)
+lights_for_threads  = in_groups(CONFIG["main_lights"])
 mutex               = Mutex.new
 @hard_timeouts      = 0
 @soft_timeouts      = 0
@@ -313,15 +284,15 @@ mutex               = Mutex.new
 @successes          = 0
 
 # TODO: Hoist this into a separate script.
-debug "Initializing lights..."
-init_reqs = LIGHTS.sort.uniq.map { |lid| hue_init(lid) }
-Curl::Multi.http(init_reqs, MULTI_OPTIONS) do |easy|
-  if easy.response_code != 200
-    error "Failed to initialize light (will try again): #{easy.url}"
-    add(easy)
-  end
-end
-sleep(0.5)
+# debug "Initializing lights..."
+# init_reqs = LIGHTS.sort.uniq.map { |lid| hue_init(lid) }
+# Curl::Multi.http(init_reqs, MULTI_OPTIONS) do |easy|
+#   if easy.response_code != 200
+#     error "Failed to initialize light (will try again): #{easy.url}"
+#     add(easy)
+#   end
+# end
+# sleep(0.5)
 
 Thread.abort_on_exception = false
 if USE_SWEEP
@@ -361,15 +332,20 @@ if USE_SWEEP
   end
 end
 
-threads = (0..(effective_thread_count - 1)).map do |thread_idx|
+threads = lights_for_threads.map do |(bridge_name, lights)|
   sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
   Thread.new do
+    indexed_lights = []
+    lights.each_with_index do |light_id, index|
+      indexed_lights << [index, light_id]
+    end
+
+    config  = CONFIG["bridges"][bridge_name]
     l_hto   = 0
     l_sto   = 0
     l_fail  = 0
     l_succ  = 0
-    lights  = lights_for_threads[thread_idx]
-    debug("Thread ##{thread_idx}, handling #{lights.count} lights.")
+    debug("Thread #{bridge_name}, handling #{lights.count} lights.")
 
     # TODO: Get timing stats, figure out if timeouts are in ms or sec, capture
     # TODO: info about failure causes, etc.
@@ -400,15 +376,15 @@ threads = (0..(effective_thread_count - 1)).map do |thread_idx|
                               end }
 
     Thread.stop
-    guard_call(thread_idx) do
+    guard_call(bridge_name) do
       counter = 0
       while (ITERATIONS > 0) ? (counter < ITERATIONS) : true
         l_hto     = 0
         l_sto     = 0
         l_fail    = 0
         l_succ    = 0
-        requests  = lights
-                    .map { |lid| hue_request(lid, TRANSITION) }
+        requests  = indexed_lights
+                    .map { |(idx, lid)| hue_request(config, idx, lid, TRANSITION) }
                     .map { |req| req.merge(handlers) }
 
         Curl::Multi.http(requests.dup, MULTI_OPTIONS) do # |easy|

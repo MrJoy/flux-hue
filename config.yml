@@ -1,0 +1,54 @@
+---
+common_username: &common_username "1234567890"
+bridges:
+- name: "Bridge-01"
+  ip: "192.168.2.10"
+  username: *common_username
+- name: "Bridge-02"
+  ip: "192.168.2.6"
+  username: *common_username
+- name: "Bridge-03"
+  ip: "192.168.2.7"
+  username: *common_username
+- name: "Bridge-04"
+  ip: "192.168.2.9"
+  username: *common_username
+main_lights:
+- ["Bridge-01", 37]
+- ["Bridge-01", 36]
+- ["Bridge-01", 26]
+- ["Bridge-01", 17]
+- ["Bridge-01", 19]
+- ["Bridge-01", 35]
+- ["Bridge-01", 21]
+- ["Bridge-02", 16]
+- ["Bridge-02", 18]
+- ["Bridge-02", 15]
+- ["Bridge-02", 11]
+- ["Bridge-02", 13]
+- ["Bridge-02", 14]
+- ["Bridge-02", 12]
+- ["Bridge-03", 1]
+- ["Bridge-03", 2]
+- ["Bridge-03", 3]
+- ["Bridge-03", 4]
+- ["Bridge-03", 7]
+- ["Bridge-03", 5]
+- ["Bridge-03", 6]
+- ["Bridge-04", 1]
+- ["Bridge-04", 2]
+- ["Bridge-04", 3]
+- ["Bridge-04", 4]
+- ["Bridge-04", 5]
+- ["Bridge-04", 6]
+- ["Bridge-04", 7]
+accent_lights:
+- ["Bridge-01", 9]
+- ["Bridge-01", 10]
+- ["Bridge-01", 11]
+- ["Bridge-01", 12]
+- ["Bridge-01", 13]
+- ["Bridge-01", 33]
+- ["Bridge-01", 34]
+- ["Bridge-02", 7]
+- ["Bridge-02", 8]

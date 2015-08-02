@@ -77,30 +77,13 @@ export VERBOSE=0
 
 
 ###############################################################################
-# Lighting Setups to Use
-###############################################################################
-export CONFIGS=(
-  Bridge-01
-  Bridge-02
-  Bridge-03
-  Bridge-04
-)
-
-
-###############################################################################
-HANDLER='(kill -HUP $JOB1; sleep 1; kill -HUP $JOB2; sleep 1; kill -HUP $JOB3; sleep 1;  kill -HUP $JOB4; sleep 1) 2>/dev/null'
+HANDLER='kill -HUP $JOBPID 2>/dev/null'
 trap "$HANDLER" EXIT
 trap "$HANDLER" QUIT
 trap "$HANDLER" KILL
 
 { ./bin/go_nuts.rb ${CONFIGS[0]} & }
-export JOB1=$!
-{ ./bin/go_nuts.rb ${CONFIGS[1]} & }
-export JOB2=$!
-{ ./bin/go_nuts.rb ${CONFIGS[2]} & }
-export JOB3=$!
-{ ./bin/go_nuts.rb ${CONFIGS[3]} & }
-export JOB4=$!
+export JOBPID=$!
 
 if [[ $ITERATIONS != 0 ]]; then
   export RUN_FOREVER=1
@@ -108,24 +91,17 @@ fi
 
 
 if [[ $RUN_FOREVER == 0 ]]; then
-  echo "Sleeping while $JOB1, $JOB2, and $JOB3 run..."
+  echo "Sleeping while $JOBPID runs..."
   sleep 120
 
   echo
   echo "Cleaning up."
-  kill -HUP $JOB1
-  sleep 1
-  kill -HUP $JOB2
-  sleep 1
-  kill -HUP $JOB3
-  sleep 1
-  kill -HUP $JOB4
-  sleep 1
+  kill -HUP $JOBPID
 else
   if [[ $ITERATIONS != 0 ]]; then
-    echo "Waiting for jobs to finish..."
+    echo "Waiting for $JOBPID to finish..."
   else
-    echo "Waiting until you kill me."
+    echo "Waiting for $JOBPID until you kill me..."
   fi
   wait
 fi
