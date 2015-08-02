@@ -151,18 +151,18 @@ def wave(_x, s, min, max)
 end
 
 HUE_GEN = {
-  "perlin"  => proc { |l_id| perlin(l_id, TIMESCALE_H, MIN_HUE, MAX_HUE) },
-  "wave"    => proc { |l_id| wave(l_id, TIMESCALE_H, MIN_HUE, MAX_HUE) },
+  "perlin"  => proc { |idx| perlin(idx, TIMESCALE_H, MIN_HUE, MAX_HUE) },
+  "wave"    => proc { |idx| wave(idx, TIMESCALE_H, MIN_HUE, MAX_HUE) },
 }
 
 SAT_GEN = {
-  "perlin"  => proc { |l_id| perlin(l_id, TIMESCALE_S, MIN_SAT, MAX_SAT) },
-  "wave"    => proc { |l_id| wave(l_id, TIMESCALE_S, MIN_SAT, MAX_SAT) },
+  "perlin"  => proc { |idx| perlin(idx, TIMESCALE_S, MIN_SAT, MAX_SAT) },
+  "wave"    => proc { |idx| wave(idx, TIMESCALE_S, MIN_SAT, MAX_SAT) },
 }
 
 BRI_GEN = {
-  "perlin"  => proc { |l_id| perlin(l_id, TIMESCALE_B, MIN_BRI, MAX_BRI) },
-  "wave"    => proc { |l_id| wave(l_id, TIMESCALE_B, MIN_BRI, MAX_BRI) },
+  "perlin"  => proc { |idx| perlin(idx, TIMESCALE_B, MIN_BRI, MAX_BRI) },
+  "wave"    => proc { |idx| wave(idx, TIMESCALE_B, MIN_BRI, MAX_BRI) },
 }
 
 ###############################################################################
