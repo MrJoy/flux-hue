@@ -25,29 +25,9 @@ require "perlin_noise"
 require "curb"
 require "oj"
 
-def env_int(name, allow_zero = false)
-  return nil unless ENV.key?(name)
-  tmp = ENV[name].to_i
-  tmp = nil if tmp == 0 && !allow_zero
-  tmp
-end
-
-def env_float(name)
-  return nil unless ENV.key?(name)
-  ENV[name].to_f
-end
-
-###############################################################################
-# Janky Logging
-###############################################################################
-def prefixed(bridge_name, msg)
-  msg = "#{bridge_name}: #{msg}" if msg && msg != "" && bridge_name
-  puts msg
-end
-
-def error(bridge_name = nil, msg); prefixed(bridge_name, msg); end
-def debug(bridge_name = nil, msg); prefixed(bridge_name, msg) if VERBOSE; end
-def important(bridge_name = nil, msg); prefixed(bridge_name, msg); end
+require_relative "./lib/env"
+require_relative "./lib/logging"
+require_relative "./lib/results"
 
 ###############################################################################
 # Timing Configuration
@@ -123,10 +103,9 @@ def debug_raw(raw)
     @min = raw
     puts raw
   end
-  if raw > @max
-    @max = raw
-    puts raw
-  end
+  return unless raw > @max
+  @max = raw
+  puts raw
 end
 
 def perlin(x, s, min, max)
@@ -170,66 +149,6 @@ SKIP_GC           = !!env_int("SKIP_GC")
 CONFIG            = YAML.load(File.read("config.yml"))
 
 ###############################################################################
-# Support Classes
-###############################################################################
-
-# Helper class to hold onto stats about requests made to the bridges.
-#
-# NOTE: Methods ending with `!` are *not* thread-safe, methods without it *are*.
-class Results
-  attr_reader :start_time, :end_time, :successes, :failures, :hard_timeouts,
-              :soft_timeouts
-
-  def initialize
-    @mutex = Mutex.new
-    clear!
-  end
-
-  def clear!
-    @successes      = 0
-    @failures       = 0
-    @hard_timeouts  = 0
-    @soft_timeouts  = 0
-  end
-
-  def begin!; @start_time ||= Time.now.to_f; end
-  def done!; @end_time ||= Time.now.to_f; end
-
-  def success!; @successes += 1; end
-  def failure!; @failures += 1; end
-  def hard_timeout!; @hard_timeouts += 1; end
-  def soft_timeout!; @soft_timeouts += 1; end
-
-  def elapsed; @end_time - @start_time; end
-  def requests; @successes + @failures + @hard_timeouts + @soft_timeouts; end
-  def all_failures; @failures + @hard_timeouts + @soft_timeouts; end
-
-  def requests_sec; ratio(requests, elapsed); end
-  def successes_sec; ratio(successes, elapsed); end
-  def failures_sec; ratio(failures, elapsed); end
-  def hard_timeouts_sec; ratio(hard_timeouts, elapsed); end
-  def soft_timeouts_sec; ratio(soft_timeouts, elapsed); end
-
-  def failure_rate; ratio(all_failures * 100, requests); end
-
-  def add_from(other)
-    @mutex.synchronize do
-      @successes      += other.successes
-      @failures       += other.failures
-      @hard_timeouts  += other.hard_timeouts
-      @soft_timeouts  += other.soft_timeouts
-    end
-  end
-
-protected
-
-  def ratio(num, denom)
-    return nil unless num && denom && denom > 0
-    num / denom.to_f
-  end
-end
-
-###############################################################################
 # Helper Functions
 ###############################################################################
 def validate_func_for!(component, value, functions)
@@ -241,17 +160,15 @@ end
 def hue_server(config); "http://#{config['ip']}"; end
 def hue_base(config); "#{hue_server(config)}/api/#{config['username']}"; end
 def hue_light_endpoint(config, light_id); "#{hue_base(config)}/lights/#{light_id}/state"; end
-# TODO: Generalize this to configurable group ID per bridge so we can differentiate
-# TODO: accent lighting from normal lighting.
-def hue_all_endpoint(config); "#{hue_base(config)}/groups/0/action"; end
+def hue_group_endpoint(config, group); "#{hue_base(config)}/groups/#{group}/action"; end
 
 def with_transition_time(data, transition)
   data.merge("transitiontime" => (transition * 10.0).round(0))
 end
 
-def make_req_struct(config, light_id, transition, data)
+def make_req_struct(url, transition, data)
   tmp = { method:   :put,
-          url:      hue_light_endpoint(config, light_id),
+          url:      url,
           put_data: Oj.dump(with_transition_time(data, transition)) }
   tmp.merge(EASY_OPTIONS)
 end
@@ -264,12 +181,13 @@ end
 # end
 
 def hue_request(config, index, light_id, transition)
-  data = {}
+  data        = {}
   data["hue"] = HUE_GEN[HUE_FUNC].call(index) if HUE_GEN[HUE_FUNC]
   data["sat"] = SAT_GEN[SAT_FUNC].call(index) if SAT_GEN[SAT_FUNC]
   data["bri"] = BRI_GEN[BRI_FUNC].call(index) if BRI_GEN[BRI_FUNC]
+  url         = hue_light_endpoint(config, light_id)
 
-  make_req_struct(config, light_id, transition, data)
+  make_req_struct(url, transition, data)
 end
 
 # rubocop:disable Lint/RescueException
@@ -341,7 +259,7 @@ Thread.abort_on_exception = false
 #         data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
 #         # TODO: Apply this across all bridges.
 #         # http        =
-#         Curl.put(hue_all_endpoint(config), Oj.dump(data))
+#         Curl.put(hue_group_endpoint(config, 0), Oj.dump(data))
 #         # TODO: Handle response here, a la main thread...
 #         # puts "#{http.response_code} / #{http.body_str}"
 
