@@ -155,6 +155,63 @@ SKIP_GC           = !!env_int("SKIP_GC")
 CONFIG            = YAML.load(File.read("config.yml"))
 
 ###############################################################################
+# Support Classes
+###############################################################################
+
+# Helper class to hold onto stats about requests made to the bridges.
+#
+# NOTE: Methods ending with `!` are *not* thread-safe, methods without it *are*.
+class Results
+  attr_reader :start_time, :end_time, :successes, :failures, :hard_timeouts,
+              :soft_timeouts
+
+  def initialize
+    @mutex = Mutex.new
+    clear!
+  end
+
+  def clear!
+    @successes      = 0
+    @failures       = 0
+    @hard_timeouts  = 0
+    @soft_timeouts  = 0
+  end
+
+  def begin!; @start_time ||= Time.now.to_f; end
+  def done!; @end_time ||= Time.now.to_f; end
+
+  def success!; @successes += 1; end
+  def failure!; @failures += 1; end
+  def hard_timeout!; @hard_timeouts += 1; end
+  def soft_timeout!; @soft_timeouts += 1; end
+
+  def elapsed; @end_time - @start_time; end
+  def requests; @successes + @failures + @hard_timeouts + @soft_timeouts; end
+  def all_failures; @failures + @hard_timeouts + @soft_timeouts; end
+
+  def requests_sec; ratio(requests, elapsed); end
+  def successes_sec; ratio(successes, elapsed); end
+  def failures_sec; ratio(failures, elapsed); end
+  def hard_timeouts_sec; ratio(hard_timeouts, elapsed); end
+  def soft_timeouts_sec; ratio(soft_timeouts, elapsed); end
+
+  def failure_rate; ratio(all_failures * 100, requests); end
+
+  def add_from(other)
+    @mutex.synchronize do
+      @successes      += other.successes
+      @failures       += other.failures
+      @hard_timeouts  += other.hard_timeouts
+      @soft_timeouts  += other.soft_timeouts
+    end
+  end
+
+protected
+
+  def ratio(num, denom); (num / denom.to_f).round(3); end
+end
+
+###############################################################################
 # Helper Functions
 ###############################################################################
 def validate_func_for!(component, value, functions)
@@ -231,11 +288,7 @@ else
 end
 
 lights_for_threads  = in_groups(CONFIG["main_lights"])
-mutex               = Mutex.new
-@hard_timeouts      = 0
-@soft_timeouts      = 0
-@failures           = 0
-@successes          = 0
+global_results      = Results.new
 
 # TODO: Hoist this into a separate script.
 # debug "Initializing lights..."
@@ -289,55 +342,50 @@ Thread.abort_on_exception = false
 
 threads = lights_for_threads.map do |(bridge_name, lights)|
   Thread.new do
-    indexed_lights = []
-    lights.each_with_index do |light_id, index|
-      indexed_lights << [index, light_id]
-    end
-
-    config  = CONFIG["bridges"][bridge_name]
-    l_hto   = 0
-    l_sto   = 0
-    l_fail  = 0
-    l_succ  = 0
-    debug bridge_name, "Thread set to handle #{indexed_lights.count} lights."
-
-    # TODO: Get timing stats, figure out if timeouts are in ms or sec, capture
-    # TODO: info about failure causes, etc.
-    handlers  = { on_failure: lambda do |easy, _|
-                                case easy.response_code
-                                when 404
-                                  # Hit Bridge hardware limit.
-                                  l_fail += 1
-                                  printf "*"
-                                when 0
-                                  # Hit timeout.
-                                  l_hto += 1
-                                  printf "-"
-                                else
-                                  error bridge_name, "WAT: #{easy.response_code}"
-                                end
-                              end,
-                  on_success: lambda do |easy|
-                                if easy.body =~ /error/
-                                  # Hit bridge rate limit / possibly ZigBee
-                                  # limit?.
-                                  l_sto += 1
-                                  printf "~"
-                                else
-                                  l_succ += 1
-                                  printf "." if VERBOSE
-                                end
-                              end }
-
-    Thread.stop
-    sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
     guard_call(bridge_name) do
-      counter = 0
-      while (ITERATIONS > 0) ? (counter < ITERATIONS) : true
-        l_hto     = 0
-        l_sto     = 0
-        l_fail    = 0
-        l_succ    = 0
+      indexed_lights = []
+      lights.each_with_index do |light_id, index|
+        indexed_lights << [index, light_id]
+      end
+
+      config    = CONFIG["bridges"][bridge_name]
+      results   = Results.new
+      iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
+
+      debug bridge_name, "Thread set to handle #{indexed_lights.count} lights."
+
+      # TODO: Get timing stats, figure out if timeouts are in ms or sec, capture
+      # TODO: info about failure causes, etc.
+      handlers  = { on_failure: lambda do |easy, _|
+                                  case easy.response_code
+                                  when 404
+                                    # Hit Bridge hardware limit.
+                                    results.failed!
+                                    printf "*"
+                                  when 0
+                                    # Hit timeout.
+                                    results.hard_timeout!
+                                    printf "-"
+                                  else
+                                    error bridge_name, "WAT: #{easy.response_code}"
+                                  end
+                                end,
+                    on_success: lambda do |easy|
+                                  if easy.body =~ /error/
+                                    # Hit bridge rate limit / possibly ZigBee
+                                    # limit?.
+                                    results.soft_timeout!
+                                    printf "~"
+                                  else
+                                    results.success!
+                                    printf "." if VERBOSE
+                                  end
+                                end }
+
+      Thread.stop
+      sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
+
+      iterator.each do
         requests  = indexed_lights
                     .map { |(idx, lid)| hue_request(config, idx, lid, TRANSITION) }
                     .map { |req| req.merge(handlers) }
@@ -362,14 +410,9 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
           # uploaded_content_length
         end
 
-        mutex.synchronize do
-          @hard_timeouts += l_hto
-          @soft_timeouts += l_sto
-          @failures      += l_fail
-          @successes     += l_succ
-        end
+        global_results.add_from(results)
+        results.clear!
 
-        counter += 1
         sleep(BETWEEN_SLEEP) unless BETWEEN_SLEEP == 0
       end
     end
@@ -382,49 +425,32 @@ if SKIP_GC
   GC.disable
 end
 debug "Threads are ready to go, waking them up."
-@start_time = Time.now.to_f
+global_results.begin!
 threads.each(&:run)
-
-def compute_results(start_time, end_time, successes, failures, hard_timeouts, soft_timeouts)
-  elapsed   = end_time - start_time
-  requests  = successes + failures + hard_timeouts + soft_timeouts
-  [elapsed, requests]
-end
 
 def ratio(num, denom); (num / denom.to_f).round(3); end
 
-def print_results(elapsed, requests, successes, failures, hard_timeouts, soft_timeouts)
+# TODO: Show per-bridge and aggregate stats.
+def print_results(results)
   important ""
-  important "* #{requests} requests (#{ratio(requests, elapsed)}/sec)"
-  important "* #{successes} successful (#{ratio(successes, elapsed)}/sec)"
-  important "* #{failures} failed (#{ratio(failures, elapsed)}/sec)"
-  important "* #{hard_timeouts} hard timeouts (#{ratio(hard_timeouts, elapsed)}/sec)"
-  important "* #{soft_timeouts} soft timeouts (#{ratio(soft_timeouts, elapsed)}/sec)"
-  all_failures = failures + hard_timeouts + soft_timeouts
-  important "* #{ratio(all_failures * 100, requests)}% failure rate"
-  suffix = " (#{ratio(elapsed, ITERATIONS)}/iteration)" if ITERATIONS > 0
-  important "* #{elapsed.round(3)} seconds elapsed#{suffix}"
+  important "* #{results.elapsed.round(3)} seconds elapsed (#{results.start_time}..#{results.end_time})"
+  important "* #{results.requests} requests (#{results.requests_sec}/sec)"
+  important "* #{results.successes} successful (#{results.successes_sec}/sec)"
+  important "* #{results.failures} failed (#{results.failures_sec}/sec)"
+  important "* #{results.hard_timeouts} hard timeouts (#{results.hard_timeouts_sec}/sec)"
+  important "* #{results.soft_timeouts} soft timeouts (#{results.soft_timeouts_sec}/sec)"
+  important "* #{results.failure_rate}% failure rate"
+  suffix = " (#{(results.elapsed / ITERATIONS.to_f * 100).round(3)}/iteration)" if ITERATIONS > 0
+  important "* #{results.elapsed.round(3)} seconds elapsed#{suffix}"
 end
 
-@shown = false
-def show_results
-  if !@shown
-    @shown = true
-    elapsed, requests = compute_results(@start_time,
-                                        Time.now.to_f,
-                                        @successes,
-                                        @failures,
-                                        @hard_timeouts,
-                                        @soft_timeouts)
-    print_results(elapsed, requests, @successes, @failures, @hard_timeouts, @soft_timeouts)
-  end
+def finalize_results(results)
+  results.done!
+  print_results(results)
   exit 0
 end
 
-trap("HUP") { show_results }
-trap("QUIT") { show_results }
-trap("INT") { show_results }
+trap("EXIT") { finalize_results(global_results) }
 
 threads.each(&:join)
-sweep_thread.terminate if USE_SWEEP
-show_results
+# sweep_thread.terminate if USE_SWEEP
