@@ -148,6 +148,47 @@ SKIP_GC           = !!env_int("SKIP_GC")
 ###############################################################################
 CONFIG            = YAML.load(File.read("config.yml"))
 
+# Evil hack to convince Curb to grab simulation-based information as late as
+# possible, to undo the temporal skew that comes from updating the simulation
+# then spending a bunch of time feeding updates to lights.
+class LazyRequestConfig
+  # TODO: Transition should be updated late as well...
+  def initialize(config, index, light_id, transition)
+    @config     = config
+    @index      = index
+    @light_id   = light_id
+    @transition = transition
+  end
+
+  def delete(field)
+    result = case field
+             when :url
+               hue_light_endpoint(config, light_id)
+             when :method
+               :put
+             when :headers
+               nil
+             when :put_data
+               data        = { "transitiontime" => (@transition * 10.0).round(0) }
+               data["hue"] = HUE_GEN[HUE_FUNC].call(@index) if HUE_GEN[HUE_FUNC]
+               data["sat"] = SAT_GEN[SAT_FUNC].call(@index) if SAT_GEN[SAT_FUNC]
+               data["bri"] = BRI_GEN[BRI_FUNC].call(@index) if BRI_GEN[BRI_FUNC]
+               Oj.dump(data)
+             else
+               error @config, "Request for unknown field: `#{field}`!  Has Curb been"\
+                 " updated in a breaking way?"
+               nil
+             end
+    result
+  end
+# url     = c.delete(:url)
+# method  = c.delete(:method)
+# headers = c.delete(:headers)
+# easy.put_data = c.delete(:put_data)
+# c.each { |k,v| easy.send("#{k}=",v) }
+
+end
+
 ###############################################################################
 # Helper Functions
 ###############################################################################
