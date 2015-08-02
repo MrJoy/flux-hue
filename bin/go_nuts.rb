@@ -130,8 +130,12 @@ BRI_FUNC      = ENV.key?("BRI_FUNC") ? ENV["BRI_FUNC"] : "perlin"
 
 PERSISTENCE   = 1
 OCTAVES       = 1
+# TODO: Dump [BASIS_TIME, Time.now.to_f] on termination and read on start to
+# TODO: allow resuming at correct time offset.
 BASIS_TIME    = Time.now.to_f # Large Y values frighten and confuse our
                               # Perlin generator...
+# TODO: Do we need to modulate this?  Also, we should dump our seed with the
+# TODO: state above as well.
 SEED          = BASIS_TIME.to_i % 1000 # Large seeds frighten and confuse our
                                        # Perlin generator...
 PERLIN        = Perlin::Noise.new 2
