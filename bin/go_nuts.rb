@@ -120,7 +120,8 @@ def perlin(x, s, min, max)
   # Ugly hack because the Perlin lib we're using doesn't like extreme Y values,
   # apparently.  It starts spitting zeroes back at us.
   elapsed = Time.now.to_f - BASIS_TIME
-  tmp = (((PERLIN[x, elapsed * s] + 1) * 0.5 * (max - min)) + min).to_i
+  raw = PERLIN[x, elapsed * s]
+  tmp = ((raw * (max - min)) + min).to_i
   tmp
 end
 
