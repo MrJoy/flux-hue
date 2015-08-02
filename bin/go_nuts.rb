@@ -116,11 +116,25 @@ SEED          = BASIS_TIME.to_i % 1000 # Large seeds frighten and confuse our
 PERLIN        = Perlin::Noise.new(2)
 CONTRAST      = Perlin::Curve.contrast(Perlin::Curve::CUBIC, 3)
 
+@min = 10
+@max = -10
+def debug_raw(raw)
+  if raw < @min
+    @min = raw
+    puts raw
+  end
+  if raw > @max
+    @max = raw
+    puts raw
+  end
+end
+
 def perlin(x, s, min, max)
   # Ugly hack because the Perlin lib we're using doesn't like extreme Y values,
   # apparently.  It starts spitting zeroes back at us.
   elapsed = Time.now.to_f - BASIS_TIME
   raw     = CONTRAST.call(PERLIN[x, elapsed * s])
+  # debug_raw(raw)
   tmp = ((raw * (max - min)) + min).to_i
   tmp
 end
