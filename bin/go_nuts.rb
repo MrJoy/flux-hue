@@ -173,12 +173,14 @@ def make_req_struct(url, transition, data)
   tmp.merge(EASY_OPTIONS)
 end
 
-# def hue_init(light_id)
-#   make_req_struct(light_id, 0,  "on"  => true,
-#                                 "bri" => INIT_BRI,
-#                                 "sat" => INIT_SAT,
-#                                 "hue" => INIT_HUE)
-# end
+def hue_init(config)
+  url = hue_group_endpoint(config, 0)
+
+  make_req_struct(url, 0, "on"  => true,
+                          "bri" => INIT_BRI,
+                          "sat" => INIT_SAT,
+                          "hue" => INIT_HUE)
+end
 
 def hue_request(config, index, light_id, transition)
   data        = {}
@@ -228,14 +230,16 @@ global_results      = Results.new
 
 # TODO: Hoist this into a separate script.
 # debug "Initializing lights..."
-# init_reqs = LIGHTS.sort.uniq.map { |lid| hue_init(lid) }
-# Curl::Multi.http(init_reqs, MULTI_OPTIONS) do |easy|
-#   if easy.response_code != 200
-#     error "Failed to initialize light (will try again): #{easy.url}"
-#     add(easy)
-#   end
-# end
-# sleep(0.5)
+init_reqs = CONFIG["bridges"]
+            .values
+            .map { |config| hue_init(config) }
+Curl::Multi.http(init_reqs, MULTI_OPTIONS) do |easy|
+  if easy.response_code != 200
+    error "Failed to initialize light (will try again): #{easy.url}"
+    add(easy)
+  end
+end
+sleep(0.5)
 
 Thread.abort_on_exception = false
 # if USE_SWEEP
