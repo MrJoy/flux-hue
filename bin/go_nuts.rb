@@ -20,6 +20,7 @@
 require "rubygems"
 require "bundler/setup"
 Bundler.setup
+require "yaml"
 require "perlin_noise"
 require "curb"
 require "oj"
@@ -264,11 +265,6 @@ end
 validate_func_for!("hue", HUE_FUNC, HUE_GEN)
 validate_func_for!("sat", SAT_FUNC, SAT_GEN)
 validate_func_for!("bri", BRI_FUNC, BRI_GEN)
-
-msg_count = message_count_for_functions(HUE_FUNC, SAT_FUNC, BRI_FUNC)
-debug "Mucking with #{num_lights} lights, across #{effective_thread_count}"\
-  " threads with #{MULTI_OPTIONS[:max_connects]} connections each.  Expect"\
-  " each update to send #{msg_count} ZigBee messages."
 
 if ITERATIONS > 0
   debug "Running for #{ITERATIONS} iterations."
