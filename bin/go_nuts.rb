@@ -249,42 +249,43 @@ mutex               = Mutex.new
 # sleep(0.5)
 
 Thread.abort_on_exception = false
-if USE_SWEEP
-  sweep_thread = Thread.new do
-    # l_hto   = 0
-    # l_sto   = 0
-    # l_fail  = 0
-    # l_succ  = 0
-    hue_target = MAX_HUE
+# if USE_SWEEP
+#   sweep_thread = Thread.new do
+#     # l_hto   = 0
+#     # l_sto   = 0
+#     # l_fail  = 0
+#     # l_succ  = 0
+#     hue_target = MAX_HUE
 
-    guard_call(0) do
-      loop do
-        # l_hto       = 0
-        # l_sto       = 0
-        # l_fail      = 0
-        # l_succ      = 0
+#     guard_call(0) do
+#       loop do
+#         # l_hto       = 0
+#         # l_sto       = 0
+#         # l_fail      = 0
+#         # l_succ      = 0
 
-        before_time = Time.now.to_f
-        # tmp         = HUE_GEN["wave"].call(0)
-        hue_target = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
-        data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
-        # http        =
-        Curl.put(hue_all_endpoint, Oj.dump(data))
-        # TODO: Handle response here, a la main thread...
-        # puts "#{http.response_code} / #{http.body_str}"
+#         before_time = Time.now.to_f
+#         # tmp         = HUE_GEN["wave"].call(0)
+#         hue_target = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
+#         data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
+#         # TODO: Apply this across all bridges.
+#         # http        =
+#         Curl.put(hue_all_endpoint(config), Oj.dump(data))
+#         # TODO: Handle response here, a la main thread...
+#         # puts "#{http.response_code} / #{http.body_str}"
 
-        # mutex.synchronize do
-        #   @hard_timeouts += l_hto
-        #   @soft_timeouts += l_sto
-        #   @failures      += l_fail
-        #   @successes     += l_succ
-        # end
+#         # mutex.synchronize do
+#         #   @hard_timeouts += l_hto
+#         #   @soft_timeouts += l_sto
+#         #   @failures      += l_fail
+#         #   @successes     += l_succ
+#         # end
 
-        sleep 0.05 while (Time.now.to_f - before_time) <= SWEEP_LENGTH
-      end
-    end
-  end
-end
+#         sleep 0.05 while (Time.now.to_f - before_time) <= SWEEP_LENGTH
+#       end
+#     end
+#   end
+# end
 
 threads = lights_for_threads.map do |(bridge_name, lights)|
   Thread.new do
