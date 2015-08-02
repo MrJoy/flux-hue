@@ -169,7 +169,6 @@ BRI_GEN = {
 # Other Configuration
 ###############################################################################
 SKIP_GC           = !!env_int("SKIP_GC")
-DEBUG_COMPONENT   = ENV["DEBUG_COMPONENT"]
 
 ###############################################################################
 # Bring together defaults and env vars, initialize things, etc...
@@ -183,28 +182,6 @@ def validate_func_for!(component, value, functions)
   return if functions.key?(value)
   return if value == "none"
   error "Unknown value for #{component.upcase}_FUNC: `#{value}`!"
-end
-
-def validate_counts!(lights, threads)
-  return if threads <= lights
-
-  fail "Must have at least one light for every thread you want!"
-end
-
-def validate_max_sockets!(max_connects, threads)
-  total_conns = max_connects * threads
-  return if total_conns <= 6
-  fail "No more than 6 connections are allowed by the hub at once!  You asked"\
-    " for #{total_conns}!"
-end
-
-def message_count_for_functions(hue_func, sat_func, bri_func)
-  counter = 0
-  counter += 1 if HUE_GEN.key?(hue_func)
-  counter += 1 if SAT_GEN.key?(sat_func)
-  counter += 1 if BRI_GEN.key?(bri_func)
-  counter = 2 if counter > 2
-  counter
 end
 
 def hue_server(config); "http://#{config['ip']}"; end
@@ -223,12 +200,12 @@ def make_req_struct(config, light_id, transition, data)
   tmp.merge(EASY_OPTIONS)
 end
 
-def hue_init(light_id)
-  make_req_struct(light_id, 0,  "on"  => true,
-                                "bri" => INIT_BRI,
-                                "sat" => INIT_SAT,
-                                "hue" => INIT_HUE)
-end
+# def hue_init(light_id)
+#   make_req_struct(light_id, 0,  "on"  => true,
+#                                 "bri" => INIT_BRI,
+#                                 "sat" => INIT_SAT,
+#                                 "hue" => INIT_HUE)
+# end
 
 def hue_request(config, index, light_id, transition)
   data = {}
