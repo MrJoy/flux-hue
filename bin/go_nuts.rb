@@ -113,14 +113,14 @@ BASIS_TIME    = Time.now.to_f # Large Y values frighten and confuse our
 # TODO: state above as well.
 SEED          = BASIS_TIME.to_i % 1000 # Large seeds frighten and confuse our
                                        # Perlin generator...
-PERLIN        = Perlin::Noise.new 2
-# contrast = Perlin::Curve.contrast(Perlin::Curve::CUBIC, 3)
+PERLIN        = Perlin::Noise.new(2)
+CONTRAST      = Perlin::Curve.contrast(Perlin::Curve::CUBIC, 3)
 
 def perlin(x, s, min, max)
   # Ugly hack because the Perlin lib we're using doesn't like extreme Y values,
   # apparently.  It starts spitting zeroes back at us.
   elapsed = Time.now.to_f - BASIS_TIME
-  raw = PERLIN[x, elapsed * s]
+  raw     = CONTRAST.call(PERLIN[x, elapsed * s])
   tmp = ((raw * (max - min)) + min).to_i
   tmp
 end
