@@ -147,7 +147,8 @@ def perlin(x, s, min, max)
 end
 
 def wave(_x, s, min, max)
-  (((Math.sin(s * Time.now.to_f) + 1) * 0.5 * (max - min)) + min).to_i
+  elapsed = Time.now.to_f - BASIS_TIME
+  (((Math.sin(elapsed * s) + 1) * 0.5 * (max - min)) + min).to_i
 end
 
 HUE_GEN = {
