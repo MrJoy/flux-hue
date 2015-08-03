@@ -153,19 +153,29 @@ CONFIG            = YAML.load(File.read("config.yml"))
 # then spending a bunch of time feeding updates to lights.
 class LazyRequestConfig
   # TODO: Transition should be updated late as well...
-  def initialize(config, index, light_id, transition)
+  def initialize(config, index, light_id, transition, results)
     @config     = config
     @index      = index
     @light_id   = light_id
     @transition = transition
+    @results    = results
+  end
+
+  def each(&block)
+    EASY_OPTIONS.each do |kv|
+      block.call(kv)
+    end
   end
 
   def delete(field)
     case field
-    when :url then hue_light_endpoint(config, light_id)
+    when :url then hue_light_endpoint(@config, @light_id)
     when :method then :put
     when :headers then nil
     when :put_data then Oj.dump(data_for_request)
+    when :on_failure then proc { |easy, _| failure!(easy) }
+    when :on_success then proc { |easy| success!(easy) }
+    when :on_progress, :on_debug, :on_body, :on_header then nil
     else
       wtf!(field)
       nil
@@ -185,6 +195,34 @@ protected
   def wtf!(field)
     error @config, "Request for unknown field: `#{field}`!  Has Curb been updated"\
       " in a breaking way?"
+  end
+
+  def failure!(easy)
+    case easy.response_code
+    when 404
+      # Hit Bridge hardware limit.
+      @results.failed!
+      printf "*"
+    when 0
+      # Hit timeout.
+      @results.hard_timeout!
+      printf "-"
+    else
+      error bridge_name, "WAT: #{easy.response_code}"
+    end
+  end
+
+  def success!(easy)
+    if easy.body =~ /error/
+      # Hit bridge rate limit / possibly ZigBee
+      # limit?.
+      @results.soft_timeout!
+      printf "~"
+      # printf "<#{@light_id}>"
+    else
+      @results.success!
+      printf "." if VERBOSE
+    end
   end
 end
 
@@ -334,41 +372,14 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
 
       debug bridge_name, "Thread set to handle #{indexed_lights.count} lights."
 
-      # TODO: Get timing stats, figure out if timeouts are in ms or sec, capture
-      # TODO: info about failure causes, etc.
-      handlers  = { on_failure: lambda do |easy, _|
-                                  case easy.response_code
-                                  when 404
-                                    # Hit Bridge hardware limit.
-                                    results.failed!
-                                    printf "*"
-                                  when 0
-                                    # Hit timeout.
-                                    results.hard_timeout!
-                                    printf "-"
-                                  else
-                                    error bridge_name, "WAT: #{easy.response_code}"
-                                  end
-                                end,
-                    on_success: lambda do |easy|
-                                  if easy.body =~ /error/
-                                    # Hit bridge rate limit / possibly ZigBee
-                                    # limit?.
-                                    results.soft_timeout!
-                                    printf "~"
-                                  else
-                                    results.success!
-                                    printf "." if VERBOSE
-                                  end
-                                end }
-
       Thread.stop
       sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
 
       iterator.each do
         requests  = indexed_lights
-                    .map { |(idx, lid)| hue_request(config, idx, lid, TRANSITION) }
-                    .map { |req| req.merge(handlers) }
+                    .map do |(idx, lid)|
+                      LazyRequestConfig.new(config, idx, lid, TRANSITION, results)
+                    end
 
         Curl::Multi.http(requests, MULTI_OPTIONS) do # |easy|
           # Apparently performed for each request?  Or when idle?  Or...
