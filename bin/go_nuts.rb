@@ -161,32 +161,31 @@ class LazyRequestConfig
   end
 
   def delete(field)
-    result = case field
-             when :url
-               hue_light_endpoint(config, light_id)
-             when :method
-               :put
-             when :headers
-               nil
-             when :put_data
-               data        = { "transitiontime" => (@transition * 10.0).round(0) }
-               data["hue"] = HUE_GEN[HUE_FUNC].call(@index) if HUE_GEN[HUE_FUNC]
-               data["sat"] = SAT_GEN[SAT_FUNC].call(@index) if SAT_GEN[SAT_FUNC]
-               data["bri"] = BRI_GEN[BRI_FUNC].call(@index) if BRI_GEN[BRI_FUNC]
-               Oj.dump(data)
-             else
-               error @config, "Request for unknown field: `#{field}`!  Has Curb been"\
-                 " updated in a breaking way?"
-               nil
-             end
-    result
+    case field
+    when :url then hue_light_endpoint(config, light_id)
+    when :method then :put
+    when :headers then nil
+    when :put_data then Oj.dump(data_for_request)
+    else
+      wtf!(field)
+      nil
+    end
   end
-# url     = c.delete(:url)
-# method  = c.delete(:method)
-# headers = c.delete(:headers)
-# easy.put_data = c.delete(:put_data)
-# c.each { |k,v| easy.send("#{k}=",v) }
 
+protected
+
+  def data_for_request
+    data        = { "transitiontime" => (@transition * 10.0).round(0) }
+    data["hue"] = HUE_GEN[HUE_FUNC].call(@index) if HUE_GEN[HUE_FUNC]
+    data["sat"] = SAT_GEN[SAT_FUNC].call(@index) if SAT_GEN[SAT_FUNC]
+    data["bri"] = BRI_GEN[BRI_FUNC].call(@index) if BRI_GEN[BRI_FUNC]
+    data
+  end
+
+  def wtf!(field)
+    error @config, "Request for unknown field: `#{field}`!  Has Curb been updated"\
+      " in a breaking way?"
+  end
 end
 
 ###############################################################################
