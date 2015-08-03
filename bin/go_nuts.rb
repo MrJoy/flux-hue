@@ -249,9 +249,6 @@ if USE_SWEEP
         # TODO: Hoist this into a sawtooth simulation function.
         hue_target  = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
         data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
-        # TODO: Handle response here, a la main thread...  Need to add
-        # TODO: callbacks, or use the block method for the multi request...
-        # puts "#{http.response_code} / #{http.body_str}"
         requests    = CONFIG["bridges"]
                       .map do |(_name, config)|
                         { method:   :put,
