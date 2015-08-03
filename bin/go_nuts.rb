@@ -165,21 +165,26 @@ class LazyRequestConfig
   end
 
   def delete(field)
-    case field
-    when :url then hue_light_endpoint(@config, @light_id)
-    when :method then :put
-    when :headers then nil
-    when :put_data then Oj.dump(data_for_request)
-    when :on_failure then proc { |easy, _| failure!(easy) }
-    when :on_success then proc { |easy| success!(easy) }
-    when :on_progress, :on_debug, :on_body, :on_header then nil
-    else
-      wtf!(field)
-      nil
-    end
+    return fixed[field] if fixed.key?(field)
+    return Oj.dump(data_for_request) if field == :put_data
+
+    wtf!(field)
+    nil
   end
 
 protected
+
+  def fixed
+    @fixed ||= {  url:          hue_light_endpoint(@config, @light_id),
+                  method:       :put,
+                  headers:      nil,
+                  on_failure:   proc { |easy, _| failure!(easy) },
+                  on_success:   proc { |easy| success!(easy) },
+                  on_progress:  nil,
+                  on_debug:     nil,
+                  on_body:      nil,
+                  on_header:    nil }
+  end
 
   def data_for_request
     data        = { "transitiontime" => (@transition * 10.0).round(0) }
