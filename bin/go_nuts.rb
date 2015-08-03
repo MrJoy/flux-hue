@@ -316,24 +316,7 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
                       end
                     end
 
-        Curl::Multi.http(requests, MULTI_OPTIONS) do # |easy|
-          # Apparently performed for each request?  Or when idle?  Or...
-
-          # dns_cache_timeout head header_size header_str headers
-          # http_connect_code last_effective_url last_result low_speed_limit
-          # low_speed_time num_connects on_header os_errno redirect_count
-          # request_size
-
-          # app_connect_time connect_time name_lookup_time pre_transfer_time
-          # start_transfer_time total_time
-
-          # Bytes/sec, I think:
-          # download_speed upload_speed
-
-          # The following are all Float, and downloaded_content_length can be
-          # -1.0 when a transfer times out(?).
-          # downloaded_bytes downloaded_content_length uploaded_bytes
-          # uploaded_content_length
+        Curl::Multi.http(requests, MULTI_OPTIONS) do
         end
 
         global_results.add_from(results)
