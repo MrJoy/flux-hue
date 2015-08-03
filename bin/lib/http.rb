@@ -24,7 +24,7 @@ end
 # then spending a bunch of time feeding updates to lights.
 class LazyRequestConfig
   # TODO: Transition should be updated late as well...
-  def initialize(config, url, results, &callback)
+  def initialize(config, url, results = nil, &callback)
     @config     = config
     @url        = url
     @results    = results
@@ -68,11 +68,11 @@ protected
     case easy.response_code
     when 404
       # Hit Bridge hardware limit.
-      @results.failed!
+      @results.failed! if @results
       printf "*"
     when 0
       # Hit timeout.
-      @results.hard_timeout!
+      @results.hard_timeout! if @results
       printf "-"
     else
       error bridge_name, "WAT: #{easy.response_code}"
@@ -85,13 +85,13 @@ protected
 
       # Hit bridge rate limit / possibly ZigBee
       # limit?.
-      @results.soft_timeout!
+      @results.soft_timeout! if @results
       printf "~"
       # TODO: Colorized output for all feedback types, or running counters, or
       # TODO: something...
       # printf ("%02X" % @index)
     else
-      @results.success!
+      @results.success! if @results
       printf "." if VERBOSE
     end
   end
