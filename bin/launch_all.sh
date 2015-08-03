@@ -35,7 +35,7 @@ export TIMESCALE_B=2.0
 
 # How long an individual change takes to apply (in seconds, at 1/10th sec
 # precision):
-export TRANSITION=0.4
+export TRANSITION=0.3
 
 
 ###############################################################################
