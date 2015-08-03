@@ -202,6 +202,8 @@ protected
 
   def success!(easy)
     if easy.body =~ /error/
+      # TODO: Check the error type field to be sure, and handle accordingly.
+
       # Hit bridge rate limit / possibly ZigBee
       # limit?.
       @results.soft_timeout!
@@ -242,43 +244,58 @@ lights_for_threads  = in_groups(CONFIG["main_lights"])
 global_results      = Results.new
 
 Thread.abort_on_exception = false
-# if USE_SWEEP
-#   sweep_thread = Thread.new do
-#     # l_hto   = 0
-#     # l_sto   = 0
-#     # l_fail  = 0
-#     # l_succ  = 0
-#     hue_target = MAX_HUE
+if USE_SWEEP
+  # TODO: Make this terminate after main simulation threads have all stopped.
+  sweep_thread = Thread.new do
+    hue_target  = MAX_HUE
+    results     = Results.new
 
-#     guard_call(0) do
-#       loop do
-#         # l_hto       = 0
-#         # l_sto       = 0
-#         # l_fail      = 0
-#         # l_succ      = 0
+    guard_call("Sweeper") do
+      Thread.stop
 
-#         before_time = Time.now.to_f
-#         # tmp         = HUE_GEN["wave"].call(0)
-#         hue_target = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
-#         data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
-#         # TODO: Apply this across all bridges.
-#         # http        =
-#         Curl.put(hue_group_endpoint(config, 0), Oj.dump(data))
-#         # TODO: Handle response here, a la main thread...
-#         # puts "#{http.response_code} / #{http.body_str}"
+      loop do
+        before_time = Time.now.to_f
+        # TODO: Hoist this into a sawtooth simulation function.
+        hue_target  = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
+        data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
+        # TODO: Handle response here, a la main thread...  Need to add
+        # TODO: callbacks, or use the block method for the multi request...
+        # puts "#{http.response_code} / #{http.body_str}"
+        requests    = CONFIG["bridges"]
+                      .map do |(_name, config)|
+                        { method:   :put,
+                          url:      hue_group_endpoint(config, 0),
+                          put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
+                      end
 
-#         # mutex.synchronize do
-#         #   @hard_timeouts += l_hto
-#         #   @soft_timeouts += l_sto
-#         #   @failures      += l_fail
-#         #   @successes     += l_succ
-#         # end
+        Curl::Multi.http(requests, MULTI_OPTIONS) do # |easy|
+          # Apparently performed for each request?  Or when idle?  Or...
 
-#         sleep 0.05 while (Time.now.to_f - before_time) <= SWEEP_LENGTH
-#       end
-#     end
-#   end
-# end
+          # dns_cache_timeout head header_size header_str headers
+          # http_connect_code last_effective_url last_result low_speed_limit
+          # low_speed_time num_connects on_header os_errno redirect_count
+          # request_size
+
+          # app_connect_time connect_time name_lookup_time pre_transfer_time
+          # start_transfer_time total_time
+
+          # Bytes/sec, I think:
+          # download_speed upload_speed
+
+          # The following are all Float, and downloaded_content_length can be
+          # -1.0 when a transfer times out(?).
+          # downloaded_bytes downloaded_content_length uploaded_bytes
+          # uploaded_content_length
+        end
+
+        global_results.add_from(results)
+        results.clear!
+
+        sleep 0.05 while (Time.now.to_f - before_time) <= SWEEP_LENGTH
+      end
+    end
+  end
+end
 
 threads = lights_for_threads.map do |(bridge_name, lights)|
   Thread.new do
@@ -332,15 +349,6 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
   end
 end
 
-sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
-if SKIP_GC
-  debug "Disabling garbage collection!  BE CAREFUL!"
-  GC.disable
-end
-debug "Threads are ready to go, waking them up."
-global_results.begin!
-threads.each(&:run)
-
 def format_float(num); num ? num.round(2) : "-"; end
 
 def format_rate(rate); "#{format_float(rate)}/sec"; end
@@ -373,13 +381,22 @@ def print_results(results)
   important "* #{format_float(results.elapsed)} seconds elapsed#{suffix}"
 end
 
-def finalize_results(results)
+# Wait for threads to finish initializing...
+sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
+sleep 0.01 while sweep_thread.status != "sleep" if USE_SWEEP
+if SKIP_GC
+  debug "Disabling garbage collection!  BE CAREFUL!"
+  GC.disable
+end
+debug "Threads are ready to go, waking them up."
+global_results.begin!
+sweep_thread.run if USE_SWEEP
+threads.each(&:run)
+
+trap("EXIT") do
   results.done!
   print_results(results)
-  exit 0
 end
 
-trap("EXIT") { finalize_results(global_results) }
-
 threads.each(&:join)
-# sweep_thread.terminate if USE_SWEEP
+sweep_thread.terminate if USE_SWEEP
