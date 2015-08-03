@@ -6,26 +6,11 @@
 require "rubygems"
 require "bundler/setup"
 Bundler.setup
-require "yaml"
-require "curb"
-require "oj"
 
-require_relative "./lib/env"
+require_relative "./lib/config"
 require_relative "./lib/logging"
+require_relative "./lib/env"
 require_relative "./lib/http"
-
-###############################################################################
-# Timing Configuration
-#
-# Play with this to see how error rates are affected.
-###############################################################################
-
-MULTI_OPTIONS   = { pipeline:         false,
-                    max_connects:     (env_int("MAX_CONNECTS") || 3) }
-EASY_OPTIONS    = { timeout:          5,
-                    connect_timeout:  5,
-                    follow_location:  false,
-                    max_redirects:    0 }
 
 ###############################################################################
 # Effect
@@ -35,11 +20,6 @@ EASY_OPTIONS    = { timeout:          5,
 INIT_HUE      = env_int("INIT_HUE", true) || 49_500
 INIT_SAT      = env_int("INIT_SAT", true) || 254
 INIT_BRI      = env_int("INIT_BRI", true) || 127
-
-###############################################################################
-# Bring together defaults and env vars, initialize things, etc...
-###############################################################################
-CONFIG        = YAML.load(File.read("config.yml"))
 
 ###############################################################################
 # Helper Functions

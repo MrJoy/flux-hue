@@ -22,9 +22,8 @@ require "bundler/setup"
 Bundler.setup
 require "yaml"
 require "perlin_noise"
-require "curb"
-require "oj"
 
+require_relative "./lib/config"
 require_relative "./lib/logging"
 require_relative "./lib/env"
 require_relative "./lib/utility"
@@ -36,16 +35,6 @@ require_relative "./lib/http"
 #
 # Play with this to see how error rates are affected.
 ###############################################################################
-
-# TODO: Try to figure out how to set Curl::CURLOPT_TCP_NODELAY => true
-# TODO: Disable Curl from sending keepalives by trying HTTP/1.0.
-
-MULTI_OPTIONS   = { pipeline:         false,
-                    max_connects:     (env_int("MAX_CONNECTS") || 3) }
-EASY_OPTIONS    = { timeout:          5,
-                    connect_timeout:  5,
-                    follow_location:  false,
-                    max_redirects:    0 }
 ITERATIONS      = env_int("ITERATIONS", true) || 0
 
 SPREAD_SLEEP    = env_float("SPREAD_SLEEP") || 0.0
@@ -129,87 +118,6 @@ SKIP_GC           = !!env_int("SKIP_GC")
 CONFIG            = YAML.load(File.read("config.yml"))
 
 ###############################################################################
-# Simulation and Rendering Support
-###############################################################################
-# Evil hack to convince Curb to grab simulation-based information as late as
-# possible, to undo the temporal skew that comes from updating the simulation
-# then spending a bunch of time feeding updates to lights.
-class LazyRequestConfig
-  # TODO: Transition should be updated late as well...
-  def initialize(config, url, results, &callback)
-    @config     = config
-    @url        = url
-    @results    = results
-    @callback   = callback
-  end
-
-  def each(&block)
-    EASY_OPTIONS.each do |kv|
-      block.call(kv)
-    end
-  end
-
-  def delete(field)
-    return fixed[field] if fixed.key?(field)
-    return Oj.dump(@callback.call) if field == :put_data
-
-    wtf!(field)
-    nil
-  end
-
-protected
-
-  def fixed
-    @fixed ||= {  url:          @url,
-                  method:       :put,
-                  headers:      nil,
-                  on_failure:   proc { |easy, _| failure!(easy) },
-                  on_success:   proc { |easy| success!(easy) },
-                  on_progress:  nil,
-                  on_debug:     nil,
-                  on_body:      nil,
-                  on_header:    nil }
-  end
-
-  def wtf!(field)
-    error @config, "Request for unknown field: `#{field}`!  Has Curb been updated"\
-      " in a breaking way?"
-  end
-
-  def failure!(easy)
-    case easy.response_code
-    when 404
-      # Hit Bridge hardware limit.
-      @results.failed!
-      printf "*"
-    when 0
-      # Hit timeout.
-      @results.hard_timeout!
-      printf "-"
-    else
-      error bridge_name, "WAT: #{easy.response_code}"
-    end
-  end
-
-  def success!(easy)
-    if easy.body =~ /error/
-      # TODO: Check the error type field to be sure, and handle accordingly.
-
-      # Hit bridge rate limit / possibly ZigBee
-      # limit?.
-      @results.soft_timeout!
-      printf "~"
-      # TODO: Colorized output for all feedback types, or running counters, or
-      # TODO: something...
-      # printf ("%02X" % @index)
-    else
-      @results.success!
-      printf "." if VERBOSE
-    end
-  end
-end
-
-###############################################################################
 # Helper Functions
 ###############################################################################
 def validate_func_for!(component, value, functions)
@@ -288,11 +196,6 @@ end
 threads = lights_for_threads.map do |(bridge_name, lights)|
   Thread.new do
     guard_call(bridge_name) do
-      indexed_lights = []
-      lights.each_with_index do |light_id, index|
-        indexed_lights << [index, light_id]
-      end
-
       config    = CONFIG["bridges"][bridge_name]
       results   = Results.new
       iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
@@ -303,7 +206,7 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
       sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
 
       iterator.each do
-        requests  = indexed_lights
+        requests  = lights
                     .map do |(idx, lid)|
                       LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
                         data["hue"] = HUE_GEN[HUE_FUNC].call(idx) if HUE_GEN[HUE_FUNC]
