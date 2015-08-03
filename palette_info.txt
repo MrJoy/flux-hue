@@ -1,0 +1,8 @@
+Color Table
+Name            Hue     Final-x   Final-y
+Red             0       0.3972    0.4564
+Yellow          12750   0.5425    0.4196
+[Lime] Green    25500   0.41      0.51721
+Blue            46920   0.1691    0.0441
+Magenta         56100   0.4149    0.1776
+Red             65280   0.6679    0.3181
