@@ -4,5 +4,5 @@ def hue_light_endpoint(config, light_id); "#{hue_base(config)}/lights/#{light_id
 def hue_group_endpoint(config, group); "#{hue_base(config)}/groups/#{group}/action"; end
 
 def with_transition_time(data, transition)
-  data.merge("transitiontime" => (transition * 10.0).round(0))
+  data["transitiontime"] = (transition * 10.0).round(0)
 end
