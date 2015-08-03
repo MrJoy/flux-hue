@@ -69,10 +69,6 @@ MAX_SAT       = env_int("MAX_SAT", true) || 254
 MIN_BRI       = env_int("MIN_BRI", true) || 63
 MAX_BRI       = env_int("MAX_BRI", true) || 191
 
-INIT_HUE      = env_int("INIT_HUE", true) || 49_500
-INIT_SAT      = env_int("INIT_SAT", true) || 254
-INIT_BRI      = env_int("INIT_BRI", true) || 127
-
 TIMESCALE_H   = env_float("TIMESCALE_H") || 0.2
 TIMESCALE_S   = env_float("TIMESCALE_S") || 1.0
 TIMESCALE_B   = env_float("TIMESCALE_B") || 2.0
@@ -251,15 +247,6 @@ def make_req_struct(url, transition, data)
   tmp.merge(EASY_OPTIONS)
 end
 
-def hue_init(config)
-  url = hue_group_endpoint(config, 0)
-
-  make_req_struct(url, 0, "on"  => true,
-                          "bri" => INIT_BRI,
-                          "sat" => INIT_SAT,
-                          "hue" => INIT_HUE)
-end
-
 def hue_request(config, index, light_id, transition)
   data        = {}
   data["hue"] = HUE_GEN[HUE_FUNC].call(index) if HUE_GEN[HUE_FUNC]
@@ -305,19 +292,6 @@ end
 
 lights_for_threads  = in_groups(CONFIG["main_lights"])
 global_results      = Results.new
-
-# TODO: Hoist this into a separate script.
-# debug "Initializing lights..."
-init_reqs = CONFIG["bridges"]
-            .values
-            .map { |config| hue_init(config) }
-Curl::Multi.http(init_reqs, MULTI_OPTIONS) do |easy|
-  if easy.response_code != 200
-    error "Failed to initialize light (will try again): #{easy.url}"
-    add(easy)
-  end
-end
-sleep(0.5)
 
 Thread.abort_on_exception = false
 # if USE_SWEEP
