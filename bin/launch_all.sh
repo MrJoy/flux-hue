@@ -13,7 +13,7 @@ unset HUE_BRIDGE_USERNAME
 
 # Determine how we handle concurrency -- threads vs. async I/O.
 # export THREADS=1
-# export MAX_CONNECTS=3
+export MAX_CONNECTS=4
 
 
 ###############################################################################

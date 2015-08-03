@@ -12,6 +12,7 @@ require "oj"
 
 require_relative "./lib/env"
 require_relative "./lib/logging"
+require_relative "./lib/http"
 
 ###############################################################################
 # Timing Configuration
@@ -43,10 +44,6 @@ CONFIG        = YAML.load(File.read("config.yml"))
 ###############################################################################
 # Helper Functions
 ###############################################################################
-def hue_server(config); "http://#{config['ip']}"; end
-def hue_base(config); "#{hue_server(config)}/api/#{config['username']}"; end
-def hue_group_endpoint(config, group); "#{hue_base(config)}/groups/#{group}/action"; end
-
 def make_req_struct(url, data)
   tmp = { method:   :put,
           url:      url,
@@ -55,12 +52,10 @@ def make_req_struct(url, data)
 end
 
 def hue_init(config)
-  url = hue_group_endpoint(config, 0)
-
-  make_req_struct(url, "on"  => true,
-                       "bri" => INIT_BRI,
-                       "sat" => INIT_SAT,
-                       "hue" => INIT_HUE)
+  make_req_struct(hue_group_endpoint(config, 0), "on"  => true,
+                                                 "bri" => INIT_BRI,
+                                                 "sat" => INIT_SAT,
+                                                 "hue" => INIT_HUE)
 end
 
 ###############################################################################

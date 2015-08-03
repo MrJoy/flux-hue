@@ -28,6 +28,7 @@ require "oj"
 require_relative "./lib/env"
 require_relative "./lib/logging"
 require_relative "./lib/results"
+require_relative "./lib/http"
 
 ###############################################################################
 # Timing Configuration
@@ -229,32 +230,6 @@ def validate_func_for!(component, value, functions)
   return if functions.key?(value)
   return if value == "none"
   error "Unknown value for #{component.upcase}_FUNC: `#{value}`!"
-end
-
-def hue_server(config); "http://#{config['ip']}"; end
-def hue_base(config); "#{hue_server(config)}/api/#{config['username']}"; end
-def hue_light_endpoint(config, light_id); "#{hue_base(config)}/lights/#{light_id}/state"; end
-def hue_group_endpoint(config, group); "#{hue_base(config)}/groups/#{group}/action"; end
-
-def with_transition_time(data, transition)
-  data.merge("transitiontime" => (transition * 10.0).round(0))
-end
-
-def make_req_struct(url, transition, data)
-  tmp = { method:   :put,
-          url:      url,
-          put_data: Oj.dump(with_transition_time(data, transition)) }
-  tmp.merge(EASY_OPTIONS)
-end
-
-def hue_request(config, index, light_id, transition)
-  data        = {}
-  data["hue"] = HUE_GEN[HUE_FUNC].call(index) if HUE_GEN[HUE_FUNC]
-  data["sat"] = SAT_GEN[SAT_FUNC].call(index) if SAT_GEN[SAT_FUNC]
-  data["bri"] = BRI_GEN[BRI_FUNC].call(index) if BRI_GEN[BRI_FUNC]
-  url         = hue_light_endpoint(config, light_id)
-
-  make_req_struct(url, transition, data)
 end
 
 # rubocop:disable Lint/RescueException
