@@ -136,12 +136,11 @@ CONFIG            = YAML.load(File.read("config.yml"))
 # then spending a bunch of time feeding updates to lights.
 class LazyRequestConfig
   # TODO: Transition should be updated late as well...
-  def initialize(config, index, light_id, transition, results)
+  def initialize(config, url, results, &callback)
     @config     = config
-    @index      = index
-    @light_id   = light_id
-    @transition = transition
+    @url        = url
     @results    = results
+    @callback   = callback
   end
 
   def each(&block)
@@ -152,7 +151,7 @@ class LazyRequestConfig
 
   def delete(field)
     return fixed[field] if fixed.key?(field)
-    return Oj.dump(data_for_request) if field == :put_data
+    return Oj.dump(@callback.call) if field == :put_data
 
     wtf!(field)
     nil
@@ -161,7 +160,7 @@ class LazyRequestConfig
 protected
 
   def fixed
-    @fixed ||= {  url:          hue_light_endpoint(@config, @light_id),
+    @fixed ||= {  url:          @url,
                   method:       :put,
                   headers:      nil,
                   on_failure:   proc { |easy, _| failure!(easy) },
@@ -170,14 +169,6 @@ protected
                   on_debug:     nil,
                   on_body:      nil,
                   on_header:    nil }
-  end
-
-  def data_for_request
-    data        = { "transitiontime" => (@transition * 10.0).round(0) }
-    data["hue"] = HUE_GEN[HUE_FUNC].call(@index) if HUE_GEN[HUE_FUNC]
-    data["sat"] = SAT_GEN[SAT_FUNC].call(@index) if SAT_GEN[SAT_FUNC]
-    data["bri"] = BRI_GEN[BRI_FUNC].call(@index) if BRI_GEN[BRI_FUNC]
-    data
   end
 
   def wtf!(field)
@@ -317,7 +308,12 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
       iterator.each do
         requests  = indexed_lights
                     .map do |(idx, lid)|
-                      LazyRequestConfig.new(config, idx, lid, TRANSITION, results)
+                      LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
+                        data["hue"] = HUE_GEN[HUE_FUNC].call(idx) if HUE_GEN[HUE_FUNC]
+                        data["sat"] = SAT_GEN[SAT_FUNC].call(idx) if SAT_GEN[SAT_FUNC]
+                        data["bri"] = BRI_GEN[BRI_FUNC].call(idx) if BRI_GEN[BRI_FUNC]
+                        with_transition_time(data, TRANSITION)
+                      end
                     end
 
         Curl::Multi.http(requests, MULTI_OPTIONS) do # |easy|
