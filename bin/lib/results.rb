@@ -1,6 +1,8 @@
 # Helper class to hold onto stats about requests made to the bridges.
 #
 # NOTE: Methods ending with `!` are *not* thread-safe, methods without it *are*.
+#
+# TODO: Track things by light index, bridge, etc...
 class Results
   attr_reader :start_time, :end_time, :successes, :failures, :hard_timeouts,
               :soft_timeouts

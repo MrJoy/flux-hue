@@ -25,8 +25,9 @@ require "perlin_noise"
 require "curb"
 require "oj"
 
-require_relative "./lib/env"
 require_relative "./lib/logging"
+require_relative "./lib/env"
+require_relative "./lib/utility"
 require_relative "./lib/results"
 require_relative "./lib/http"
 
@@ -93,26 +94,12 @@ SEED          = BASIS_TIME.to_i % 1000 # Large seeds frighten and confuse our
 PERLIN        = Perlin::Noise.new(2)
 CONTRAST      = Perlin::Curve.contrast(Perlin::Curve::CUBIC, 3)
 
-@min = 10
-@max = -10
-def debug_raw(raw)
-  if raw < @min
-    @min = raw
-    puts raw
-  end
-  return unless raw > @max
-  @max = raw
-  puts raw
-end
-
 def perlin(x, s, min, max)
   # Ugly hack because the Perlin lib we're using doesn't like extreme Y values,
   # apparently.  It starts spitting zeroes back at us.
   elapsed = Time.now.to_f - BASIS_TIME
   raw     = CONTRAST.call(PERLIN[x, elapsed * s])
-  # debug_raw(raw)
-  tmp = ((raw * (max - min)) + min).to_i
-  tmp
+  ((raw * (max - min)) + min).to_i
 end
 
 def wave(_x, s, min, max)
@@ -139,12 +126,11 @@ BRI_GEN = {
 # Other Configuration
 ###############################################################################
 SKIP_GC           = !!env_int("SKIP_GC")
-
-###############################################################################
-# Bring together defaults and env vars, initialize things, etc...
-###############################################################################
 CONFIG            = YAML.load(File.read("config.yml"))
 
+###############################################################################
+# Simulation and Rendering Support
+###############################################################################
 # Evil hack to convince Curb to grab simulation-based information as late as
 # possible, to undo the temporal skew that comes from updating the simulation
 # then spending a bunch of time feeding updates to lights.
@@ -220,7 +206,9 @@ protected
       # limit?.
       @results.soft_timeout!
       printf "~"
-      # printf "<#{@light_id}>"
+      # TODO: Colorized output for all feedback types, or running counters, or
+      # TODO: something...
+      # printf ("%02X" % @index)
     else
       @results.success!
       printf "." if VERBOSE
@@ -235,26 +223,6 @@ def validate_func_for!(component, value, functions)
   return if functions.key?(value)
   return if value == "none"
   error "Unknown value for #{component.upcase}_FUNC: `#{value}`!"
-end
-
-# rubocop:disable Lint/RescueException
-def guard_call(bridge_name, &block)
-  block.call
-rescue Exception => e
-  error bridge_name, "Exception for thread ##{bridge_name}, got:"
-  error bridge_name, "\t#{e.message}"
-  error bridge_name, "\t#{e.backtrace.join("\n\t")}"
-end
-# rubocop:enable Lint/RescueException
-
-def in_groups(entities)
-  groups = {}
-  entities.each do |(bridge_name, light_id)|
-    groups[bridge_name] ||= []
-    groups[bridge_name] << light_id
-  end
-
-  groups
 end
 
 ###############################################################################
