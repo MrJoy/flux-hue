@@ -18,34 +18,39 @@ bridges:
     username: *common_username
     debug_hue: 12000
 main_lights:
+# Strip 1:
+- ["Bridge-01", 38]
 - ["Bridge-01", 37]
 - ["Bridge-01", 36]
 - ["Bridge-01", 26]
 - ["Bridge-01", 17]
 - ["Bridge-01", 19]
 - ["Bridge-01", 35]
-- ["Bridge-01", 21]
-- ["Bridge-02", 16]
-- ["Bridge-02", 18]
-- ["Bridge-02", 15]
-- ["Bridge-02", 11]
-- ["Bridge-02", 13]
-- ["Bridge-02", 14]
+
 - ["Bridge-02", 12]
-- ["Bridge-03", 1]
+- ["Bridge-02", 14]
+- ["Bridge-02", 13]
+- ["Bridge-02", 11]
+- ["Bridge-02", 15]
+- ["Bridge-02", 18]
+- ["Bridge-02", 19]
+
+# Strip 2:
+- ["Bridge-03", 8]
 - ["Bridge-03", 2]
 - ["Bridge-03", 3]
 - ["Bridge-03", 4]
 - ["Bridge-03", 7]
 - ["Bridge-03", 5]
 - ["Bridge-03", 6]
-- ["Bridge-04", 1]
-- ["Bridge-04", 2]
-- ["Bridge-04", 3]
-- ["Bridge-04", 4]
-- ["Bridge-04", 5]
-- ["Bridge-04", 6]
+
 - ["Bridge-04", 7]
+- ["Bridge-04", 10]
+- ["Bridge-04", 6]
+- ["Bridge-04", 5]
+- ["Bridge-04", 9]
+- ["Bridge-04", 8]
+- ["Bridge-04", 1]
 accent_lights:
 - ["Bridge-01", 9]
 - ["Bridge-01", 10]
