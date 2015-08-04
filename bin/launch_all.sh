@@ -13,14 +13,14 @@ unset HUE_BRIDGE_USERNAME
 
 # Determine how we handle concurrency -- threads vs. async I/O.
 # export THREADS=1
-export MAX_CONNECTS=4
+export MAX_CONNECTS=3
 
 
 ###############################################################################
 # Visual Effects
 ###############################################################################
 # Whether to use background sweep thread for saw-tooth pattern on hue:
-export USE_SWEEP=0
+export USE_SWEEP=1
 
 # Which effects to apply to which components:
 export HUE_FUNC=none
