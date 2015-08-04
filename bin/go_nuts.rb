@@ -115,7 +115,6 @@ BRI_GEN = {
 # Other Configuration
 ###############################################################################
 SKIP_GC           = !!env_int("SKIP_GC")
-CONFIG            = YAML.load(File.read("config.yml"))
 
 ###############################################################################
 # Helper Functions
@@ -200,7 +199,7 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
       results   = Results.new
       iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
-      debug bridge_name, "Thread set to handle #{indexed_lights.count} lights."
+      debug bridge_name, "Thread set to handle #{lights.count} lights."
 
       Thread.stop
       sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
@@ -209,6 +208,7 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
         requests  = lights
                     .map do |(idx, lid)|
                       LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
+                        data = {}
                         data["hue"] = HUE_GEN[HUE_FUNC].call(idx) if HUE_GEN[HUE_FUNC]
                         data["sat"] = SAT_GEN[SAT_FUNC].call(idx) if SAT_GEN[SAT_FUNC]
                         data["bri"] = BRI_GEN[BRI_FUNC].call(idx) if BRI_GEN[BRI_FUNC]
