@@ -16,7 +16,7 @@ bridges:
   "Bridge-04":
     ip: "192.168.2.9"
     username: *common_username
-    debug_hue: 17500
+    debug_hue: 12000
 main_lights:
 - ["Bridge-01", 37]
 - ["Bridge-01", 36]
