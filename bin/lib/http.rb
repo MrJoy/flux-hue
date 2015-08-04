@@ -17,6 +17,7 @@ def hue_group_endpoint(config, group); "#{hue_base(config)}/groups/#{group}/acti
 
 def with_transition_time(data, transition)
   data["transitiontime"] = (transition * 10.0).round(0)
+  data
 end
 
 # Evil hack to convince Curb to grab simulation-based information as late as

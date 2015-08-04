@@ -15,9 +15,9 @@ def in_groups(entities)
     groups[bridge_name] << light_id
   end
 
-  groups.each do |bridge_name|
+  groups.each do |(bridge_name, lights)|
     indexed_lights = []
-    groups[bridge_name].each_with_index do |light_id, index|
+    lights.each_with_index do |light_id, index|
       indexed_lights << [index, light_id]
     end
     groups[bridge_name] = indexed_lights
