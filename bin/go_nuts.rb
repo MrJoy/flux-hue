@@ -273,8 +273,8 @@ sweep_thread.run if USE_SWEEP
 threads.each(&:run)
 
 trap("EXIT") do
-  results.done!
-  print_results(results)
+  global_results.done!
+  print_results(global_results)
 end
 
 threads.each(&:join)
