@@ -61,7 +61,7 @@ export RUN_FOREVER=1
 # Debugging
 ###############################################################################
 # Forcibly disable Ruby GC:
-export SKIP_GC=1
+export SKIP_GC=0
 
 # Whether or not to show success information.
 export VERBOSE=0
