@@ -52,6 +52,7 @@ gemspec
 
 gem "curb",             require: false
 gem "perlin_noise",     require: false
+# gem "os",               require: false # https://github.com/rdp/os -- note rss_bytes is returning KiB, not B.
 
 group :development do
   gem "rake",           require: false
@@ -59,6 +60,14 @@ group :development do
   gem "bundler-audit",  require: false
   gem "ruby-prof",      require: false # https://github.com/ruby-prof/ruby-prof
 end
+
+# Measure memory usage thusly:
+#   pid, size = `ps ax -o pid,rss | grep -E "^[[:space:]]*#{$$}"`.strip.split.map(&:to_i)
+# Note problem of PID 1234 when PID 12345 exists... Maybe use this instead:
+#   size = `ps -o rss -p #{$$}`.chomp.split("\n").last.to_i
+#   size = `ps -o rss= -p #{Process.pid}`.to_i
+# Or:
+#   "The OS gem has an rss_bytes method that works for Linux/windows/OS X ..."
 
 group :development, :test do
   gem "pry"
