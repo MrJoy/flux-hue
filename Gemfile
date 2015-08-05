@@ -1,5 +1,5 @@
 # rubocop:disable Style/LeadingCommentSpace
-#ruby=2.1.5
+#ruby=2.2.2
 #ruby-gemset=flux-hue
 # rubocop:enable Style/LeadingCommentSpace
 source "https://rubygems.org"
