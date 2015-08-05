@@ -44,9 +44,6 @@ source "https://rubygems.org"
 #   https://github.com/lostisland/faraday
 #   https://github.com/typhoeus/typhoeus#readme
 #   https://github.com/igrigorik/em-http-request
-# Force keepalive off to see if that makes any difference:
-#   Curl::Easy.http_get('http://www.yahoo.com') { |x| x.version = Curl::HTTP_1_0 }
-#   easy.header_str.grep(/keep-alive/)
 
 gemspec
 

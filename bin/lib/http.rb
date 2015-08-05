@@ -8,7 +8,10 @@ MULTI_OPTIONS   = { pipeline:         false,
 EASY_OPTIONS    = { timeout:          5,
                     connect_timeout:  5,
                     follow_location:  false,
-                    max_redirects:    0 }
+                    max_redirects:    0,
+                    version:          Curl::HTTP_1_0 }
+#   easy.header_str.grep(/keep-alive/)
+# Force keepalive off to see if that makes any difference...
 
 def hue_server(config); "http://#{config['ip']}"; end
 def hue_base(config); "#{hue_server(config)}/api/#{config['username']}"; end
