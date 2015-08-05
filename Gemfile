@@ -57,6 +57,7 @@ group :development do
   gem "rake",           require: false
   gem "rubocop",        require: false
   gem "bundler-audit",  require: false
+  gem "ruby-prof",      require: false
 end
 
 group :development, :test do
