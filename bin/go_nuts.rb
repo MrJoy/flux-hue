@@ -91,6 +91,12 @@ def perlin(x, s, min, max)
   ((raw * (max - min)) + min).to_i
 end
 
+def wave2(x, s, min, max)
+  elapsed = Time.now.to_f - BASIS_TIME
+  # TODO: Downscale x?
+  (((Math.sin((elapsed + x) * s) + 1) * 0.5 * (max - min)) + min).to_i
+end
+
 def wave(_x, s, min, max)
   elapsed = Time.now.to_f - BASIS_TIME
   (((Math.sin(elapsed * s) + 1) * 0.5 * (max - min)) + min).to_i
@@ -99,16 +105,19 @@ end
 HUE_GEN = {
   "perlin"  => proc { |idx| perlin(idx, TIMESCALE_H, MIN_HUE, MAX_HUE) },
   "wave"    => proc { |idx| wave(idx, TIMESCALE_H, MIN_HUE, MAX_HUE) },
+  "wave2"   => proc { |idx| wave2(idx, TIMESCALE_H, MIN_HUE, MAX_HUE) },
 }
 
 SAT_GEN = {
   "perlin"  => proc { |idx| perlin(idx, TIMESCALE_S, MIN_SAT, MAX_SAT) },
   "wave"    => proc { |idx| wave(idx, TIMESCALE_S, MIN_SAT, MAX_SAT) },
+  "wave2"   => proc { |idx| wave2(idx, TIMESCALE_S, MIN_SAT, MAX_SAT) },
 }
 
 BRI_GEN = {
   "perlin"  => proc { |idx| perlin(idx, TIMESCALE_B, MIN_BRI, MAX_BRI) },
   "wave"    => proc { |idx| wave(idx, TIMESCALE_B, MIN_BRI, MAX_BRI) },
+  "wave2"   => proc { |idx| wave2(idx, TIMESCALE_B, MIN_BRI, MAX_BRI) },
 }
 
 ###############################################################################
