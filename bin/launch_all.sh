@@ -25,12 +25,12 @@ export USE_SWEEP=1
 # Which effects to apply to which components:
 export HUE_FUNC=none
 export SAT_FUNC=none
-export BRI_FUNC=perlin
+export BRI_FUNC=wave2
 
 # How rapid the effects move (unrelated to speed of light updates):
 export TIMESCALE_H=0.2
 export TIMESCALE_S=1.0
-export TIMESCALE_B=2.0
+export TIMESCALE_B=1.0
 # TODO: Allow scaling X component for Perlin function as well...
 
 # How long an individual change takes to apply (in seconds, at 1/10th sec
@@ -45,16 +45,16 @@ export TRANSITION=0.3
 # export MAX_HUE=51000
 # export MIN_SAT=212
 # export MAX_SAT=254
-# export MIN_BRI=63
-# export MAX_BRI=191
+export MIN_BRI=0
+export MAX_BRI=254
 
 
 ###############################################################################
 # Simulation Duration
 ###############################################################################
 # Run for a fixed number of iterations, or until we're killed (0):
-export ITERATIONS=0
-export RUN_FOREVER=1
+export ITERATIONS=20
+export RUN_FOREVER=0
 
 
 ###############################################################################
