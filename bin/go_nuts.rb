@@ -273,7 +273,7 @@ end
 sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
 sleep 0.01 while sweep_thread.status != "sleep" if USE_SWEEP
 if SKIP_GC
-  debug "Disabling garbage collection!  BE CAREFUL!"
+  important "Disabling garbage collection!  BE CAREFUL!"
   GC.disable
 end
 debug "Threads are ready to go, waking them up."
