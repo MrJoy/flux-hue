@@ -53,7 +53,7 @@ export MAX_BRI=254
 # Simulation Duration
 ###############################################################################
 # Run for a fixed number of iterations, or until we're killed (0):
-export ITERATIONS=20
+export ITERATIONS=50
 export RUN_FOREVER=0
 
 

@@ -231,6 +231,7 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
                         data["hue"] = HUE_GEN[HUE_FUNC].call(idx) if HUE_GEN[HUE_FUNC]
                         data["sat"] = SAT_GEN[SAT_FUNC].call(idx) if SAT_GEN[SAT_FUNC]
                         data["bri"] = BRI_GEN[BRI_FUNC].call(idx) if BRI_GEN[BRI_FUNC]
+                        # data["bri"] = wave2(idx, TIMESCALE_B, MIN_BRI, MAX_BRI)
                         with_transition_time(data, TRANSITION)
                       end
                     end

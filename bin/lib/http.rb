@@ -55,6 +55,8 @@ protected
     @fixed ||= {  url:          @url,
                   method:       :put,
                   headers:      nil,
+                  # TODO: Maybe skip per-event callbacks and go for single
+                  # TODO: callback?
                   on_failure:   proc { |easy, _| failure!(easy) },
                   on_success:   proc { |easy| success!(easy) },
                   on_progress:  nil,
