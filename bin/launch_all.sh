@@ -66,6 +66,9 @@ export SKIP_GC=0
 # Whether or not to show success information.
 export VERBOSE=0
 
+# Whether to run the profiler and generate `results.html`:
+export PROFILE_RUN=1
+
 
 ###############################################################################
 HANDLER='kill -HUP $JOBPID 2>/dev/null'

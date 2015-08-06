@@ -31,6 +31,16 @@ require_relative "./lib/results"
 require_relative "./lib/http"
 
 ###############################################################################
+# Profiling
+###############################################################################
+PROFILE_RUN = env_int("PROFILE_RUN") != 0
+if PROFILE_RUN
+  require "ruby-prof"
+  RubyProf.measure_mode = RubyProf::ALLOCATIONS
+  RubyProf.start
+end
+
+###############################################################################
 # Timing Configuration
 #
 # Play with this to see how error rates are affected.
@@ -282,6 +292,13 @@ sweep_thread.run if USE_SWEEP
 threads.each(&:run)
 
 trap("EXIT") do
+  if PROFILE_RUN
+    result  = RubyProf.stop
+    printer = RubyProf::CallStackPrinter.new(result)
+    File.open("results.html", "w") do |fh|
+      printer.print(fh)
+    end
+  end
   global_results.done!
   print_results(global_results)
 end
