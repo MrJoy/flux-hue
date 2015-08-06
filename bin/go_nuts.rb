@@ -223,20 +223,20 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
       Thread.stop
       sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
 
-      iterator.each do
-        requests  = lights
-                    .map do |(idx, lid)|
-                      LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
-                        data = {}
-                        data["hue"] = HUE_GEN[HUE_FUNC].call(idx) if HUE_GEN[HUE_FUNC]
-                        data["sat"] = SAT_GEN[SAT_FUNC].call(idx) if SAT_GEN[SAT_FUNC]
-                        data["bri"] = BRI_GEN[BRI_FUNC].call(idx) if BRI_GEN[BRI_FUNC]
-                        # data["bri"] = wave2(idx, TIMESCALE_B, MIN_BRI, MAX_BRI)
-                        with_transition_time(data, TRANSITION)
-                      end
+      requests  = lights
+                  .map do |(idx, lid)|
+                    LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
+                      data = {}
+                      data["hue"] = HUE_GEN[HUE_FUNC].call(idx) if HUE_GEN[HUE_FUNC]
+                      data["sat"] = SAT_GEN[SAT_FUNC].call(idx) if SAT_GEN[SAT_FUNC]
+                      data["bri"] = BRI_GEN[BRI_FUNC].call(idx) if BRI_GEN[BRI_FUNC]
+                      # data["bri"] = wave2(idx, TIMESCALE_B, MIN_BRI, MAX_BRI)
+                      with_transition_time(data, TRANSITION)
                     end
+                  end
 
-        Curl::Multi.http(requests, MULTI_OPTIONS) do
+      iterator.each do
+        Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
         end
 
         global_results.add_from(results)

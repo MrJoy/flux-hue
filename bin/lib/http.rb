@@ -33,6 +33,17 @@ class LazyRequestConfig
     @url        = url
     @results    = results
     @callback   = callback
+    @fixed    ||= {  url:          @url,
+                     method:       :put,
+                     headers:      nil,
+                     # TODO: Maybe skip per-event callbacks and go for single
+                     # TODO: callback?
+                     on_failure:   proc { |easy, _| failure!(easy) },
+                     on_success:   proc { |easy| success!(easy) },
+                     on_progress:  nil,
+                     on_debug:     nil,
+                     on_body:      nil,
+                     on_header:    nil }
   end
 
   def each(&block)
@@ -42,7 +53,7 @@ class LazyRequestConfig
   end
 
   def delete(field)
-    return fixed[field] if fixed.key?(field)
+    return @fixed[field] if @fixed.key?(field)
     return Oj.dump(@callback.call) if field == :put_data
 
     wtf!(field)
@@ -50,20 +61,6 @@ class LazyRequestConfig
   end
 
 protected
-
-  def fixed
-    @fixed ||= {  url:          @url,
-                  method:       :put,
-                  headers:      nil,
-                  # TODO: Maybe skip per-event callbacks and go for single
-                  # TODO: callback?
-                  on_failure:   proc { |easy, _| failure!(easy) },
-                  on_success:   proc { |easy| success!(easy) },
-                  on_progress:  nil,
-                  on_debug:     nil,
-                  on_body:      nil,
-                  on_header:    nil }
-  end
 
   def wtf!(field)
     error @config, "Request for unknown field: `#{field}`!  Has Curb been updated"\
