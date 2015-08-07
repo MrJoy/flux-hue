@@ -3,7 +3,15 @@ https://github.com/rails/rails/pull/21057
 https://github.com/SamSaffron/memory_profiler
 http://www.schneems.com/2015/05/11/how-ruby-uses-memory.html
 https://github.com/schneems/derailed_benchmarks/blob/master/lib/derailed_benchmarks/tasks.rb#L134-L165
+http://samsaffron.com
+https://rubygems.org/gems/memory_profiler
 gem stackprof
+concurrent-ruby
+http://www.mikeperham.com/2015/08/06/sidekiq-enterprise/
+https://github.com/ko1
+https://github.com/ko1/allocation_tracer
+https://github.com/ko1/pretty_backtrace
+https://github.com/ko1/gc_tracer
 
   task :foo => [:setup] do
     require 'objspace'
