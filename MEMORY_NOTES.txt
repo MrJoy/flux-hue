@@ -1,0 +1,35 @@
+https://github.com/schneems/derailed_benchmarks
+https://github.com/rails/rails/pull/21057
+https://github.com/SamSaffron/memory_profiler
+http://www.schneems.com/2015/05/11/how-ruby-uses-memory.html
+https://github.com/schneems/derailed_benchmarks/blob/master/lib/derailed_benchmarks/tasks.rb#L134-L165
+gem stackprof
+
+  task :foo => [:setup] do
+    require 'objspace'
+    call_app
+
+    before = Hash.new { 0 }
+    after  = Hash.new { 0 }
+    after_size = Hash.new { 0 }
+    GC.start
+    GC.disable
+
+    TEST_COUNT.times { call_app }
+
+    rvalue_size = GC::INTERNAL_CONSTANTS[:RVALUE_SIZE]
+    ObjectSpace.each_object do |obj|
+      after[obj.class] += 1
+      memsize = ObjectSpace.memsize_of(obj) + rvalue_size
+      # compensate for API bug
+      memsize = rvalue_size if memsize > 100_000_000_000
+      after_size[obj.class] += memsize
+    end
+
+    require 'pp'
+    pp after.sort {|(k,v), (k2, v2)| v2 <=> v }
+    puts "========="
+    puts
+    puts
+    pp after_size.sort {|(k,v), (k2, v2)| v2 <=> v }
+  end
