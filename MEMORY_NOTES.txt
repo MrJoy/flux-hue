@@ -1,3 +1,14 @@
+https://blog.engineyard.com/2015/seven-unusual-ruby-datastores
+http://samsaffron.com/archive/2015/03/31/debugging-memory-leaks-in-ruby
+  http://tmm1.net/ruby21-objspace/
+  https://github.com/tmm1/rbtrace
+  https://github.com/discourse/discourse/blob/586cca352d1bb2bb044442d79a6520c9b37ed1ae/lib/memory_diagnostics.rb
+
+http://dev.mensfeld.pl/2015/04/ruby-global-method-cache-invalidation-impact-on-a-single-and-multithreaded-applications/
+http://www.saturnflyer.com/blog/jim/2015/04/22/the-difference-between-instance_eval-and-instance_exec/
+http://hawkins.io/2015/04/better-persistence-with-rom/
+http://www.sitepoint.com/ruby-uses-memory/
+
 https://github.com/schneems/derailed_benchmarks
 https://github.com/rails/rails/pull/21057
 https://github.com/SamSaffron/memory_profiler
