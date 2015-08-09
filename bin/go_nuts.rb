@@ -149,38 +149,6 @@ end
 # Main
 ###############################################################################
 
-# A color, represented in HSB, with each component ranged from 0.0..1.0.
-class Color
-  attr_accessor :hue, :sat, :bri
-  def initialize(hue: 0.0, sat: 1.0, bri: 1.0)
-    @hue = hue
-    @sat = sat
-    @bri = bri
-  end
-
-  def changes(other)
-    result = {}
-    result["hue"] = hue if other.hue != hue
-    result["sat"] = sat if other.sat != sat
-    result["bri"] = bri if other.bri != bri
-    result
-  end
-end
-
-# Generalized representation for the state of an ordered set of lights.
-class State
-  def initialize(lights:, initial_state:)
-    @lights = lights
-    @state  = []
-    lights.times do |n|
-      starting_color = initial_state[n].dup || Color.new
-      @state << starting_color
-    end
-  end
-
-  def [](n); @state[n]; end
-end
-
 # A 2-component vector, where components go from 0.0..1.0.
 class Vector2
   attr_reader :x, :y
@@ -190,14 +158,36 @@ class Vector2
   end
 end
 
+# Generalized representation for the state of an ordered set of lights.
+class State
+  attr_accessor :history
+
+  def initialize(lights:, initial_state: nil, debug: false)
+    @debug    = debug
+    @history  = [] if @debug
+    @lights   = lights
+    @state    = Array.new(@lights)
+    lights.times do |n|
+      @state[n] = initial_state ? initial_state[n] : 0.0
+    end
+  end
+
+  def [](n); @state[n]; end
+  def []=(n, val); @state[n] = val; end
+
+  def update(t)
+    @history << { t: t, state: @state.dup } if @debug
+  end
+end
+
 # Manage and run a Perlin-noise based simulation.
 class PerlinSimulation < State
-  def initialize(lights:, initial_state:, seed:, component:, speed:)
-    super(lights: lights, initial_state: initial_state)
-    @component  = component
+  def initialize(lights:, initial_state: nil, seed:, speed:, debug: false)
+    super(lights: lights, initial_state: initial_state, debug: debug)
+    @speed      = speed
     # TODO: If we just cheat and use a fixed seed, that should be totally fine
     # TODO: and make resumability much simpler.
-    @speed      = speed
+    #
     # TODO: Perlin::Noise also supports interval and curve options...
     @perlin     = Perlin::Noise.new(2, seed: seed)
     @contrast   = Perlin::Curve.contrast(Perlin::Curve::CUBIC, 3)
@@ -205,14 +195,9 @@ class PerlinSimulation < State
 
   def update(t)
     @lights.times do |n|
-      val = @contrast.call(@perlin[n * @speed.x, t * @speed.y])
-
-      case @component
-      when :hue then @state[n].hue = val
-      when :sat then @state[n].sat = val
-      when :bri then @state[n].bri = val
-      end
+      self[n] = @contrast.call(@perlin[n * @speed.x, t * @speed.y])
     end
+    super(t)
   end
 end
 
