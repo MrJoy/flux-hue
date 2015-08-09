@@ -157,6 +157,14 @@ class Color
     @sat = sat
     @bri = bri
   end
+
+  def changes(other)
+    result = {}
+    result["hue"] = hue if other.hue != hue
+    result["sat"] = sat if other.sat != sat
+    result["bri"] = bri if other.bri != bri
+    result
+  end
 end
 
 # Generalized representation for the state of an ordered set of lights.
