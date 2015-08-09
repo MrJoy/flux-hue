@@ -201,6 +201,22 @@ class PerlinSimulation < State
   end
 end
 
+perlin = PerlinSimulation.new(lights: 28,
+                              seed:   0,
+                              speed:  Vector2.new(x: 1.0, y: 1.0),
+                              debug:  true)
+prev = Time.now.to_f
+20.times do |n|
+  t = Time.now.to_f
+  puts "#{t.round(4)} / #{((t - prev) * 1000).to_i}"
+  prev = t
+  perlin.update(t)
+end
+
+perlin.history.each do |snapshot|
+  puts "#{snapshot[:t].round(3)}: #{snapshot[:state].map { |z| (z * 254).to_i }.join(",")}"
+end
+
 # validate_func_for!("hue", HUE_FUNC, HUE_GEN)
 # validate_func_for!("sat", SAT_FUNC, SAT_GEN)
 # validate_func_for!("bri", BRI_FUNC, BRI_GEN)
