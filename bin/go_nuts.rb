@@ -186,6 +186,8 @@ class PerlinSimulation < State
   def initialize(lights:, initial_state:, seed:, component:, speed:)
     super(lights: lights, initial_state: initial_state)
     @component  = component
+    # TODO: If we just cheat and use a fixed seed, that should be totally fine
+    # TODO: and make resumability much simpler.
     @speed      = speed
     # TODO: Perlin::Noise also supports interval and curve options...
     @perlin     = Perlin::Noise.new(2, seed: seed)
