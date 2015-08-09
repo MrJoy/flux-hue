@@ -205,16 +205,21 @@ perlin = PerlinSimulation.new(lights: 28,
                               seed:   0,
                               speed:  Vector2.new(x: 1.0, y: 1.0),
                               debug:  true)
-prev = Time.now.to_f
+prev = t = Time.now.to_f
 20.times do |n|
   t = Time.now.to_f
-  puts "#{t.round(4)} / #{((t - prev) * 1000).to_i}"
-  prev = t
   perlin.update(t)
+  elapsed = Time.now.to_f - t
+  sleep 0.01 - elapsed if elapsed < 0.01
 end
 
+prev = perlin.history.first[:t]
 perlin.history.each do |snapshot|
-  puts "#{snapshot[:t].round(3)}: #{snapshot[:state].map { |z| (z * 254).to_i }.join(",")}"
+  t            = snapshot[:t]
+  elapsed      = ((t - prev) * 1000).to_i
+  prev         = t
+  light_values = snapshot[:state].map { |z| (z * 254).to_i }
+  puts "#{elapsed}: #{light_values.join(",")}"
 end
 
 # validate_func_for!("hue", HUE_FUNC, HUE_GEN)
