@@ -147,6 +147,64 @@ end
 ###############################################################################
 # Main
 ###############################################################################
+
+# A color, represented in HSB, with each component ranged from 0.0..1.0.
+class Color
+  attr_accessor :hue, :sat, :bri
+  def initialize(hue: 0.0, sat: 1.0, bri: 1.0)
+    @hue = hue
+    @sat = sat
+    @bri = bri
+  end
+end
+
+# Generalized representation for the state of an ordered set of lights.
+class State
+  def initialize(lights:, initial_state:)
+    @lights = lights
+    @state  = []
+    lights.times do |n|
+      starting_color = initial_state[n].dup || Color.new
+      @state << starting_color
+    end
+  end
+
+  def [](n); @state[n]; end
+end
+
+# A 2-component vector, where components go from 0.0..1.0.
+class Vector2
+  attr_reader :x, :y
+  def initialize(x: 0.0, y: 0.0)
+    @x = x
+    @y = y
+  end
+end
+
+# Manage and run a Perlin-noise based simulation.
+class PerlinSimulation < State
+  def initialize(lights:, initial_state:, seed:, component:, speed:)
+    super(lights: lights, initial_state: initial_state)
+    @component  = component
+    @speed      = speed
+    # TODO: Perlin::Noise also supports interval and curve options...
+    @perlin     = Perlin::Noise.new(2, seed: seed)
+    @contrast   = Perlin::Curve.contrast(Perlin::Curve::CUBIC, 3)
+  end
+
+  def update(t)
+    @lights.times do |n|
+      val = @contrast.call(@perlin[n * @speed.x, t * @speed.y])
+
+      case @component
+      when :hue then @state[n].hue = val
+      when :sat then @state[n].sat = val
+      when :bri then @state[n].bri = val
+      end
+    end
+  end
+end
+
 validate_func_for!("hue", HUE_FUNC, HUE_GEN)
 validate_func_for!("sat", SAT_FUNC, SAT_GEN)
 validate_func_for!("bri", BRI_FUNC, BRI_GEN)
