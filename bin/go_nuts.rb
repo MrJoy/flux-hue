@@ -178,6 +178,52 @@ class State
   def update(t)
     @history << { t: t, state: @state.dup } if @debug
   end
+
+  DEBUG_SCALE = Vector2.new(x: 2, y: 1)
+  def snapshot_to!(fname)
+    enrich_history!
+    png = new_image
+    history.inject(0) do |y, snapshot|
+      next_y = y + snapshot[:y]
+      colors = snapshot[:state].map { |z| to_color(z) }
+      (y..(next_y - 1)).each do |yy|
+        colors.each_with_index do |c, x|
+          x1 = (x * DEBUG_SCALE.x).to_i
+          x2 = ((x + 1) * DEBUG_SCALE.x).to_i - 1
+          (x1..x2).each do |xx|
+            png[xx, yy] = c
+          end
+        end
+      end
+      next_y
+    end
+    png.save(fname, interlace: false)
+  end
+
+protected
+
+  def new_image
+    ChunkyPNG::Image.new((@lights * DEBUG_SCALE.x).to_i,
+                         history.map { |sn| sn[:y] }.inject(0) { |x, y| x + y },
+                         ChunkyPNG::Color::TRANSPARENT)
+  end
+
+  def enrich_history!
+    prev    = @history.first[:t]
+    @history.each do |snapshot|
+      t            = snapshot[:t]
+      frames       = (t - prev) * 100 # A "frame" == 10ms.
+      elapsed      = (frames * DEBUG_SCALE.y).round.to_i
+      prev         = t
+      snapshot[:y] = (elapsed > 0) ? elapsed : DEBUG_SCALE.y.to_i
+    end
+  end
+
+  def to_color(val)
+    # Based on precision of Hue API...
+    z = (val * 254).to_i
+    ChunkyPNG::Color.rgba(z, z, z, 255)
+  end
 end
 
 # Manage and run a Perlin-noise based simulation.
@@ -215,39 +261,7 @@ prev = t = Time.now.to_f
   sleep 0.01 - elapsed if elapsed < 0.01
 end
 
-prev    = perlin.history.first[:t]
-history = perlin
-          .history
-          .map do |snapshot|
-            t            = snapshot[:t]
-            elapsed      = ((t - prev) * 100).round.to_i * 1
-            prev         = t
-            snapshot[:y] = (elapsed > 0) ? elapsed : 1
-            snapshot
-          end
-width   = 2
-size_x  = lights * width
-size_y  = history.map { |sn| sn[:y] }.inject(0) { |x, y| x + y }
-
-puts "Total Height: #{size_y}, Total Width: #{size_x}"
-png = ChunkyPNG::Image.new(size_x, size_y, ChunkyPNG::Color::TRANSPARENT)
-y   = 0
-history.each do |snapshot|
-  colors  = snapshot[:state]
-            .map { |z| (z * 254).to_i }
-            .map { |z| ChunkyPNG::Color.rgba(z, z, z, 255) }
-  (y..(y + snapshot[:y] - 1)).each do |yy|
-    colors.each_with_index do |c, x|
-      x1 = x * width
-      x2 = (x + 1) * width - 1
-      (x1..x2).each do |xx|
-        png[xx, yy] = c
-      end
-    end
-  end
-  y += snapshot[:y]
-end
-png.save("perlin.png", interlace: false)
+perlin.snapshot_to!("perlin.png")
 
 # validate_func_for!("hue", HUE_FUNC, HUE_GEN)
 # validate_func_for!("sat", SAT_FUNC, SAT_GEN)
