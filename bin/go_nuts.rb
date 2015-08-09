@@ -201,26 +201,53 @@ class PerlinSimulation < State
   end
 end
 
-perlin = PerlinSimulation.new(lights: 28,
-                              seed:   0,
-                              speed:  Vector2.new(x: 1.0, y: 1.0),
-                              debug:  true)
+require "oily_png"
+lights  = 28
+perlin  = PerlinSimulation.new(lights: lights,
+                               seed:   0,
+                               speed:  Vector2.new(x: 0.1, y: 4.0),
+                               debug:  true)
 prev = t = Time.now.to_f
-20.times do |n|
+100.times do |n|
   t = Time.now.to_f
   perlin.update(t)
   elapsed = Time.now.to_f - t
   sleep 0.01 - elapsed if elapsed < 0.01
 end
 
-prev = perlin.history.first[:t]
-perlin.history.each do |snapshot|
-  t            = snapshot[:t]
-  elapsed      = ((t - prev) * 1000).to_i
-  prev         = t
-  light_values = snapshot[:state].map { |z| (z * 254).to_i }
-  puts "#{elapsed}: #{light_values.join(",")}"
+prev    = perlin.history.first[:t]
+history = perlin
+          .history
+          .map do |snapshot|
+            t            = snapshot[:t]
+            elapsed      = ((t - prev) * 100).round.to_i * 1
+            prev         = t
+            snapshot[:y] = (elapsed > 0) ? elapsed : 1
+            snapshot
+          end
+width   = 2
+size_x  = lights * width
+size_y  = history.map { |sn| sn[:y] }.inject(0) { |x, y| x + y }
+
+puts "Total Height: #{size_y}, Total Width: #{size_x}"
+png = ChunkyPNG::Image.new(size_x, size_y, ChunkyPNG::Color::TRANSPARENT)
+y   = 0
+history.each do |snapshot|
+  colors  = snapshot[:state]
+            .map { |z| (z * 254).to_i }
+            .map { |z| ChunkyPNG::Color.rgba(z, z, z, 255) }
+  (y..(y + snapshot[:y] - 1)).each do |yy|
+    colors.each_with_index do |c, x|
+      x1 = x * width
+      x2 = (x + 1) * width - 1
+      (x1..x2).each do |xx|
+        png[xx, yy] = c
+      end
+    end
+  end
+  y += snapshot[:y]
 end
+png.save("perlin.png", interlace: false)
 
 # validate_func_for!("hue", HUE_FUNC, HUE_GEN)
 # validate_func_for!("sat", SAT_FUNC, SAT_GEN)

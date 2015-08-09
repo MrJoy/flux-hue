@@ -56,6 +56,8 @@ group :development do
   gem "rubocop",        require: false
   gem "bundler-audit",  require: false
   gem "ruby-prof",      require: false # https://github.com/ruby-prof/ruby-prof
+  gem "chunky_png",     require: false
+  gem "oily_png",       require: false
 end
 
 # Measure memory usage thusly:
