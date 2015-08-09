@@ -176,7 +176,11 @@ class State
   def []=(n, val); @state[n] = val; end
 
   def update(t)
-    @history << { t: t, state: @state.dup } if @debug
+    return unless @debug
+    prev_t  = @history.last
+    prev_t  = prev_t ? prev_t[:t] : t
+    delta   = t - prev_t
+    @history << { t: t, dt: delta, state: @state.dup }
   end
 
   DEBUG_SCALE = Vector2.new(x: 2, y: 1)
@@ -209,12 +213,9 @@ protected
   end
 
   def enrich_history!
-    prev    = @history.first[:t]
     @history.each do |snapshot|
-      t            = snapshot[:t]
-      frames       = (t - prev) * 100 # A "frame" == 10ms.
+      frames       = snapshot[:dt] * 100 # A "frame" == 10ms.
       elapsed      = (frames * DEBUG_SCALE.y).round.to_i
-      prev         = t
       snapshot[:y] = (elapsed > 0) ? elapsed : DEBUG_SCALE.y.to_i
     end
   end
