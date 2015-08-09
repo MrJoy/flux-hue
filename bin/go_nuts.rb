@@ -201,130 +201,130 @@ class PerlinSimulation < State
   end
 end
 
-validate_func_for!("hue", HUE_FUNC, HUE_GEN)
-validate_func_for!("sat", SAT_FUNC, SAT_GEN)
-validate_func_for!("bri", BRI_FUNC, BRI_GEN)
+# validate_func_for!("hue", HUE_FUNC, HUE_GEN)
+# validate_func_for!("sat", SAT_FUNC, SAT_GEN)
+# validate_func_for!("bri", BRI_FUNC, BRI_GEN)
 
-if ITERATIONS > 0
-  debug "Running for #{ITERATIONS} iterations."
-else
-  debug "Running until we're killed.  Send SIGHUP to terminate with stats."
-end
+# if ITERATIONS > 0
+#   debug "Running for #{ITERATIONS} iterations."
+# else
+#   debug "Running until we're killed.  Send SIGHUP to terminate with stats."
+# end
 
-lights_for_threads  = in_groups(CONFIG["main_lights"])
-global_results      = Results.new
+# lights_for_threads  = in_groups(CONFIG["main_lights"])
+# global_results      = Results.new
 
-Thread.abort_on_exception = false
-if USE_SWEEP
-  # TODO: Make this terminate after main simulation threads have all stopped.
-  sweep_thread = Thread.new do
-    hue_target  = MAX_HUE
-    results     = Results.new
+# Thread.abort_on_exception = false
+# if USE_SWEEP
+#   # TODO: Make this terminate after main simulation threads have all stopped.
+#   sweep_thread = Thread.new do
+#     hue_target  = MAX_HUE
+#     results     = Results.new
 
-    guard_call("Sweeper") do
-      Thread.stop
+#     guard_call("Sweeper") do
+#       Thread.stop
 
-      loop do
-        before_time = Time.now.to_f
-        # TODO: Hoist this into a sawtooth simulation function.
-        hue_target  = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
-        data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
-        requests    = CONFIG["bridges"]
-                      .map do |(_name, config)|
-                        { method:   :put,
-                          url:      hue_group_endpoint(config, 0),
-                          put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
-                      end
+#       loop do
+#         before_time = Time.now.to_f
+#         # TODO: Hoist this into a sawtooth simulation function.
+#         hue_target  = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
+#         data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
+#         requests    = CONFIG["bridges"]
+#                       .map do |(_name, config)|
+#                         { method:   :put,
+#                           url:      hue_group_endpoint(config, 0),
+#                           put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
+#                       end
 
-        Curl::Multi.http(requests, MULTI_OPTIONS) do # |easy|
-          # Apparently performed for each request?  Or when idle?  Or...
+#         Curl::Multi.http(requests, MULTI_OPTIONS) do # |easy|
+#           # Apparently performed for each request?  Or when idle?  Or...
 
-          # dns_cache_timeout head header_size header_str headers
-          # http_connect_code last_effective_url last_result low_speed_limit
-          # low_speed_time num_connects on_header os_errno redirect_count
-          # request_size
+#           # dns_cache_timeout head header_size header_str headers
+#           # http_connect_code last_effective_url last_result low_speed_limit
+#           # low_speed_time num_connects on_header os_errno redirect_count
+#           # request_size
 
-          # app_connect_time connect_time name_lookup_time pre_transfer_time
-          # start_transfer_time total_time
+#           # app_connect_time connect_time name_lookup_time pre_transfer_time
+#           # start_transfer_time total_time
 
-          # Bytes/sec, I think:
-          # download_speed upload_speed
+#           # Bytes/sec, I think:
+#           # download_speed upload_speed
 
-          # The following are all Float, and downloaded_content_length can be
-          # -1.0 when a transfer times out(?).
-          # downloaded_bytes downloaded_content_length uploaded_bytes
-          # uploaded_content_length
-        end
+#           # The following are all Float, and downloaded_content_length can be
+#           # -1.0 when a transfer times out(?).
+#           # downloaded_bytes downloaded_content_length uploaded_bytes
+#           # uploaded_content_length
+#         end
 
-        global_results.add_from(results)
-        results.clear!
+#         global_results.add_from(results)
+#         results.clear!
 
-        sleep 0.05 while (Time.now.to_f - before_time) <= SWEEP_LENGTH
-      end
-    end
-  end
-end
+#         sleep 0.05 while (Time.now.to_f - before_time) <= SWEEP_LENGTH
+#       end
+#     end
+#   end
+# end
 
-threads = lights_for_threads.map do |(bridge_name, lights)|
-  Thread.new do
-    guard_call(bridge_name) do
-      config    = CONFIG["bridges"][bridge_name]
-      results   = Results.new
-      iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
+# threads = lights_for_threads.map do |(bridge_name, lights)|
+#   Thread.new do
+#     guard_call(bridge_name) do
+#       config    = CONFIG["bridges"][bridge_name]
+#       results   = Results.new
+#       iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
-      debug bridge_name, "Thread set to handle #{lights.count} lights."
+#       debug bridge_name, "Thread set to handle #{lights.count} lights."
 
-      Thread.stop
-      sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
+#       Thread.stop
+#       sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
 
-      requests  = lights
-                  .map do |(idx, lid)|
-                    LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
-                      data = {}
-                      data["hue"] = HUE_GEN[HUE_FUNC].call(idx) if HUE_GEN[HUE_FUNC]
-                      data["sat"] = SAT_GEN[SAT_FUNC].call(idx) if SAT_GEN[SAT_FUNC]
-                      data["bri"] = BRI_GEN[BRI_FUNC].call(idx) if BRI_GEN[BRI_FUNC]
-                      # data["bri"] = wave2(idx, TIMESCALE_B, MIN_BRI, MAX_BRI)
-                      with_transition_time(data, TRANSITION)
-                    end
-                  end
+#       requests  = lights
+#                   .map do |(idx, lid)|
+#                     LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
+#                       data = {}
+#                       data["hue"] = HUE_GEN[HUE_FUNC].call(idx) if HUE_GEN[HUE_FUNC]
+#                       data["sat"] = SAT_GEN[SAT_FUNC].call(idx) if SAT_GEN[SAT_FUNC]
+#                       data["bri"] = BRI_GEN[BRI_FUNC].call(idx) if BRI_GEN[BRI_FUNC]
+#                       # data["bri"] = wave2(idx, TIMESCALE_B, MIN_BRI, MAX_BRI)
+#                       with_transition_time(data, TRANSITION)
+#                     end
+#                   end
 
-      iterator.each do
-        Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
-        end
+#       iterator.each do
+#         Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
+#         end
 
-        global_results.add_from(results)
-        results.clear!
+#         global_results.add_from(results)
+#         results.clear!
 
-        sleep(BETWEEN_SLEEP) unless BETWEEN_SLEEP == 0
-      end
-    end
-  end
-end
+#         sleep(BETWEEN_SLEEP) unless BETWEEN_SLEEP == 0
+#       end
+#     end
+#   end
+# end
 
-# Wait for threads to finish initializing...
-sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
-sleep 0.01 while sweep_thread.status != "sleep" if USE_SWEEP
-if SKIP_GC
-  important "Disabling garbage collection!  BE CAREFUL!"
-  GC.disable
-end
-debug "Threads are ready to go, waking them up."
-global_results.begin!
-sweep_thread.run if USE_SWEEP
-threads.each(&:run)
+# # Wait for threads to finish initializing...
+# sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
+# sleep 0.01 while sweep_thread.status != "sleep" if USE_SWEEP
+# if SKIP_GC
+#   important "Disabling garbage collection!  BE CAREFUL!"
+#   GC.disable
+# end
+# debug "Threads are ready to go, waking them up."
+# global_results.begin!
+# sweep_thread.run if USE_SWEEP
+# threads.each(&:run)
 
-trap("EXIT") do
-  if PROFILE_RUN
-    result  = RubyProf.stop
-    printer = RubyProf::CallStackPrinter.new(result)
-    File.open("results.html", "w") do |fh|
-      printer.print(fh)
-    end
-  end
-  global_results.done!
-  print_results(global_results)
-end
+# trap("EXIT") do
+#   if PROFILE_RUN
+#     result  = RubyProf.stop
+#     printer = RubyProf::CallStackPrinter.new(result)
+#     File.open("results.html", "w") do |fh|
+#       printer.print(fh)
+#     end
+#   end
+#   global_results.done!
+#   print_results(global_results)
+# end
 
-threads.each(&:join)
-sweep_thread.terminate if USE_SWEEP
+# threads.each(&:join)
+# sweep_thread.terminate if USE_SWEEP
