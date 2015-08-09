@@ -96,7 +96,7 @@ CONTRAST      = Perlin::Curve.contrast(Perlin::Curve::CUBIC, 3)
 def perlin(x, s, min, max)
   # Ugly hack because the Perlin lib we're using doesn't like extreme Y values,
   # apparently.  It starts spitting zeroes back at us.
-  elapsed = Time.now.to_f - BASIS_TIME
+  elapsed = Time.now.to_f
   raw     = CONTRAST.call(PERLIN[x, elapsed * s])
   ((raw * (max - min)) + min).to_i
 end
