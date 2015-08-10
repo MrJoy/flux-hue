@@ -167,14 +167,11 @@ perlin_thread = Thread.new do
     Thread.stop
 
     loop do
-      prev = t = Time.now.to_f
-      loop do
-        t = Time.now.to_f
-        PERLIN.update(t)
-        elapsed = Time.now.to_f - t
-        # Try to adhere to a 10ms update frequency...
-        sleep FRAME_PERIOD - elapsed if elapsed < FRAME_PERIOD
-      end
+      t = Time.now.to_f
+      PERLIN.update(t)
+      elapsed = Time.now.to_f - t
+      # Try to adhere to a 10ms update frequency...
+      sleep FRAME_PERIOD - elapsed if elapsed < FRAME_PERIOD
     end
   end
 end
