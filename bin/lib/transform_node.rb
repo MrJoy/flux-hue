@@ -10,16 +10,19 @@
 # end
 # ```
 class TransformNode < Node
-  def initialize(source:)
+  def initialize(source:, mask: nil)
     super(lights: source.lights)
     @source = source
+    @mask   = mask
   end
 
   def update(t)
     @source.update(t)
     if block_given?
       (0..(@lights - 1)).each do |x|
-        @state[x] = yield(x)
+        # Apply to all lights if no mask, and apply to specific lights if mask.
+        apply_transform = !@mask || @mask[x]
+        @state[x]       = apply_transform ? yield(x) : @source[x]
       end
     end
     super(t)
