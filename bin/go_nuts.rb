@@ -35,9 +35,12 @@ require_relative "./lib/vector2"
 require_relative "./lib/node"
 require_relative "./lib/root_node"
 require_relative "./lib/transform_node"
+require_relative "./lib/const_simulation"
 require_relative "./lib/perlin_simulation"
+require_relative "./lib/wave2_simulation"
 require_relative "./lib/contrast_transform"
 require_relative "./lib/range_transform"
+require_relative "./lib/spotlight_transform"
 
 ###############################################################################
 # Profiling
@@ -51,6 +54,7 @@ end
 DEBUG_PERLIN    = env_int("DEBUG_PERLIN", true) != 0
 DEBUG_CONTRAST  = env_int("DEBUG_CONTRAST", true) != 0
 DEBUG_RANGE     = env_int("DEBUG_RANGE", true) != 0
+DEBUG_SPOTLIGHT = env_int("DEBUG_SPOTLIGHT", true) != 0
 
 ###############################################################################
 # Timing Configuration
@@ -81,10 +85,18 @@ MAX_HUE         = env_int("MAX_HUE", true) || 51_000
 MIN_BRI         = env_float("MIN_BRI") || 0.25
 MAX_BRI         = env_float("MAX_BRI") || 0.75
 
+WAVE2_SCALE_X   = env_float("WAVE2_SCALE_X") || 0.1
+WAVE2_SCALE_Y   = env_float("WAVE2_SCALE_Y") || 1.0
+
 PERLIN_SCALE_Y  = env_float("PERLIN_SCALE_Y") || 4.0
 
 # TODO: Do we need to modulate this?  Also, we should dump our seed with the
 # TODO: state above as well.
+# BASE_SIMULATION = ConstSimulation.new(lights:    CONFIG["main_lights"].length,
+#                                       debug:     DEBUG_CONST)
+# BASE_SIMULATION = Wave2Simulation.new(lights:    CONFIG["main_lights"].length,
+#                                       speed:     Vector2.new(x: WAVE2_SCALE_X, y: WAVE2_SCALE_Y),
+#                                       debug:     DEBUG_WAVE2)
 BASE_SIMULATION = PerlinSimulation.new(lights:    CONFIG["main_lights"].length,
                                        seed:      0,
                                        speed:     Vector2.new(x: 0.1, y: PERLIN_SCALE_Y),
@@ -99,20 +111,10 @@ RANGED          = RangeTransform.new(lights: CONFIG["main_lights"].length,
                                      initial_max: MAX_BRI,
                                      source:      CONTRASTED,
                                      debug:       DEBUG_RANGE)
-def perlin(x, _s, min, max)
-  (RANGED[x] * 254).to_i
-end
-
-def wave2(x, s, min, max)
-  elapsed = Time.now.to_f
-  # TODO: Downscale x?
-  (((Math.sin((elapsed + x) * s) + 1) * 0.5 * (max - min)) + min).to_i
-end
-
-def wave(_x, s, min, max)
-  elapsed = Time.now.to_f
-  (((Math.sin(elapsed * s) + 1) * 0.5 * (max - min)) + min).to_i
-end
+SPOTLIT         = SpotlightTransform.new(lights: CONFIG["main_lights"].length,
+                                         source:      RANGED,
+                                         debug:       DEBUG_SPOTLIGHT)
+FINAL_RESULT    = SPOTLIT
 
 ###############################################################################
 # Other Configuration
@@ -122,7 +124,6 @@ SKIP_GC           = !!env_int("SKIP_GC")
 ###############################################################################
 # Main
 ###############################################################################
-
 if ITERATIONS > 0
   debug "Running for #{ITERATIONS} iterations."
 else
@@ -134,13 +135,13 @@ global_results      = Results.new
 
 Thread.abort_on_exception = false
 
-base_sim_thread = Thread.new do
+sim_thread = Thread.new do
   guard_call("Base Simulation") do
     Thread.stop
 
     loop do
       t = Time.now.to_f
-      RANGED.update(t)
+      FINAL_RESULT.update(t)
       elapsed = Time.now.to_f - t
       # Try to adhere to a 10ms update frequency...
       sleep FRAME_PERIOD - elapsed if elapsed < FRAME_PERIOD
@@ -205,7 +206,7 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
       results   = Results.new
       iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
-      debug bridge_name, "Thread set to handle #{lights.count} lights."
+      debug bridge_name, "Thread set to handle #{lights.count} lights (#{lights.map(&:first).join(", ")})."
 
       Thread.stop
       sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
@@ -213,7 +214,7 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
       requests  = lights
                   .map do |(idx, lid)|
                     LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
-                      data = { "bri" => (RANGED[idx] * 254).to_i }
+                      data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
                       with_transition_time(data, TRANSITION)
                     end
                   end
@@ -234,14 +235,14 @@ end
 # Wait for threads to finish initializing...
 sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
 sleep 0.01 while sweep_thread.status != "sleep" if USE_SWEEP
-sleep 0.01 while base_sim_thread.status != "sleep"
+sleep 0.01 while sim_thread.status != "sleep"
 if SKIP_GC
   important "Disabling garbage collection!  BE CAREFUL!"
   GC.disable
 end
 debug "Threads are ready to go, waking them up."
 global_results.begin!
-base_sim_thread.run
+sim_thread.run
 sweep_thread.run if USE_SWEEP
 threads.each(&:run)
 
@@ -259,9 +260,10 @@ trap("EXIT") do
     BASE_SIMULATION.snapshot_to!("00_perlin.png") if DEBUG_PERLIN
     CONTRASTED.snapshot_to!("01_contrasted.png") if DEBUG_CONTRAST
     RANGED.snapshot_to!("02_ranged.png") if DEBUG_RANGE
+    SPOTLIT.snapshot_to!("03_spotlit.png") if DEBUG_SPOTLIGHT
   end
 end
 
 threads.each(&:join)
 sweep_thread.terminate if USE_SWEEP
-base_sim_thread.terminate
+sim_thread.terminate

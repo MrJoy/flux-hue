@@ -27,7 +27,8 @@ export BRI_FUNC=perlin
 
 # How rapid the effects move (unrelated to speed of light updates):
 export PERLIN_SCALE_Y=4.0
-# TODO: Allow scaling X component for Perlin function as well...
+export WAVE2_SCALE_X=0.1
+export WAVE2_SCALE_Y=4.0
 
 # How long an individual change takes to apply (in seconds, at 1/10th sec
 # precision):
@@ -39,8 +40,8 @@ export TRANSITION=0.3
 ###############################################################################
 # export MIN_HUE=48000
 # export MAX_HUE=51000
-export MIN_BRI=0.25
-export MAX_BRI=0.75
+export MIN_BRI=0.4
+export MAX_BRI=0.6
 
 
 ###############################################################################
@@ -67,6 +68,7 @@ export PROFILE_RUN=0
 export DEBUG_PERLIN=1
 export DEBUG_CONTRAST=1
 export DEBUG_RANGE=1
+export DEBUG_SPOTLIGHT=1
 
 
 ###############################################################################
