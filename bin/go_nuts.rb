@@ -1,8 +1,24 @@
 #!/usr/bin/env ruby
+
+# TODO: Make node structure more soft-configurable.
+
+# TODO: Run update across nodes from back to front for simulation rather than
+# TODO: relying on a call-chain.  This should make it easy to eliminate the
+# TODO: `yield` usage and avoid associated allocations.
+
+# TODO: Journal debug information to a log file, and have a separate tool to
+# TODO: read that and produce PNGs.
+
+# TODO: Journal timing info about light updates (and transition!), and use that
+# TODO: to produce an "as-rendered" debug output.
+
+# TODO: Deeper memory profiling to ensure this process can run for hours.
+
+# TODO: When we integrate input handling and become stateful, journal state to
+# TODO: a file that's read on startup so we can survive a restart.
+
 # https://github.com/taf2/curb/tree/master/bench
 
-# TODO: Play with fibers using the more involved `Curl::Multi` interface that
-# TODO: gives us an idle callback.
 #   f = Fiber.new do
 #     meth(1) do
 #       Fiber.yield
