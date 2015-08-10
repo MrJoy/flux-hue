@@ -48,8 +48,8 @@ export MAX_BRI=0.6
 # Simulation Duration
 ###############################################################################
 # Run for a fixed number of iterations, or until we're killed (0):
-export ITERATIONS=50
-export RUN_FOREVER=0
+export ITERATIONS=0
+export RUN_FOREVER=1
 
 
 ###############################################################################
@@ -66,7 +66,7 @@ export PROFILE_RUN=0
 
 # Dump various PNGs showing the results of given nodes in the DAG over time.
 # This is VERY VERY memory intensize!  Don't try to use it for a long run!
-export DEBUG_NODES=perlin,stretched,shifted,spotlit
+export DEBUG_NODES= #perlin,stretched,shifted,spotlit
 
 
 ###############################################################################
