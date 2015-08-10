@@ -25,12 +25,12 @@ export USE_SWEEP=1
 # Which effects to apply to which components:
 export HUE_FUNC=none
 export SAT_FUNC=none
-export BRI_FUNC=wave2
+export BRI_FUNC=perlin
 
 # How rapid the effects move (unrelated to speed of light updates):
 export TIMESCALE_H=0.2
 export TIMESCALE_S=1.0
-export TIMESCALE_B=1.0
+export TIMESCALE_B=4.0
 # TODO: Allow scaling X component for Perlin function as well...
 
 # How long an individual change takes to apply (in seconds, at 1/10th sec
@@ -67,7 +67,10 @@ export SKIP_GC=0
 export VERBOSE=0
 
 # Whether to run the profiler and generate `results.html`:
-export PROFILE_RUN=1
+export PROFILE_RUN=0
+
+# Dump `perlin.png` based on Perlin-noise simulation.
+export DEBUG_PERLIN=1
 
 
 ###############################################################################
