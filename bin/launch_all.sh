@@ -64,7 +64,7 @@ export PROFILE_RUN=0
 
 # Dump various PNGs showing the results of given nodes in the DAG over time.
 # This is VERY VERY memory intensize!  Don't try to use it for a long run!
-export DEBUG_NODES= #perlin,stretched,shifted,spotlit
+export DEBUG_NODES= #perlin,stretched,shifted_0,shifted_1,shifted_2,shifted_3,spotlit
 
 
 ###############################################################################
