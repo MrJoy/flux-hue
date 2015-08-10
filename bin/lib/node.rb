@@ -35,7 +35,7 @@ class Node
     enrich_history!
     png = new_image
     history.inject(0) do |y, snapshot|
-      next_y = y + snapshot[:y]
+      next_y = y + (snapshot[:y] || 0)
       colors = snapshot[:state].map { |z| to_color(z) }
       (y..(next_y - 1)).each do |yy|
         colors.each_with_index do |c, x|
