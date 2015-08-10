@@ -1,10 +1,8 @@
-# Manage and run a Perlin-noise based simulation.
-#
-# TODO: Play with octaves / persistence, curves, etc.
+# Manage and run a simulation of just `sin(x + y)`.
 class Wave2Simulation < RootNode
   def initialize(lights:, initial_state: nil, speed:, debug: false)
     super(lights: lights, initial_state: initial_state, debug: debug)
-    @speed      = speed
+    @speed = speed
   end
 
   def update(t)

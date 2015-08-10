@@ -1,6 +1,6 @@
 # Manage and run a Perlin-noise based simulation.
 #
-# TODO: Play with octaves / persistence, curves, etc.
+# TODO: Play with octaves / persistence, etc.
 class PerlinSimulation < RootNode
   def initialize(lights:, initial_state: nil, speed:, debug: false)
     super(lights: lights, initial_state: initial_state, debug: debug)

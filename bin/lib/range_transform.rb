@@ -1,4 +1,6 @@
 # Transform values from 0..1 into a new range.
+#
+# TODO: Allow change to range to apply over time.
 class RangeTransform < TransformNode
   def initialize(lights:, initial_min:, initial_max:, source:, debug: false)
     super(lights: lights, source: source, debug: debug)

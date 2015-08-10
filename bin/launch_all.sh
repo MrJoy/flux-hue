@@ -64,7 +64,8 @@ export VERBOSE=0
 # Whether to run the profiler and generate `results.html`:
 export PROFILE_RUN=0
 
-# Dump various PNGs showing the results of given nodes in the DAG over time:
+# Dump various PNGs showing the results of given nodes in the DAG over time.
+# This is VERY VERY memory intensize!  Don't try to use it for a long run!
 export DEBUG_NODES=perlin,stretched,shifted,spotlit
 
 

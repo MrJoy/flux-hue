@@ -43,35 +43,28 @@ require_relative "./lib/range_transform"
 require_relative "./lib/spotlight_transform"
 
 ###############################################################################
-# Profiling
+# Profiling and Debugging
 ###############################################################################
 PROFILE_RUN = env_int("PROFILE_RUN", true) != 0
-if PROFILE_RUN
-  require "ruby-prof"
-  RubyProf.measure_mode = RubyProf::ALLOCATIONS
-  RubyProf.start
-end
-DEBUG_FLAGS     = {}
-(ENV["DEBUG_NODES"] || "").split(/\s*,\s*/).map(&:upcase).each do |node|
-  DEBUG_FLAGS[node] = true
-end
+VERBOSE     = env_int("VERBOSE")
+SKIP_GC     = !!env_int("SKIP_GC")
+DEBUG_FLAGS = Hash[(ENV["DEBUG_NODES"] || "")
+              .split(/\s*,\s*/)
+              .map(&:upcase)
+              .map { |nn| [nn, true] }]
 
 ###############################################################################
 # Timing Configuration
 #
 # Play with this to see how error rates are affected.
 ###############################################################################
-ITERATIONS      = env_int("ITERATIONS", true) || 0
-
 SPREAD_SLEEP    = env_float("SPREAD_SLEEP") || 0.0
 BETWEEN_SLEEP   = env_float("BETWEEN_SLEEP") || 0.0
 
-VERBOSE         = env_int("VERBOSE")
-
 ###############################################################################
-# Effect
+# Effect Configuration
 #
-# Tweak this to change the visual effect.
+# Tweak this to change the visual effect(s).
 ###############################################################################
 # TODO: Move all of these into the config...
 USE_SWEEP       = (env_int("USE_SWEEP", true) || 1) != 0
@@ -121,13 +114,19 @@ NODES["SPOTLIT"]    = SpotlightTransform.new(lights: CONFIG["main_lights"].lengt
 FINAL_RESULT        = NODES["SPOTLIT"]
 
 ###############################################################################
-# Other Configuration
+# Operational Configuration
 ###############################################################################
-SKIP_GC           = !!env_int("SKIP_GC")
+ITERATIONS = env_int("ITERATIONS", true) || 0
 
 ###############################################################################
-# Main
+# Main Simulation
 ###############################################################################
+if PROFILE_RUN
+  require "ruby-prof"
+  RubyProf.measure_mode = RubyProf::ALLOCATIONS
+  RubyProf.start
+end
+
 if ITERATIONS > 0
   debug "Running for #{ITERATIONS} iterations."
 else
