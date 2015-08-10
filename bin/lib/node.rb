@@ -61,7 +61,7 @@ protected
 
   def enrich_history!
     @history.each do |snapshot|
-      frames       = snapshot[:dt] * (1 / FRAME_PERIOD) # A "frame" == 10ms.
+      frames       = snapshot[:dt] * (1 / FRAME_PERIOD) # A "frame" == fixed update interval in ms.
       elapsed      = (frames * DEBUG_SCALE.y).round.to_i
       snapshot[:y] = (elapsed > 0) ? elapsed : DEBUG_SCALE.y.to_i
     end

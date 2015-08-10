@@ -73,6 +73,7 @@ require_relative "./lib/range_transform"
 require_relative "./lib/spotlight_transform"
 
 require_relative "./lib/bar_control"
+require_relative "./lib/radio_control"
 
 ###############################################################################
 # Profiling and Debugging
@@ -171,7 +172,28 @@ lights_for_threads.each do |(_bridge_name, (lights, mask))|
   NODES["SHIFTED_#{t_index}"]  = last
   t_index                     += 1
 end
-last = NODES["SPOTLIT"]    = SpotlightTransform.new(source: last)
+
+last = NODES["SPOTLIT"] = SpotlightTransform.new(source: last)
+sl_positions_raw        = CONFIG["spotlight_positions"].map { |row| row.map { |i| i.to_i }}
+sl_width                = sl_positions_raw.map { |row| row.length }.sort.last
+sl_height               = sl_positions_raw.length
+SL_POSITIONS            = sl_positions_raw.flatten
+SL_STATE                = RadioControl.new(launchpad: INTERACTION,
+                                           x:         0,
+                                           y:         0,
+                                           height:    sl_height,
+                                           width:     sl_width,
+                                           on:        { r: 0x3F, g: 0x00, b: 0x00 },
+                                           off:       { r: 0x04, g: 0x00, b: 0x00 },
+                                           down:      { r: 0x3F, g: 0x10, b: 0x10 },
+                                           on_select: proc do |x|
+                                             if x
+                                               NODES["SPOTLIT"].spotlight(SL_POSITIONS[x])
+                                             else
+                                               NODES["SPOTLIT"].clear!
+                                             end
+                                           end)
+
 # The end node that will be rendered to the lights:
 FINAL_RESULT               = last
 
@@ -214,16 +236,11 @@ end
 input_thread = Thread.new do
   guard_call("Input Handler Setup") do
     Thread.stop
-    # (0..7).each do |x|
-    #   (0..7).each do |y|
-    #     r, g, b = 0x00, x + 0x10, y + 0x10
-    #     next if (0..3).include?(x) && (4..7).include?(y)
-    #     INTERACTION.device.change_grid(x, y, r, g, b)
-    #     sleep 0.001
-    #   end
-    # end
-    # TODO: This isn't setting the actual light state properly.  AUGH!
+    # TODO: This isn't setting the actual light state properly.  AUGH!  It
+    # TODO: *does* set the LED and the controller state which is handy, but
+    # TODO: still...
     INT_STATES.each { |ctrl| ctrl.update(0) }
+    SL_STATE.update(nil)
 
     # ... and of course we don't want to sleep on this loop, or `join` the
     # thread for the same reason.
@@ -239,7 +256,7 @@ sim_thread = Thread.new do
       t = Time.now.to_f
       FINAL_RESULT.update(t)
       elapsed = Time.now.to_f - t
-      # Try to adhere to a 10ms update frequency...
+      # Try to adhere to a specific update frequency...
       sleep FRAME_PERIOD - elapsed if elapsed < FRAME_PERIOD
     end
   end
