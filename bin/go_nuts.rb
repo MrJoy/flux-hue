@@ -105,8 +105,12 @@ TRANSITION      = env_float("TRANSITION") || 0.4 # In seconds, 1/10th sec. prec!
 # Ballpark estimation of Jen's palette:
 MIN_HUE         = env_int("MIN_HUE", true) || 48_000
 MAX_HUE         = env_int("MAX_HUE", true) || 51_000
-MIN_BRI         = env_float("MIN_BRI") || 0.25
-MAX_BRI         = env_float("MAX_BRI") || 0.75
+
+# Intensity ranges:
+INT_VALUES  = [ [0.10, 0.20],
+                [0.15, 0.35],
+                [0.30, 0.60],
+                [0.50, 1.00] ]
 
 WAVE2_SCALE_X   = env_float("WAVE2_SCALE_X") || 0.1
 WAVE2_SCALE_Y   = env_float("WAVE2_SCALE_Y") || 1.0
@@ -134,8 +138,8 @@ t_index = 0
 lights_for_threads.each do |(_bridge_name, lights)|
   mask = [false] * num_lights
   lights.map(&:first).each { |idx| mask[idx] = true }
-  last = RangeTransform.new(initial_min: MIN_BRI,
-                            initial_max: MAX_BRI,
+  last = RangeTransform.new(initial_min: INT_VALUES[0][0],
+                            initial_max: INT_VALUES[0][1],
                             source:      last,
                             mask:        mask)
   NODES["SHIFTED_#{t_index}"]  = last
@@ -233,14 +237,10 @@ int_states  = [ BarControl.new(x: 0, y: 4, height: 4, on: int_on, off: int_off, 
                 BarControl.new(x: 1, y: 4, height: 4, on: int_on, off: int_off, down: int_down),
                 BarControl.new(x: 2, y: 4, height: 4, on: int_on, off: int_off, down: int_down),
                 BarControl.new(x: 3, y: 4, height: 4, on: int_on, off: int_off, down: int_down) ]
-int_values  = [ [0.20, 0.30],
-                [0.30, 0.45],
-                [0.45, 0.65],
-                [0.65, 1.00] ]
 int_states.each_with_index do |ctrl, idx|
   ctrl.on_change = proc do |val|
     puts "Intensity Controller ##{idx} => #{val}"
-    NODES["SHIFTED_#{idx}"].set_range(int_values[val][0], int_values[val][1])
+    NODES["SHIFTED_#{idx}"].set_range(INT_VALUES[val][0], INT_VALUES[val][1])
   end
 end
 
