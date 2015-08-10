@@ -165,33 +165,85 @@ global_results      = Results.new
 Thread.abort_on_exception = false
 
 INTERACTION = Launchpad::Interaction.new
+
+class BarControl
+  BLACK = { r: 0,    g: 0,    b: 0    }.freeze
+  WHITE = { r: 0x3F, g: 0x3F, b: 0x3F }.freeze
+
+  attr_accessor :on_change
+  attr_reader :value
+
+  def initialize(x:, y:, height:, on:, off:, down:, on_change: nil, value: 0)
+    @x          = x
+    @y          = y
+    @height     = height
+    @max_v      = height - 1
+    @on         = BLACK.merge(on)
+    @off        = BLACK.merge(off)
+    @down       = BLACK.merge(down)
+    @value      = value
+    @on_change  = on_change
+
+    INTERACTION.response_to(:grid, :both, x: @x, y: (@y..(@y + @max_v))) do |inter, action|
+      guard_call("BarControl(#{@x},#{@y})") do
+        xx = action[:x]
+        yy = action[:y]
+        # puts "#{x}, #{y}: #{intensity_states[x].value}"
+        if action[:state] == :down
+          update(yy - @y)
+          inter.device.change_grid(xx, yy, @down[:r], @down[:g], @down[:b])
+          @on_change.call(@value) if @on_change
+        else
+          render
+        end
+      end
+    end
+  end
+
+  def update(value)
+    @value = value
+    render
+  end
+
+  def render
+    val = @value
+    val = @height - 1 if val >= @height
+    (0..@value).each do |yy|
+      INTERACTION.device.change_grid(@x, @y + yy, @on[:r], @on[:g], @on[:b])
+    end
+    ((val+1)..@max_v).each do |yy|
+      INTERACTION.device.change_grid(@x, @y + yy, @off[:r], @off[:g], @off[:b])
+    end
+  end
+end
+
+# Brightness range controls:
+int_on      = { r: 0x27,          b: 0x3F }
+int_off     = { r: 0x02,          b: 0x04 }
+int_down    = { r: 0x27, g: 0x10, b: 0x3F }
+int_states  = [ BarControl.new(x: 0, y: 4, height: 4, on: int_on, off: int_off, down: int_down),
+                BarControl.new(x: 1, y: 4, height: 4, on: int_on, off: int_off, down: int_down),
+                BarControl.new(x: 2, y: 4, height: 4, on: int_on, off: int_off, down: int_down),
+                BarControl.new(x: 3, y: 4, height: 4, on: int_on, off: int_off, down: int_down) ]
+int_states.each_with_index do |ctrl, idx|
+  ctrl.on_change = proc do |val|
+    puts "Intensity Controller ##{idx} => #{val}"
+  end
+end
+
 input_thread = Thread.new do
   guard_call("Input Handler Setup") do
-    INTERACTION.response_to(:grid) do |inter, action|
-      guard_call("Handle Grid input") do
-        x = action[:x]
-        y = action[:y]
-        if action[:state] == :down
-          r, g, b = 0x3F, 0x00, 0x00
-        else
-          r, g, b = 0x00, x + 0x10, y + 0x10
-        end
-        inter.device.change_grid(x, y, r, g, b)
-      end
-    end
-    # INTERACTION.response_to(:mixer, :down) do |_interaction, action|
-    #   INTERACTION.stop
-    # end
-
-    # Yo dawg.... >.<  Don't want to `sleep` on this thread as I'm using that
-    # as a control mechanism.
     Thread.stop
-    (0..7).each do |x|
-      (0..7).each do |y|
-        INTERACTION.device.change_grid(x, y, 0x00, x + 0x10, y + 0x10)
-        sleep 0.001
-      end
-    end
+    # (0..7).each do |x|
+    #   (0..7).each do |y|
+    #     r, g, b = 0x00, x + 0x10, y + 0x10
+    #     next if (0..3).include?(x) && (4..7).include?(y)
+    #     INTERACTION.device.change_grid(x, y, r, g, b)
+    #     sleep 0.001
+    #   end
+    # end
+    intensity_states.each(&:render)
+
     # ... and of course we don't want to sleep on this loop, or `join` the
     # thread for the same reason.
     INTERACTION.start
