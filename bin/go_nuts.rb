@@ -49,6 +49,7 @@ Bundler.setup
 require "yaml"
 require "perlin_noise"
 require "oily_png"
+require "launchpad"
 
 require_relative "./lib/output"
 require_relative "./lib/config"
@@ -163,6 +164,43 @@ global_results      = Results.new
 
 Thread.abort_on_exception = false
 
+INTERACTION = Launchpad::Interaction.new
+input_thread = Thread.new do
+  guard_call("Input Handler Setup") do
+    INTERACTION.response_to(:grid) do |inter, action|
+      guard_call("Handle Grid input") do
+        x = action[:x]
+        y = action[:y]
+        if action[:state] == :down
+          r, g, b = 0x3F, 0x00, 0x00
+        else
+          r, g, b = 0x00, x + 0x10, y + 0x10
+        end
+        inter.device.change_grid(x, y, r, g, b)
+      end
+    end
+    # INTERACTION.response_to(:mixer, :down) do |_interaction, action|
+    #   INTERACTION.stop
+    # end
+
+    # Yo dawg.... >.<  Don't want to `sleep` on this thread as I'm using that
+    # as a control mechanism.
+    init = Thread.new do
+      (0..7).each do |x|
+        (0..7).each do |y|
+          INTERACTION.device.change_grid(x, y, 0x00, x + 0x10, y + 0x10)
+          sleep 0.001
+        end
+      end
+    end
+    # ... and of course we don't want to sleep on this loop, or `join` the
+    # thread for the same reason.
+    true while init.status != false
+    Thread.stop
+    INTERACTION.start
+  end
+end
+
 sim_thread = Thread.new do
   guard_call("Base Simulation") do
     Thread.stop
@@ -264,6 +302,7 @@ end
 sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
 sleep 0.01 while sweep_thread.status != "sleep" if USE_SWEEP
 sleep 0.01 while sim_thread.status != "sleep"
+sleep 0.01 while input_thread.status != "sleep"
 if SKIP_GC
   important "Disabling garbage collection!  BE CAREFUL!"
   GC.disable
@@ -273,6 +312,7 @@ global_results.begin!
 sim_thread.run
 sweep_thread.run if USE_SWEEP
 threads.each(&:run)
+input_thread.run
 
 trap("EXIT") do
   guard_call("Exit Handler") do
@@ -295,5 +335,6 @@ trap("EXIT") do
 end
 
 threads.each(&:join)
+input_thread.terminate
 sweep_thread.terminate if USE_SWEEP
 sim_thread.terminate
