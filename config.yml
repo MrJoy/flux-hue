@@ -51,6 +51,7 @@ main_lights:
 - ["Bridge-04", 9]
 - ["Bridge-04", 8]
 - ["Bridge-04", 1]
+dance_floor_lights: []
 accent_lights:
 - ["Bridge-01", 9]
 - ["Bridge-01", 10]
