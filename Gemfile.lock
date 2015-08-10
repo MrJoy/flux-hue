@@ -1,3 +1,11 @@
+GIT
+  remote: git@github.com:MrJoy/launchpad.git
+  revision: 8517a20189d8a7eb756ccaa15721a8bb27efb793
+  specs:
+    launchpad (0.3.0)
+      ffi
+      portmidi (>= 0.0.6)
+
 PATH
   remote: .
   specs:
@@ -40,6 +48,7 @@ GEM
     em-synchrony (1.0.4)
       eventmachine (>= 1.0.0.beta.1)
     eventmachine (1.0.8)
+    ffi (1.9.10)
     gyoku (1.3.1)
       builder (>= 2.1.2)
     http_parser.rb (0.6.0)
@@ -64,6 +73,7 @@ GEM
       log_switch (>= 0.4.0)
       nori (>= 2.0.2)
       savon (~> 2.0)
+    portmidi (0.0.6)
     powerpack (0.1.1)
     pry (0.10.1)
       coderay (~> 1.1.0)
@@ -120,6 +130,7 @@ DEPENDENCIES
   chunky_png
   curb
   flux_hue!
+  launchpad!
   oily_png
   perlin_noise
   pry

@@ -49,6 +49,8 @@ gemspec
 
 gem "curb",             require: false
 gem "perlin_noise",     require: false
+gem "launchpad",        require: false,
+                        git: "git@github.com:MrJoy/launchpad.git"
 # gem "os",               require: false # https://github.com/rdp/os -- note rss_bytes is returning KiB, not B.
 
 group :development do
