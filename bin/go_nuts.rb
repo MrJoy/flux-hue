@@ -118,9 +118,13 @@ INT_VALUES  = [ [0.10, 0.20],
                 [0.30, 0.60],
                 [0.50, 1.00] ]
 
-INT_ON      = { r: 0x27,          b: 0x3F }
-INT_OFF     = { r: 0x02,          b: 0x04 }
-INT_DOWN    = { r: 0x27, g: 0x10, b: 0x3F }
+INT_ON          = { r: 0x27,          b: 0x3F }
+INT_OFF         = { r: 0x02,          b: 0x04 }
+INT_DOWN        = { r: 0x27, g: 0x10, b: 0x3F }
+
+SL_ON           = { r: 0x27, g: 0x00, b: 0x00 }
+SL_OFF          = { r: 0x02, g: 0x00, b: 0x00 }
+SL_DOWN         = { r: 0x3F, g: 0x10, b: 0x10 }
 
 WAVE2_SCALE_X   = env_float("WAVE2_SCALE_X") || 0.1
 WAVE2_SCALE_Y   = env_float("WAVE2_SCALE_Y") || 1.0
@@ -183,9 +187,9 @@ SL_STATE                = RadioControl.new(launchpad: INTERACTION,
                                            y:         0,
                                            height:    sl_height,
                                            width:     sl_width,
-                                           on:        { r: 0x3F, g: 0x00, b: 0x00 },
-                                           off:       { r: 0x04, g: 0x00, b: 0x00 },
-                                           down:      { r: 0x3F, g: 0x10, b: 0x10 },
+                                           on:        SL_ON,
+                                           off:       SL_OFF,
+                                           down:      SL_DOWN,
                                            on_select: proc do |x|
                                              puts "Spotlight Controller => #{x ? x : 'off'}"
                                              if x
