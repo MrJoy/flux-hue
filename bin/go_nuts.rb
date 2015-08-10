@@ -90,8 +90,7 @@ WAVE2_SCALE_Y   = env_float("WAVE2_SCALE_Y") || 1.0
 
 PERLIN_SCALE_Y  = env_float("PERLIN_SCALE_Y") || 4.0
 
-# TODO: Do we need to modulate this?  Also, we should dump our seed with the
-# TODO: state above as well.
+# TODO: Run all simulations, and use a mixer to blend between them...
 # BASE_SIMULATION = ConstSimulation.new(lights:    CONFIG["main_lights"].length,
 #                                       debug:     DEBUG_CONST)
 # BASE_SIMULATION = Wave2Simulation.new(lights:    CONFIG["main_lights"].length,
