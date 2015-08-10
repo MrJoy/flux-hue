@@ -59,15 +59,20 @@ require_relative "./lib/utility"
 require_relative "./lib/results"
 require_relative "./lib/http"
 require_relative "./lib/vector2"
+
 require_relative "./lib/node"
 require_relative "./lib/root_node"
 require_relative "./lib/transform_node"
+
 require_relative "./lib/const_simulation"
 require_relative "./lib/perlin_simulation"
 require_relative "./lib/wave2_simulation"
+
 require_relative "./lib/contrast_transform"
 require_relative "./lib/range_transform"
 require_relative "./lib/spotlight_transform"
+
+require_relative "./lib/bar_control"
 
 ###############################################################################
 # Profiling and Debugging
@@ -112,6 +117,10 @@ INT_VALUES  = [ [0.10, 0.20],
                 [0.30, 0.60],
                 [0.50, 1.00] ]
 
+INT_ON      = { r: 0x27,          b: 0x3F }
+INT_OFF     = { r: 0x02,          b: 0x04 }
+INT_DOWN    = { r: 0x27, g: 0x10, b: 0x3F }
+
 WAVE2_SCALE_X   = env_float("WAVE2_SCALE_X") || 0.1
 WAVE2_SCALE_Y   = env_float("WAVE2_SCALE_Y") || 1.0
 WAVE2_SPEED     = Vector2.new(x: WAVE2_SCALE_X, y: WAVE2_SCALE_Y)
@@ -119,10 +128,19 @@ WAVE2_SPEED     = Vector2.new(x: WAVE2_SCALE_X, y: WAVE2_SCALE_Y)
 PERLIN_SCALE_Y  = env_float("PERLIN_SCALE_Y") || 4.0
 PERLIN_SPEED    = Vector2.new(x: 0.1, y: PERLIN_SCALE_Y)
 
+###############################################################################
+# Shared State Setup
+###############################################################################
 # TODO: Run all simulations, and use a mixer to blend between them...
-num_lights = CONFIG["main_lights"].length
+num_lights          = CONFIG["main_lights"].length
 lights_for_threads  = in_groups(CONFIG["main_lights"])
-NODES = {}
+INTERACTION         = Launchpad::Interaction.new
+INT_STATES          = []
+NODES               = {}
+
+###############################################################################
+# Simulation Graph Configuration / Setup
+###############################################################################
 # Root nodes (don't act as modifiers on other nodes' output):
        NODES["CONST"]      = ConstSimulation.new(lights: num_lights)
        NODES["WAVE2"]      = Wave2Simulation.new(lights: num_lights, speed: WAVE2_SPEED)
@@ -135,19 +153,27 @@ last = NODES["STRETCHED"]  = ContrastTransform.new(function:   Perlin::Curve::CU
                                                    source:     last)
 # Create one control group here per "quadrant"...
 t_index = 0
-lights_for_threads.each do |(_bridge_name, lights)|
+lights_for_threads.each do |(_bridge_name, (lights, mask))|
   mask = [false] * num_lights
   lights.map(&:first).each { |idx| mask[idx] = true }
-  last = RangeTransform.new(initial_min: INT_VALUES[0][0],
-                            initial_max: INT_VALUES[0][1],
-                            source:      last,
-                            mask:        mask)
+
+  last                = RangeTransform.new(initial_min: INT_VALUES[0][0],
+                                           initial_max: INT_VALUES[0][1],
+                                           source:      last,
+                                           mask:        mask)
+  INT_STATES[t_index] = BarControl.new(launchpad: INTERACTION,
+                        x:         t_index,
+                        y:         4,
+                        height:    4,
+                        on:        INT_ON,
+                        off:       INT_OFF,
+                        down:      INT_DOWN)
   NODES["SHIFTED_#{t_index}"]  = last
   t_index                     += 1
 end
 last = NODES["SPOTLIT"]    = SpotlightTransform.new(source: last)
 # The end node that will be rendered to the lights:
-FINAL_RESULT               = NODES["SPOTLIT"]
+FINAL_RESULT               = last
 
 NODES.each do |name, node|
   node.debug = DEBUG_FLAGS[name]
@@ -177,67 +203,8 @@ global_results = Results.new
 
 Thread.abort_on_exception = false
 
-INTERACTION = Launchpad::Interaction.new
-
-class BarControl
-  BLACK = { r: 0,    g: 0,    b: 0    }.freeze
-  WHITE = { r: 0x3F, g: 0x3F, b: 0x3F }.freeze
-
-  attr_accessor :on_change
-  attr_reader :value
-
-  def initialize(x:, y:, height:, on:, off:, down:, on_change: nil, value: 0)
-    @x          = x
-    @y          = y
-    @height     = height
-    @max_v      = height - 1
-    @on         = BLACK.merge(on)
-    @off        = BLACK.merge(off)
-    @down       = BLACK.merge(down)
-    @value      = value
-    @on_change  = on_change
-
-    INTERACTION.response_to(:grid, :both, x: @x, y: (@y..(@y + @max_v))) do |inter, action|
-      guard_call("BarControl(#{@x},#{@y})") do
-        xx = action[:x]
-        yy = action[:y]
-        if action[:state] == :down
-          update(yy - @y)
-          inter.device.change_grid(xx, yy, @down[:r], @down[:g], @down[:b])
-          @on_change.call(@value) if @on_change
-        else
-          render
-        end
-      end
-    end
-  end
-
-  def update(value)
-    @value = value
-    render
-  end
-
-  def render
-    val = @value
-    val = @height - 1 if val >= @height
-    (0..@value).each do |yy|
-      INTERACTION.device.change_grid(@x, @y + yy, @on[:r], @on[:g], @on[:b])
-    end
-    ((val+1)..@max_v).each do |yy|
-      INTERACTION.device.change_grid(@x, @y + yy, @off[:r], @off[:g], @off[:b])
-    end
-  end
-end
-
 # Brightness range controls:
-int_on      = { r: 0x27,          b: 0x3F }
-int_off     = { r: 0x02,          b: 0x04 }
-int_down    = { r: 0x27, g: 0x10, b: 0x3F }
-int_states  = [ BarControl.new(x: 0, y: 4, height: 4, on: int_on, off: int_off, down: int_down),
-                BarControl.new(x: 1, y: 4, height: 4, on: int_on, off: int_off, down: int_down),
-                BarControl.new(x: 2, y: 4, height: 4, on: int_on, off: int_off, down: int_down),
-                BarControl.new(x: 3, y: 4, height: 4, on: int_on, off: int_off, down: int_down) ]
-int_states.each_with_index do |ctrl, idx|
+INT_STATES.each_with_index do |ctrl, idx|
   ctrl.on_change = proc do |val|
     puts "Intensity Controller ##{idx} => #{val}"
     NODES["SHIFTED_#{idx}"].set_range(INT_VALUES[val][0], INT_VALUES[val][1])
@@ -256,7 +223,7 @@ input_thread = Thread.new do
     #   end
     # end
     # TODO: This isn't setting the actual light state properly.  AUGH!
-    int_states.each { |ctrl| ctrl.update(0) }
+    INT_STATES.each { |ctrl| ctrl.update(0) }
 
     # ... and of course we don't want to sleep on this loop, or `join` the
     # thread for the same reason.
@@ -328,7 +295,7 @@ if USE_SWEEP
   end
 end
 
-threads = lights_for_threads.map do |(bridge_name, lights)|
+threads = lights_for_threads.map do |(bridge_name, (lights, _mask))|
   Thread.new do
     guard_call(bridge_name) do
       config    = CONFIG["bridges"][bridge_name]

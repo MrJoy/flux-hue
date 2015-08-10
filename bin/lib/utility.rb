@@ -22,7 +22,11 @@ def in_groups(entities)
       indexed_lights << [index, light_id]
       index += 1
     end
-    groups[bridge_name] = indexed_lights
+
+    mask = [false] * entities.length
+    indexed_lights.map(&:first).each { |idx| mask[idx] = true }
+
+    groups[bridge_name] = [indexed_lights, mask]
   end
 
   groups
