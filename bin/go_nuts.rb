@@ -51,10 +51,10 @@ if PROFILE_RUN
   RubyProf.measure_mode = RubyProf::ALLOCATIONS
   RubyProf.start
 end
-DEBUG_PERLIN    = env_int("DEBUG_PERLIN", true) != 0
-DEBUG_CONTRAST  = env_int("DEBUG_CONTRAST", true) != 0
-DEBUG_RANGE     = env_int("DEBUG_RANGE", true) != 0
-DEBUG_SPOTLIGHT = env_int("DEBUG_SPOTLIGHT", true) != 0
+DEBUG_FLAGS     = {}
+(ENV["DEBUG_NODES"] || "").split(/\s*,\s*/).map(&:upcase).each do |node|
+  DEBUG_FLAGS[node] = true
+end
 
 ###############################################################################
 # Timing Configuration
@@ -91,28 +91,34 @@ WAVE2_SCALE_Y   = env_float("WAVE2_SCALE_Y") || 1.0
 PERLIN_SCALE_Y  = env_float("PERLIN_SCALE_Y") || 4.0
 
 # TODO: Run all simulations, and use a mixer to blend between them...
-# BASE_SIMULATION = ConstSimulation.new(lights:    CONFIG["main_lights"].length,
-#                                       debug:     DEBUG_CONST)
-# BASE_SIMULATION = Wave2Simulation.new(lights:    CONFIG["main_lights"].length,
-#                                       speed:     Vector2.new(x: WAVE2_SCALE_X, y: WAVE2_SCALE_Y),
-#                                       debug:     DEBUG_WAVE2)
-BASE_SIMULATION = PerlinSimulation.new(lights:    CONFIG["main_lights"].length,
-                                       speed:     Vector2.new(x: 0.1, y: PERLIN_SCALE_Y),
-                                       debug:     DEBUG_PERLIN)
-CONTRASTED      = ContrastTransform.new(lights:     CONFIG["main_lights"].length,
-                                        function:   Perlin::Curve::CUBIC, # LINEAR, CUBIC, QUINTIC -- don't bother using iterations>1 with LINEAR!
-                                        iterations: 3,
-                                        source:     BASE_SIMULATION,
-                                        debug:      DEBUG_CONTRAST)
-RANGED          = RangeTransform.new(lights: CONFIG["main_lights"].length,
-                                     initial_min: MIN_BRI,
-                                     initial_max: MAX_BRI,
-                                     source:      CONTRASTED,
-                                     debug:       DEBUG_RANGE)
-SPOTLIT         = SpotlightTransform.new(lights: CONFIG["main_lights"].length,
-                                         source:      RANGED,
-                                         debug:       DEBUG_SPOTLIGHT)
-FINAL_RESULT    = SPOTLIT
+NODES = {}
+# Root nodes (don't act as modifiers on other nodes' output):
+NODES["CONST"]      = ConstSimulation.new(lights: CONFIG["main_lights"].length,
+                                          debug:  DEBUG_FLAGS["CONST"])
+NODES["WAVE2"]      = Wave2Simulation.new(lights: CONFIG["main_lights"].length,
+                                          speed:  Vector2.new(x: WAVE2_SCALE_X, y: WAVE2_SCALE_Y),
+                                          debug:  DEBUG_FLAGS["WAVE2"])
+NODES["PERLIN"]     = PerlinSimulation.new(lights: CONFIG["main_lights"].length,
+                                           speed:  Vector2.new(x: 0.1, y: PERLIN_SCALE_Y),
+                                           debug:  DEBUG_FLAGS["PERLIN"])
+
+# Transform nodes (act as a chain of modifiers):
+# TODO: Parameterize a few more things like function/iterations below.
+NODES["STRETCHED"]  = ContrastTransform.new(lights:     CONFIG["main_lights"].length,
+                                            function:   Perlin::Curve::CUBIC, # LINEAR, CUBIC, QUINTIC -- don't bother using iterations>1 with LINEAR!
+                                            iterations: 3,
+                                            source:     NODES["PERLIN"],
+                                            debug:      DEBUG_FLAGS["STRETCHED"])
+NODES["SHIFTED"]    = RangeTransform.new(lights:      CONFIG["main_lights"].length,
+                                         initial_min: MIN_BRI,
+                                         initial_max: MAX_BRI,
+                                         source:      NODES["STRETCHED"],
+                                         debug:       DEBUG_FLAGS["SHIFTED"])
+NODES["SPOTLIT"]    = SpotlightTransform.new(lights: CONFIG["main_lights"].length,
+                                             source: NODES["SHIFTED"],
+                                             debug:  DEBUG_FLAGS["SPOTLIT"])
+# The end node that will be rendered to the lights:
+FINAL_RESULT        = NODES["SPOTLIT"]
 
 ###############################################################################
 # Other Configuration
@@ -255,10 +261,12 @@ trap("EXIT") do
         printer.print(fh)
       end
     end
-    BASE_SIMULATION.snapshot_to!("00_perlin.png") if DEBUG_PERLIN
-    CONTRASTED.snapshot_to!("01_contrasted.png") if DEBUG_CONTRAST
-    RANGED.snapshot_to!("02_ranged.png") if DEBUG_RANGE
-    SPOTLIT.snapshot_to!("03_spotlit.png") if DEBUG_SPOTLIGHT
+    index = 0
+    NODES.each do |name, node|
+      next unless DEBUG_FLAGS[name]
+      node.snapshot_to!("%02d_%s.png" % [index, name.downcase])
+      index += 1
+    end
   end
 end
 
