@@ -90,7 +90,7 @@ BASE_SIMULATION = PerlinSimulation.new(lights:    CONFIG["main_lights"].length,
                                        speed:     Vector2.new(x: 0.1, y: PERLIN_SCALE_Y),
                                        debug:     DEBUG_PERLIN)
 CONTRASTED      = ContrastTransform.new(lights:     CONFIG["main_lights"].length,
-                                        function:   Perlin::Curve::CUBIC,
+                                        function:   Perlin::Curve::CUBIC, # LINEAR, CUBIC, QUINTIC -- don't bother using iterations>1 with LINEAR!
                                         iterations: 3,
                                         source:     BASE_SIMULATION,
                                         debug:      DEBUG_CONTRAST)
