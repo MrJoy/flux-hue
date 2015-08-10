@@ -2,8 +2,8 @@
 #
 # TODO: Allow change to range to apply over time.
 class RangeTransform < TransformNode
-  def initialize(lights:, initial_min:, initial_max:, source:, debug: false)
-    super(lights: lights, source: source, debug: debug)
+  def initialize(initial_min:, initial_max:, source:)
+    super(source: source)
     @min = initial_min
     @max = initial_max
   end

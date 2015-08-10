@@ -4,16 +4,19 @@ DEBUG_SCALE   = Vector2.new(x: 2, y: 1)
 # Base class representing the state of an ordered set of lights, with an ability to debug
 # things via PNG dump.
 class Node
-  attr_accessor :history
+  attr_accessor :history, :debug, :lights
 
-  def initialize(lights:, debug: false)
-    @debug    = debug
-    @history  = [] if @debug
+  def initialize(lights:)
     @lights   = lights
     @state    = Array.new(@lights)
     lights.times do |n|
       @state[n] = 0.0
     end
+  end
+
+  def debug=(val)
+    @debug = val
+    @history ||= [] if @debug
   end
 
   def [](n); @state[n]; end

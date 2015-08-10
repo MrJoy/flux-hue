@@ -5,8 +5,8 @@
 #
 # TODO: Allow effect to come in / go out over time.
 class SpotlightTransform < TransformNode
-  def initialize(lights:, source:, debug: false)
-    super(lights: lights, source: source, debug: debug)
+  def initialize(source:)
+    super(source: source)
     @spotlight  = nil
   end
 

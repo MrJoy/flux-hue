@@ -84,6 +84,9 @@ DEBUG_FLAGS = Hash[(ENV["DEBUG_NODES"] || "")
 #
 # Play with this to see how error rates are affected.
 ###############################################################################
+# TODO: Instead of a between sleep, we should look at how many ms we ought to
+# TODO: wait after an update to avoid flooding the network.  That'll depend on
+# TODO: number of components updated, etc.
 SPREAD_SLEEP    = env_float("SPREAD_SLEEP") || 0.0
 BETWEEN_SLEEP   = env_float("BETWEEN_SLEEP") || 0.0
 
@@ -106,38 +109,34 @@ MAX_BRI         = env_float("MAX_BRI") || 0.75
 
 WAVE2_SCALE_X   = env_float("WAVE2_SCALE_X") || 0.1
 WAVE2_SCALE_Y   = env_float("WAVE2_SCALE_Y") || 1.0
+WAVE2_SPEED     = Vector2.new(x: WAVE2_SCALE_X, y: WAVE2_SCALE_Y)
 
 PERLIN_SCALE_Y  = env_float("PERLIN_SCALE_Y") || 4.0
+PERLIN_SPEED    = Vector2.new(x: 0.1, y: PERLIN_SCALE_Y)
 
 # TODO: Run all simulations, and use a mixer to blend between them...
+num_lights = CONFIG["main_lights"].length
 NODES = {}
 # Root nodes (don't act as modifiers on other nodes' output):
-NODES["CONST"]      = ConstSimulation.new(lights: CONFIG["main_lights"].length,
-                                          debug:  DEBUG_FLAGS["CONST"])
-NODES["WAVE2"]      = Wave2Simulation.new(lights: CONFIG["main_lights"].length,
-                                          speed:  Vector2.new(x: WAVE2_SCALE_X, y: WAVE2_SCALE_Y),
-                                          debug:  DEBUG_FLAGS["WAVE2"])
-NODES["PERLIN"]     = PerlinSimulation.new(lights: CONFIG["main_lights"].length,
-                                           speed:  Vector2.new(x: 0.1, y: PERLIN_SCALE_Y),
-                                           debug:  DEBUG_FLAGS["PERLIN"])
+       NODES["CONST"]      = ConstSimulation.new(lights: num_lights)
+       NODES["WAVE2"]      = Wave2Simulation.new(lights: num_lights, speed: WAVE2_SPEED)
+last = NODES["PERLIN"]     = PerlinSimulation.new(lights: num_lights, speed: PERLIN_SPEED)
 
 # Transform nodes (act as a chain of modifiers):
 # TODO: Parameterize a few more things like function/iterations below.
-NODES["STRETCHED"]  = ContrastTransform.new(lights:     CONFIG["main_lights"].length,
-                                            function:   Perlin::Curve::CUBIC, # LINEAR, CUBIC, QUINTIC -- don't bother using iterations>1 with LINEAR!
-                                            iterations: 3,
-                                            source:     NODES["PERLIN"],
-                                            debug:      DEBUG_FLAGS["STRETCHED"])
-NODES["SHIFTED"]    = RangeTransform.new(lights:      CONFIG["main_lights"].length,
-                                         initial_min: MIN_BRI,
-                                         initial_max: MAX_BRI,
-                                         source:      NODES["STRETCHED"],
-                                         debug:       DEBUG_FLAGS["SHIFTED"])
-NODES["SPOTLIT"]    = SpotlightTransform.new(lights: CONFIG["main_lights"].length,
-                                             source: NODES["SHIFTED"],
-                                             debug:  DEBUG_FLAGS["SPOTLIT"])
+last = NODES["STRETCHED"]  = ContrastTransform.new(function:   Perlin::Curve::CUBIC, # LINEAR, CUBIC, QUINTIC -- don't bother using iterations>1 with LINEAR!
+                                                   iterations: 3,
+                                                   source:     last)
+last = NODES["SHIFTED"]    = RangeTransform.new(initial_min: MIN_BRI,
+                                                initial_max: MAX_BRI,
+                                                source:      last)
+last = NODES["SPOTLIT"]    = SpotlightTransform.new(source: last)
 # The end node that will be rendered to the lights:
 FINAL_RESULT        = NODES["SPOTLIT"]
+
+NODES.each do |name, node|
+  node.debug = DEBUG_FLAGS[name]
+end
 
 ###############################################################################
 # Operational Configuration

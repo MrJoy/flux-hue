@@ -1,7 +1,7 @@
 # Manage and run a simulation of just `sin(x + y)`.
 class Wave2Simulation < RootNode
-  def initialize(lights:, initial_state: nil, speed:, debug: false)
-    super(lights: lights, initial_state: initial_state, debug: debug)
+  def initialize(lights:, initial_state: nil, speed:)
+    super(lights: lights, initial_state: initial_state)
     @speed = speed
   end
 

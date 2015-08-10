@@ -10,8 +10,8 @@
 # end
 # ```
 class TransformNode < Node
-  def initialize(lights:, source: nil, debug: false)
-    super(lights: lights, debug: debug)
+  def initialize(source:)
+    super(lights: source.lights)
     @source = source
   end
 
