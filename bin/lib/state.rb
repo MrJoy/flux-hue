@@ -1,4 +1,5 @@
-FRAME_PERIOD = 0.01
+FRAME_PERIOD  = 0.01
+DEBUG_SCALE   = Vector2.new(x: 2, y: 1)
 
 # Generalized representation for the state of an ordered set of lights.
 class State
@@ -25,7 +26,6 @@ class State
     @history << { t: t, dt: delta, state: @state.dup }
   end
 
-  DEBUG_SCALE = Vector2.new(x: 2, y: 1)
   def snapshot_to!(fname)
     enrich_history!
     png = new_image

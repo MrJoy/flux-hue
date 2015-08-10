@@ -34,6 +34,7 @@ require_relative "./lib/http"
 require_relative "./lib/vector2"
 require_relative "./lib/state"
 require_relative "./lib/perlin_simulation"
+require_relative "./lib/range_transform"
 
 ###############################################################################
 # Profiling
@@ -64,40 +65,30 @@ VERBOSE         = env_int("VERBOSE")
 # Tweak this to change the visual effect.
 ###############################################################################
 # TODO: Move all of these into the config...
-USE_SWEEP     = (env_int("USE_SWEEP", true) || 1) != 0
-TRANSITION    = env_float("TRANSITION") || 0.4 # In seconds, 1/10th sec. prec!
-SWEEP_LENGTH  = 2.0
+USE_SWEEP       = (env_int("USE_SWEEP", true) || 1) != 0
+SWEEP_LENGTH    = 2.0
+
+TRANSITION      = env_float("TRANSITION") || 0.4 # In seconds, 1/10th sec. prec!
 
 # Ballpark estimation of Jen's palette:
-MIN_HUE       = env_int("MIN_HUE", true) || 48_000
-MAX_HUE       = env_int("MAX_HUE", true) || 51_000
-MIN_SAT       = env_int("MIN_SAT", true) || 212
-MAX_SAT       = env_int("MAX_SAT", true) || 254
-MIN_BRI       = env_int("MIN_BRI", true) || 63
-MAX_BRI       = env_int("MAX_BRI", true) || 191
+MIN_HUE         = env_int("MIN_HUE", true) || 48_000
+MAX_HUE         = env_int("MAX_HUE", true) || 51_000
+MIN_BRI         = env_float("MIN_BRI") || 0.25
+MAX_BRI         = env_float("MAX_BRI") || 0.75
 
-TIMESCALE_H   = env_float("TIMESCALE_H") || 0.2
-TIMESCALE_S   = env_float("TIMESCALE_S") || 1.0
-TIMESCALE_B   = env_float("TIMESCALE_B") || 2.0
+PERLIN_SCALE_Y  = env_float("PERLIN_SCALE_Y") || 4.0
 
-HUE_FUNC      = ENV.key?("HUE_FUNC") ? ENV["HUE_FUNC"] : "none"
-SAT_FUNC      = ENV.key?("SAT_FUNC") ? ENV["SAT_FUNC"] : "none"
-BRI_FUNC      = ENV.key?("BRI_FUNC") ? ENV["BRI_FUNC"] : "perlin"
-
-# TODO: Build out a variety of noise configurations.  Parameterize them, and
-# TODO: allow meta-parameterization as well.
-PERSISTENCE   = 1
-OCTAVES       = 1
 # TODO: Do we need to modulate this?  Also, we should dump our seed with the
 # TODO: state above as well.
-PERLIN        = PerlinSimulation.new(lights: CONFIG["main_lights"].length,
-                                     seed:   0,
-                                     speed:  Vector2.new(x: 0.1, y: TIMESCALE_B),
-                                     debug:  DEBUG_PERLIN)
-
+BASE_SIMULATION = PerlinSimulation.new(lights: CONFIG["main_lights"].length,
+                                       seed:   0,
+                                       speed:  Vector2.new(x: 0.1, y: PERLIN_SCALE_Y),
+                                       debug:  DEBUG_PERLIN)
+RANGED          = RangeTransform.new(initial_min: MIN_BRI,
+                                     initial_max: MAX_BRI,
+                                     source:      BASE_SIMULATION)
 def perlin(x, _s, min, max)
-  raw = PERLIN[x]
-  ((raw * (max - min)) + min).to_i
+  (RANGED[x] * 254).to_i
 end
 
 def wave2(x, s, min, max)
@@ -111,45 +102,14 @@ def wave(_x, s, min, max)
   (((Math.sin(elapsed * s) + 1) * 0.5 * (max - min)) + min).to_i
 end
 
-HUE_GEN = {
-  "perlin"  => proc { |idx| perlin(idx, TIMESCALE_H, MIN_HUE, MAX_HUE) },
-  "wave"    => proc { |idx| wave(idx, TIMESCALE_H, MIN_HUE, MAX_HUE) },
-  "wave2"   => proc { |idx| wave2(idx, TIMESCALE_H, MIN_HUE, MAX_HUE) },
-}
-
-SAT_GEN = {
-  "perlin"  => proc { |idx| perlin(idx, TIMESCALE_S, MIN_SAT, MAX_SAT) },
-  "wave"    => proc { |idx| wave(idx, TIMESCALE_S, MIN_SAT, MAX_SAT) },
-  "wave2"   => proc { |idx| wave2(idx, TIMESCALE_S, MIN_SAT, MAX_SAT) },
-}
-
-BRI_GEN = {
-  "perlin"  => proc { |idx| perlin(idx, TIMESCALE_B, MIN_BRI, MAX_BRI) },
-  "wave"    => proc { |idx| wave(idx, TIMESCALE_B, MIN_BRI, MAX_BRI) },
-  "wave2"   => proc { |idx| wave2(idx, TIMESCALE_B, MIN_BRI, MAX_BRI) },
-}
-
 ###############################################################################
 # Other Configuration
 ###############################################################################
 SKIP_GC           = !!env_int("SKIP_GC")
 
 ###############################################################################
-# Helper Functions
-###############################################################################
-def validate_func_for!(component, value, functions)
-  return if functions.key?(value)
-  return if value == "none"
-  error "Unknown value for #{component.upcase}_FUNC: `#{value}`!"
-end
-
-###############################################################################
 # Main
 ###############################################################################
-
-validate_func_for!("hue", HUE_FUNC, HUE_GEN)
-validate_func_for!("sat", SAT_FUNC, SAT_GEN)
-validate_func_for!("bri", BRI_FUNC, BRI_GEN)
 
 if ITERATIONS > 0
   debug "Running for #{ITERATIONS} iterations."
@@ -162,13 +122,13 @@ global_results      = Results.new
 
 Thread.abort_on_exception = false
 
-perlin_thread = Thread.new do
-  guard_call("Perlin Simulation") do
+base_sim_thread = Thread.new do
+  guard_call("Base Simulation") do
     Thread.stop
 
     loop do
       t = Time.now.to_f
-      PERLIN.update(t)
+      BASE_SIMULATION.update(t)
       elapsed = Time.now.to_f - t
       # Try to adhere to a 10ms update frequency...
       sleep FRAME_PERIOD - elapsed if elapsed < FRAME_PERIOD
@@ -241,11 +201,7 @@ threads = lights_for_threads.map do |(bridge_name, lights)|
       requests  = lights
                   .map do |(idx, lid)|
                     LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
-                      data = {}
-                      data["hue"] = HUE_GEN[HUE_FUNC].call(idx) if HUE_GEN[HUE_FUNC]
-                      data["sat"] = SAT_GEN[SAT_FUNC].call(idx) if SAT_GEN[SAT_FUNC]
-                      data["bri"] = BRI_GEN[BRI_FUNC].call(idx) if BRI_GEN[BRI_FUNC]
-                      # data["bri"] = wave2(idx, TIMESCALE_B, MIN_BRI, MAX_BRI)
+                      data = { "bri" => (RANGED[idx] * 254).to_i }
                       with_transition_time(data, TRANSITION)
                     end
                   end
@@ -266,14 +222,14 @@ end
 # Wait for threads to finish initializing...
 sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
 sleep 0.01 while sweep_thread.status != "sleep" if USE_SWEEP
-sleep 0.01 while perlin_thread.status != "sleep"
+sleep 0.01 while base_sim_thread.status != "sleep"
 if SKIP_GC
   important "Disabling garbage collection!  BE CAREFUL!"
   GC.disable
 end
 debug "Threads are ready to go, waking them up."
 global_results.begin!
-perlin_thread.run
+base_sim_thread.run
 sweep_thread.run if USE_SWEEP
 threads.each(&:run)
 
@@ -287,9 +243,9 @@ trap("EXIT") do
       printer.print(fh)
     end
   end
-  PERLIN.snapshot_to!("perlin.png") if DEBUG_PERLIN
+  BASE_SIMULATION.snapshot_to!("perlin.png") if DEBUG_PERLIN
 end
 
 threads.each(&:join)
 sweep_thread.terminate if USE_SWEEP
-perlin_thread.terminate
+base_sim_thread.terminate
