@@ -1,17 +1,18 @@
 FRAME_PERIOD  = 0.01
 DEBUG_SCALE   = Vector2.new(x: 2, y: 1)
 
-# Generalized representation for the state of an ordered set of lights.
-class State
+# Base class representing the state of an ordered set of lights, with an ability to debug
+# things via PNG dump.
+class Node
   attr_accessor :history
 
-  def initialize(lights:, initial_state: nil, debug: false)
+  def initialize(lights:, debug: false)
     @debug    = debug
     @history  = [] if @debug
     @lights   = lights
     @state    = Array.new(@lights)
     lights.times do |n|
-      @state[n] = initial_state ? initial_state[n] : 0.0
+      @state[n] = 0.0
     end
   end
 
@@ -22,8 +23,9 @@ class State
     return unless @debug
     prev_t  = @history.last
     prev_t  = prev_t ? prev_t[:t] : t
-    delta   = t - prev_t
-    @history << { t: t, dt: delta, state: @state.dup }
+    @history << { t:     t,
+                  dt:    t - prev_t,
+                  state: (0..(@lights - 1)).map { |n| self[n] } }
   end
 
   def snapshot_to!(fname)

@@ -32,20 +32,23 @@ require_relative "./lib/utility"
 require_relative "./lib/results"
 require_relative "./lib/http"
 require_relative "./lib/vector2"
-require_relative "./lib/state"
+require_relative "./lib/node"
+require_relative "./lib/root_node"
+require_relative "./lib/transform_node"
 require_relative "./lib/perlin_simulation"
 require_relative "./lib/range_transform"
 
 ###############################################################################
 # Profiling
 ###############################################################################
-PROFILE_RUN = env_int("PROFILE_RUN") != 0
+PROFILE_RUN = env_int("PROFILE_RUN", true) != 0
 if PROFILE_RUN
   require "ruby-prof"
   RubyProf.measure_mode = RubyProf::ALLOCATIONS
   RubyProf.start
 end
-DEBUG_PERLIN = env_int("DEBUG_PERLIN") != 0
+DEBUG_PERLIN = env_int("DEBUG_PERLIN", true) != 0
+DEBUG_RANGE  = env_int("DEBUG_RANGE", true) != 0
 
 ###############################################################################
 # Timing Configuration
@@ -84,9 +87,11 @@ BASE_SIMULATION = PerlinSimulation.new(lights: CONFIG["main_lights"].length,
                                        seed:   0,
                                        speed:  Vector2.new(x: 0.1, y: PERLIN_SCALE_Y),
                                        debug:  DEBUG_PERLIN)
-RANGED          = RangeTransform.new(initial_min: MIN_BRI,
+RANGED          = RangeTransform.new(lights: CONFIG["main_lights"].length,
+                                     initial_min: MIN_BRI,
                                      initial_max: MAX_BRI,
-                                     source:      BASE_SIMULATION)
+                                     source:      BASE_SIMULATION,
+                                     debug:       DEBUG_RANGE)
 def perlin(x, _s, min, max)
   (RANGED[x] * 254).to_i
 end
@@ -128,7 +133,7 @@ base_sim_thread = Thread.new do
 
     loop do
       t = Time.now.to_f
-      BASE_SIMULATION.update(t)
+      RANGED.update(t)
       elapsed = Time.now.to_f - t
       # Try to adhere to a 10ms update frequency...
       sleep FRAME_PERIOD - elapsed if elapsed < FRAME_PERIOD
@@ -234,16 +239,19 @@ sweep_thread.run if USE_SWEEP
 threads.each(&:run)
 
 trap("EXIT") do
-  global_results.done!
-  print_results(global_results)
-  if PROFILE_RUN
-    result  = RubyProf.stop
-    printer = RubyProf::CallStackPrinter.new(result)
-    File.open("results.html", "w") do |fh|
-      printer.print(fh)
+  guard_call("Exit Handler") do
+    global_results.done!
+    print_results(global_results)
+    if PROFILE_RUN
+      result  = RubyProf.stop
+      printer = RubyProf::CallStackPrinter.new(result)
+      File.open("results.html", "w") do |fh|
+        printer.print(fh)
+      end
     end
+    BASE_SIMULATION.snapshot_to!("perlin.png") if DEBUG_PERLIN
+    RANGED.snapshot_to!("ranged.png") if DEBUG_RANGE
   end
-  BASE_SIMULATION.snapshot_to!("perlin.png") if DEBUG_PERLIN
 end
 
 threads.each(&:join)

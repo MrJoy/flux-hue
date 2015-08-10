@@ -39,8 +39,8 @@ export TRANSITION=0.3
 ###############################################################################
 # export MIN_HUE=48000
 # export MAX_HUE=51000
-export MIN_BRI=0
-export MAX_BRI=1
+export MIN_BRI=0.25
+export MAX_BRI=0.75
 
 
 ###############################################################################
@@ -63,8 +63,9 @@ export VERBOSE=0
 # Whether to run the profiler and generate `results.html`:
 export PROFILE_RUN=0
 
-# Dump `perlin.png` based on Perlin-noise simulation.
+# Dump various PNGs showing the results of given nodes in the DAG over time:
 export DEBUG_PERLIN=1
+export DEBUG_RANGE=1
 
 
 ###############################################################################
