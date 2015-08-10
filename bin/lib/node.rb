@@ -55,7 +55,7 @@ protected
 
   def new_image
     ChunkyPNG::Image.new((@lights * DEBUG_SCALE.x).to_i,
-                         history.map { |sn| sn[:y] }.inject(0) { |x, y| x + y },
+                         history.map { |sn| sn[:y] }.inject(0) { |x, y| (x || 0) + y },
                          ChunkyPNG::Color::TRANSPARENT)
   end
 
