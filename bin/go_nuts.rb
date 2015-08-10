@@ -290,7 +290,7 @@ trap("EXIT") do
       printer.print(fh)
     end
   end
-  perlin.snapshot_to!("perlin.png") if DEBUG_PERLIN
+  PERLIN.snapshot_to!("perlin.png") if DEBUG_PERLIN
 end
 
 threads.each(&:join)
