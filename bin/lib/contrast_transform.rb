@@ -1,7 +1,7 @@
 # Transform values from 0..1 into a new range.
 class ContrastTransform < TransformNode
-  def initialize(function:, iterations:, source:)
-    super(source: source)
+  def initialize(function:, iterations:, source:, mask: nil)
+    super(source: source, mask: mask)
     @contrast = Perlin::Curve.contrast(function, iterations)
   end
 

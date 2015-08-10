@@ -117,6 +117,7 @@ PERLIN_SPEED    = Vector2.new(x: 0.1, y: PERLIN_SCALE_Y)
 
 # TODO: Run all simulations, and use a mixer to blend between them...
 num_lights = CONFIG["main_lights"].length
+lights_for_threads  = in_groups(CONFIG["main_lights"])
 NODES = {}
 # Root nodes (don't act as modifiers on other nodes' output):
        NODES["CONST"]      = ConstSimulation.new(lights: num_lights)
@@ -128,12 +129,21 @@ last = NODES["PERLIN"]     = PerlinSimulation.new(lights: num_lights, speed: PER
 last = NODES["STRETCHED"]  = ContrastTransform.new(function:   Perlin::Curve::CUBIC, # LINEAR, CUBIC, QUINTIC -- don't bother using iterations>1 with LINEAR!
                                                    iterations: 3,
                                                    source:     last)
-last = NODES["SHIFTED"]    = RangeTransform.new(initial_min: MIN_BRI,
-                                                initial_max: MAX_BRI,
-                                                source:      last)
+# Create one control group here per "quadrant"...
+t_index = 0
+lights_for_threads.each do |(_bridge_name, lights)|
+  mask = [false] * num_lights
+  lights.map(&:first).each { |idx| mask[idx] = true }
+  last = RangeTransform.new(initial_min: MIN_BRI,
+                            initial_max: MAX_BRI,
+                            source:      last,
+                            mask:        mask)
+  NODES["SHIFTED_#{t_index}"]  = last
+  t_index                     += 1
+end
 last = NODES["SPOTLIT"]    = SpotlightTransform.new(source: last)
 # The end node that will be rendered to the lights:
-FINAL_RESULT        = NODES["SPOTLIT"]
+FINAL_RESULT               = NODES["SPOTLIT"]
 
 NODES.each do |name, node|
   node.debug = DEBUG_FLAGS[name]
@@ -159,8 +169,7 @@ else
   debug "Running until we're killed.  Send SIGHUP to terminate with stats."
 end
 
-lights_for_threads  = in_groups(CONFIG["main_lights"])
-global_results      = Results.new
+global_results = Results.new
 
 Thread.abort_on_exception = false
 
@@ -188,7 +197,6 @@ class BarControl
       guard_call("BarControl(#{@x},#{@y})") do
         xx = action[:x]
         yy = action[:y]
-        # puts "#{x}, #{y}: #{intensity_states[x].value}"
         if action[:state] == :down
           update(yy - @y)
           inter.device.change_grid(xx, yy, @down[:r], @down[:g], @down[:b])
@@ -225,9 +233,14 @@ int_states  = [ BarControl.new(x: 0, y: 4, height: 4, on: int_on, off: int_off, 
                 BarControl.new(x: 1, y: 4, height: 4, on: int_on, off: int_off, down: int_down),
                 BarControl.new(x: 2, y: 4, height: 4, on: int_on, off: int_off, down: int_down),
                 BarControl.new(x: 3, y: 4, height: 4, on: int_on, off: int_off, down: int_down) ]
+int_values  = [ [0.20, 0.30],
+                [0.30, 0.45],
+                [0.45, 0.65],
+                [0.65, 1.00] ]
 int_states.each_with_index do |ctrl, idx|
   ctrl.on_change = proc do |val|
     puts "Intensity Controller ##{idx} => #{val}"
+    NODES["SHIFTED_#{idx}"].set_range(int_values[val][0], int_values[val][1])
   end
 end
 
@@ -242,7 +255,8 @@ input_thread = Thread.new do
     #     sleep 0.001
     #   end
     # end
-    intensity_states.each(&:render)
+    # TODO: This isn't setting the actual light state properly.  AUGH!
+    int_states.each { |ctrl| ctrl.update(0) }
 
     # ... and of course we don't want to sleep on this loop, or `join` the
     # thread for the same reason.
