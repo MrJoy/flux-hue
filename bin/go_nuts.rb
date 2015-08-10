@@ -187,6 +187,7 @@ SL_STATE                = RadioControl.new(launchpad: INTERACTION,
                                            off:       { r: 0x04, g: 0x00, b: 0x00 },
                                            down:      { r: 0x3F, g: 0x10, b: 0x10 },
                                            on_select: proc do |x|
+                                             puts "Spotlight Controller => #{x ? x : 'off'}"
                                              if x
                                                NODES["SPOTLIT"].spotlight(SL_POSITIONS[x])
                                              else
