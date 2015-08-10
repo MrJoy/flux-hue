@@ -1,4 +1,4 @@
-FRAME_PERIOD  = 0.01
+FRAME_PERIOD  = 0.04
 DEBUG_SCALE   = Vector2.new(x: 2, y: 1)
 
 # Base class representing the state of an ordered set of lights, with an ability to debug
