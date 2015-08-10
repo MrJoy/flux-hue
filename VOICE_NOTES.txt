@@ -1,0 +1,11 @@
+https://en.wikipedia.org/wiki/Voice_frequency
+
+The voiced speech of a typical adult male will have a fundamental frequency from 85 to 180 Hz, and
+that of a typical adult female from 165 to 255 Hz. Thus, the fundamental frequency of most speech
+falls below the bottom of the "voice frequency" band as defined above.
+
+
+In telephony, the usable voice frequency band ranges from approximately 300 Hz to 3400 Hz. It is
+for this reason that the ultra low frequency band of the electromagnetic spectrum between 300 and
+3000 Hz is also referred to as voice frequency, being the electromagnetic energy that represents
+acoustic energy at baseband.
