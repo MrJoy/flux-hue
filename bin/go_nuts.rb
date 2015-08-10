@@ -97,7 +97,6 @@ PERLIN_SCALE_Y  = env_float("PERLIN_SCALE_Y") || 4.0
 #                                       speed:     Vector2.new(x: WAVE2_SCALE_X, y: WAVE2_SCALE_Y),
 #                                       debug:     DEBUG_WAVE2)
 BASE_SIMULATION = PerlinSimulation.new(lights:    CONFIG["main_lights"].length,
-                                       seed:      0,
                                        speed:     Vector2.new(x: 0.1, y: PERLIN_SCALE_Y),
                                        debug:     DEBUG_PERLIN)
 CONTRASTED      = ContrastTransform.new(lights:     CONFIG["main_lights"].length,
