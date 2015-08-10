@@ -185,18 +185,15 @@ input_thread = Thread.new do
 
     # Yo dawg.... >.<  Don't want to `sleep` on this thread as I'm using that
     # as a control mechanism.
-    init = Thread.new do
-      (0..7).each do |x|
-        (0..7).each do |y|
-          INTERACTION.device.change_grid(x, y, 0x00, x + 0x10, y + 0x10)
-          sleep 0.001
-        end
+    Thread.stop
+    (0..7).each do |x|
+      (0..7).each do |y|
+        INTERACTION.device.change_grid(x, y, 0x00, x + 0x10, y + 0x10)
+        sleep 0.001
       end
     end
     # ... and of course we don't want to sleep on this loop, or `join` the
     # thread for the same reason.
-    true while init.status != false
-    Thread.stop
     INTERACTION.start
   end
 end
