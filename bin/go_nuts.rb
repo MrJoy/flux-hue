@@ -281,6 +281,8 @@ sweep_thread.run if USE_SWEEP
 threads.each(&:run)
 
 trap("EXIT") do
+  global_results.done!
+  print_results(global_results)
   if PROFILE_RUN
     result  = RubyProf.stop
     printer = RubyProf::CallStackPrinter.new(result)
@@ -288,8 +290,6 @@ trap("EXIT") do
       printer.print(fh)
     end
   end
-  global_results.done!
-  print_results(global_results)
   perlin.snapshot_to!("perlin.png") if DEBUG_PERLIN
 end
 
