@@ -15,10 +15,12 @@ def in_groups(entities)
     groups[bridge_name] << light_id
   end
 
+  index = 0
   groups.each do |(bridge_name, lights)|
     indexed_lights = []
-    lights.each_with_index do |light_id, index|
+    lights.each do |light_id|
       indexed_lights << [index, light_id]
+      index += 1
     end
     groups[bridge_name] = indexed_lights
   end
