@@ -315,6 +315,13 @@ trap("EXIT") do
   guard_call("Exit Handler") do
     global_results.done!
     print_results(global_results)
+    (0..7).each do |x|
+      (0..7).each do |y|
+        INTERACTION.device.change_grid(x, y, 0x00, 0x00, 0x00)
+        sleep 0.001
+      end
+    end
+
     if PROFILE_RUN
       result  = RubyProf.stop
       printer = RubyProf::CallStackPrinter.new(result)
