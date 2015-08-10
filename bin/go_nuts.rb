@@ -36,6 +36,7 @@ require_relative "./lib/node"
 require_relative "./lib/root_node"
 require_relative "./lib/transform_node"
 require_relative "./lib/perlin_simulation"
+require_relative "./lib/contrast_transform"
 require_relative "./lib/range_transform"
 
 ###############################################################################
@@ -47,8 +48,9 @@ if PROFILE_RUN
   RubyProf.measure_mode = RubyProf::ALLOCATIONS
   RubyProf.start
 end
-DEBUG_PERLIN = env_int("DEBUG_PERLIN", true) != 0
-DEBUG_RANGE  = env_int("DEBUG_RANGE", true) != 0
+DEBUG_PERLIN    = env_int("DEBUG_PERLIN", true) != 0
+DEBUG_CONTRAST  = env_int("DEBUG_CONTRAST", true) != 0
+DEBUG_RANGE     = env_int("DEBUG_RANGE", true) != 0
 
 ###############################################################################
 # Timing Configuration
@@ -83,14 +85,19 @@ PERLIN_SCALE_Y  = env_float("PERLIN_SCALE_Y") || 4.0
 
 # TODO: Do we need to modulate this?  Also, we should dump our seed with the
 # TODO: state above as well.
-BASE_SIMULATION = PerlinSimulation.new(lights: CONFIG["main_lights"].length,
-                                       seed:   0,
-                                       speed:  Vector2.new(x: 0.1, y: PERLIN_SCALE_Y),
-                                       debug:  DEBUG_PERLIN)
+BASE_SIMULATION = PerlinSimulation.new(lights:    CONFIG["main_lights"].length,
+                                       seed:      0,
+                                       speed:     Vector2.new(x: 0.1, y: PERLIN_SCALE_Y),
+                                       debug:     DEBUG_PERLIN)
+CONTRASTED      = ContrastTransform.new(lights:     CONFIG["main_lights"].length,
+                                        function:   Perlin::Curve::CUBIC,
+                                        iterations: 3,
+                                        source:     BASE_SIMULATION,
+                                        debug:      DEBUG_CONTRAST)
 RANGED          = RangeTransform.new(lights: CONFIG["main_lights"].length,
                                      initial_min: MIN_BRI,
                                      initial_max: MAX_BRI,
-                                     source:      BASE_SIMULATION,
+                                     source:      CONTRASTED,
                                      debug:       DEBUG_RANGE)
 def perlin(x, _s, min, max)
   (RANGED[x] * 254).to_i
@@ -249,8 +256,9 @@ trap("EXIT") do
         printer.print(fh)
       end
     end
-    BASE_SIMULATION.snapshot_to!("perlin.png") if DEBUG_PERLIN
-    RANGED.snapshot_to!("ranged.png") if DEBUG_RANGE
+    BASE_SIMULATION.snapshot_to!("00_perlin.png") if DEBUG_PERLIN
+    CONTRASTED.snapshot_to!("01_contrasted.png") if DEBUG_CONTRAST
+    RANGED.snapshot_to!("02_ranged.png") if DEBUG_RANGE
   end
 end
 

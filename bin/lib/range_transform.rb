@@ -8,7 +8,7 @@ class RangeTransform < TransformNode
 
   def update(t)
     super(t) do |x|
-      @state[x] = (@source[x] * (@max - @min)) + @min
+      (@source[x] * (@max - @min)) + @min
     end
   end
 

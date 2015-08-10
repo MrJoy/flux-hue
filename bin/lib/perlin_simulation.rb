@@ -10,12 +10,11 @@ class PerlinSimulation < RootNode
     #
     # TODO: Perlin::Noise also supports interval and curve options...
     @perlin     = Perlin::Noise.new(2, seed: seed)
-    @contrast   = Perlin::Curve.contrast(Perlin::Curve::CUBIC, 3)
   end
 
   def update(t)
     @lights.times do |n|
-      self[n] = @contrast.call(@perlin[n * @speed.x, t * @speed.y])
+      self[n] = @perlin[n * @speed.x, t * @speed.y]
     end
     super(t)
   end

@@ -65,6 +65,7 @@ export PROFILE_RUN=0
 
 # Dump various PNGs showing the results of given nodes in the DAG over time:
 export DEBUG_PERLIN=1
+export DEBUG_CONTRAST=1
 export DEBUG_RANGE=1
 
 
