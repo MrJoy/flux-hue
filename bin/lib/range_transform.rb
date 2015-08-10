@@ -6,13 +6,9 @@ class RangeTransform < TransformNode
     @max = initial_max
   end
 
-  def [](x); (@source[x] * (@max - @min)) + @min; end
-
   def update(t)
-    super(t) do
-      (0..(@lights - 1)).each do |n|
-        @state[n] = (@source[n] * (@max - @min)) + @min
-      end
+    super(t) do |x|
+      @state[x] = (@source[x] * (@max - @min)) + @min
     end
   end
 
