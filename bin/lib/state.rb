@@ -1,3 +1,5 @@
+FRAME_PERIOD = 0.01
+
 # Generalized representation for the state of an ordered set of lights.
 class State
   attr_accessor :history
@@ -54,7 +56,7 @@ protected
 
   def enrich_history!
     @history.each do |snapshot|
-      frames       = snapshot[:dt] * 100 # A "frame" == 10ms.
+      frames       = snapshot[:dt] * (1 / FRAME_PERIOD) # A "frame" == 10ms.
       elapsed      = (frames * DEBUG_SCALE.y).round.to_i
       snapshot[:y] = (elapsed > 0) ? elapsed : DEBUG_SCALE.y.to_i
     end
