@@ -113,7 +113,9 @@ MIN_HUE         = env_int("MIN_HUE", true) || 48_000
 MAX_HUE         = env_int("MAX_HUE", true) || 51_000
 
 # Intensity ranges:
-INT_VALUES  = [ [0.10, 0.20],
+INT_VALUES  = [ [0.00, 0.00],
+                [0.00, 0.10],
+                [0.05, 0.20],
                 [0.15, 0.35],
                 [0.30, 0.60],
                 [0.50, 1.00] ]
@@ -168,8 +170,8 @@ lights_for_threads.each do |(_bridge_name, (lights, mask))|
                                            mask:        mask)
   INT_STATES[t_index] = Widget::VerticalSlider.new(launchpad: INTERACTION,
                                                    x:         t_index,
-                                                   y:         4,
-                                                   height:    4,
+                                                   y:         2,
+                                                   height:    6,
                                                    on:        INT_ON,
                                                    off:       INT_OFF,
                                                    down:      INT_DOWN)
