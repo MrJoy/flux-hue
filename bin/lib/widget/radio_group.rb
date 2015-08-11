@@ -5,33 +5,8 @@ module Widget
 
     def initialize(launchpad:, x:, y:, width:, height:, on:, off:, down:, on_select: nil, on_deselect:, value: nil)
       super(launchpad: launchpad, x: x, y: y, width: width, height: height, on: on, off: off, down: down, value: value)
-      @max_v        = (height * width) - 1
       @on_select    = on_select
       @on_deselect  = on_deselect
-
-      @launchpad.response_to(:grid, :both, x: (@x..(@x + @width - 1)), y: (@y..(@y + @height - 1))) do |inter, action|
-        guard_call("RadioGroup(#{@x},#{@y})") do
-          xx = action[:x]
-          yy = action[:y]
-          vv = (yy * @width) + xx
-          if action[:state] == :down
-            if @value == vv
-              clear!(false)
-            else
-              update(vv, false)
-            end
-            change_grid(x: xx - @x, y: yy - @y, color: down)
-            (value ? on_select : on_deselect).call(value) if on_select
-          else
-            render
-          end
-        end
-      end
-    end
-
-    def clear!(render_now = true)
-      @value = nil
-      render if render_now
     end
 
     def render
@@ -45,6 +20,19 @@ module Widget
     end
 
   protected
+
+    def on_down(x:, y:)
+      vv = value_for(x: x, y: y)
+      if value == vv
+        clear!
+      else
+        update(vv)
+      end
+      super(x: x, y: y)
+
+      handler = value ? on_select : on_deselect
+      handler.call(value) if handler
+    end
 
     def value_for(x:, y:); (y * width) + x; end
   end

@@ -18,6 +18,18 @@ module Widget
       @down       = BLACK.merge(down)
       @launchpad  = launchpad
       @value      = value
+
+      @launchpad.response_to(:grid, :both, x: (@x..max_x), y: (@y..max_y)) do |inter, action|
+        guard_call("#{self.class.name}(#{@x},#{@y})") do
+          xx = action[:x] - @x
+          yy = action[:y] - @y
+          if action[:state] == :down
+            on_down(x: xx, y: yy)
+          else
+            on_up(x: xx, y: yy)
+          end
+        end
+      end
     end
 
     def update(value, render_now = true)
@@ -30,9 +42,12 @@ module Widget
 
     attr_reader :launchpad
 
-    # Has a built-in assumption that there's one value per button.  Feel free to override this.
+    # Defaults that you may want to override:
     def max_v; @max_v ||= (height * width) - 1; end
+    def on_down(x:, y:); change_grid(x: x, y: y, color: down); end
+    def on_up(x:, y:); render; end
 
+    # Internal utilities for you to use:
     def change_grid(x:, y:, color:)
       xx = x + @x
       yy = y + @y
