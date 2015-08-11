@@ -22,14 +22,14 @@ module Widget
 
       @launchpad.response_to(:grid, :both, x: (@x..max_x), y: (@y..max_y)) do |inter, action|
         guard_call("#{self.class.name}(#{@x},#{@y})") do
-          xx = action[:x] - @x
-          yy = action[:y] - @y
-          @pressed[xx] ||= {}
+          xx  = action[:x] - @x
+          yy  = action[:y] - @y
+          idx = xx * width + yy
           if action[:state] == :down
-            @pressed[xx][yy] = true
+            @pressed[idx] = true
             on_down(x: xx, y: yy)
           else
-            @pressed[xx].delete(yy) if @pressed[xx].key?(yy)
+            @pressed.delete(idx) if @pressed.key?(idx)
             on_up(x: xx, y: yy)
           end
         end
@@ -43,11 +43,9 @@ module Widget
     end
 
     def render
-      @pressed.map do |xx, y_set|
-        y_set.map do |yy, value|
-          next unless value
-          change_grid(x: xx, y: yy, color: down)
-        end
+      @pressed.map do |idx, value|
+        next unless value
+        change_grid(x: idx / width, y: idx % width, color: down)
       end
     end
 
