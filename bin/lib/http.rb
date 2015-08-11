@@ -27,6 +27,7 @@ end
 # possible, to undo the temporal skew that comes from updating the simulation
 # then spending a bunch of time feeding updates to lights.
 class LazyRequestConfig
+  GLOBAL_HISTORY=[]
   # TODO: Transition should be updated late as well...
   def initialize(config, url, results = nil, &callback)
     @config     = config
@@ -62,12 +63,18 @@ class LazyRequestConfig
 
 protected
 
+  def journal(easy)
+    return unless DEBUG_FLAGS["OUTPUT"]
+    GLOBAL_HISTORY << "#{Time.now.to_f},#{easy.body_str}"
+  end
+
   def wtf!(field)
     error @config, "Request for unknown field: `#{field}`!  Has Curb been updated"\
       " in a breaking way?"
   end
 
   def failure!(easy)
+    journal(easy)
     case easy.response_code
     when 404
       # Hit Bridge hardware limit.
@@ -84,6 +91,7 @@ protected
 
   def success!(easy)
     if easy.body =~ /error/
+      journal(easy)
       # TODO: Check the error type field to be sure, and handle accordingly.
 
       # Hit bridge rate limit / possibly ZigBee
@@ -94,6 +102,7 @@ protected
       # TODO: something...
       # printf ("%02X" % @index)
     else
+      journal(easy)
       @results.success! if @results
       printf "." if VERBOSE > 1
     end

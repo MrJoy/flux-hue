@@ -392,6 +392,12 @@ trap("EXIT") do
       node.snapshot_to!("%02d_%s.png" % [index, name.downcase])
       index += 1
     end
+    if DEBUG_FLAGS["OUTPUT"]
+      File.open("output.raw", "w") do |fh|
+        fh.write(LazyRequestConfig::GLOBAL_HISTORY.join("\n"))
+        fh.write("\n")
+      end
+    end
   end
 end
 
