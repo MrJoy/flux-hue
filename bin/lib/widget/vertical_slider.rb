@@ -14,7 +14,7 @@ module Widget
           yy = action[:y]
           if action[:state] == :down
             update(yy - @y, false)
-            change_grid(xx - @x, yy - @y, down)
+            change_grid(x: xx - @x, y: yy - @y, color: down)
             on_change.call(value) if on_change
           else
             render

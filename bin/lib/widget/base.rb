@@ -28,6 +28,9 @@ module Widget
 
   protected
 
+    # Has a built-in assumption that there's one value per button.  Feel free to override this.
+    def max_v; @max_v ||= (height * width) - 1; end
+
     def change_grid(x:, y:, color:)
       launchpad.device.change_grid(x + @x, y + @y, color[:r], color[:g], color[:b])
     end
