@@ -28,6 +28,8 @@ module Widget
 
   protected
 
+    attr_reader :launchpad
+
     # Has a built-in assumption that there's one value per button.  Feel free to override this.
     def max_v; @max_v ||= (height * width) - 1; end
 
@@ -38,8 +40,6 @@ module Widget
       return if (yy > max_y) || (yy < 0)
       launchpad.device.change_grid(xx, yy, color[:r], color[:g], color[:b])
     end
-
-    attr_reader :launchpad
 
     def max_y; @max_y ||= (y + height) - 1; end
     def max_x; @max_x ||= (x + width) - 1; end
