@@ -76,6 +76,7 @@ require_relative "./lib/widget/base"
 require_relative "./lib/widget/vertical_slider"
 require_relative "./lib/widget/radio_group"
 require_relative "./lib/widget/toggle"
+require_relative "./lib/widget/button"
 
 ###############################################################################
 # Profiling and Debugging
@@ -218,13 +219,15 @@ TIME_TO_DIE = [false]
 ###############################################################################
 # Profiling Support
 ###############################################################################
-EXIT_BUTTON = Widget::Toggle.new(launchpad: INTERACTION,
+EXIT_BUTTON = Widget::Button.new(launchpad: INTERACTION,
                                  position:  :mixer,
-                                 on:        Widget::Base::DARK_GRAY,
-                                 off:       Widget::Base::DARK_GRAY,
+                                 color:     Widget::Base::DARK_GRAY,
                                  down:      Widget::Base::WHITE,
                                  on_press:  proc do |value|
-                                   TIME_TO_DIE[0] = true if value != 0
+                                   if value != 0
+                                     important "Goodnight, Gracie!"
+                                     TIME_TO_DIE[0] = true
+                                   end
                                  end)
 
 def start_ruby_prof!
