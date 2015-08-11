@@ -24,13 +24,8 @@ module Widget
     end
 
     def render
-      val = value
-      val = @max_v if val >= height
-      (0..val).each do |yy|
-        change_grid(x: 0, y: yy, color: on)
-      end
-      ((val+1)..@max_v).each do |yy|
-        change_grid(x: 0, y: yy, color: off)
+      (0..max_v).each do |yy|
+        change_grid(x: 0, y: yy, color: (value >= yy) ? on : off)
       end
     end
   end

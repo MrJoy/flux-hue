@@ -35,8 +35,6 @@ module Widget
     end
 
     def render
-      val = value
-      val = @max_v if val && val >= @max_v
       (0..max_x).each do |xx|
         (0..max_y).each do |yy|
           col = (value == value_for(x: xx, y: yy)) ? on : off

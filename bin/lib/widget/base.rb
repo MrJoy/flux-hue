@@ -22,6 +22,7 @@ module Widget
 
     def update(value, render_now = true)
       @value = value
+      @value = max_v if max_v && @value && @value > max_v
       render if render_now
     end
 
