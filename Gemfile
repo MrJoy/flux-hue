@@ -54,12 +54,13 @@ gem "launchpad",        require: false,
 # gem "os",               require: false # https://github.com/rdp/os -- note rss_bytes is returning KiB, not B.
 
 group :development do
-  gem "rake",           require: false
-  gem "rubocop",        require: false
-  gem "bundler-audit",  require: false
-  gem "ruby-prof",      require: false # https://github.com/ruby-prof/ruby-prof
-  gem "chunky_png",     require: false
-  gem "oily_png",       require: false
+  gem "rake",             require: false
+  gem "rubocop",          require: false
+  gem "bundler-audit",    require: false
+  gem "ruby-prof",        require: false # https://github.com/ruby-prof/ruby-prof
+  gem "chunky_png",       require: false
+  gem "oily_png",         require: false
+  gem "memory_profiler",  require: false
 end
 
 # Measure memory usage thusly:

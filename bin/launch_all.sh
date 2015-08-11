@@ -59,8 +59,8 @@ export SKIP_GC=0
 # Whether or not to show success information.
 export VERBOSE=0
 
-# Whether to run the profiler and generate `results.html`:
-export PROFILE_RUN=0
+# Whether to run a profiler:
+export PROFILE_RUN=memory_profiler # ruby-prof|memory_profiler
 
 # Dump various PNGs showing the results of given nodes in the DAG over time.
 # This is VERY VERY memory intensize!  Don't try to use it for a long run!

@@ -75,11 +75,12 @@ require_relative "./lib/node/transform/spotlight"
 require_relative "./lib/widget/base"
 require_relative "./lib/widget/vertical_slider"
 require_relative "./lib/widget/radio_group"
+require_relative "./lib/widget/toggle"
 
 ###############################################################################
 # Profiling and Debugging
 ###############################################################################
-PROFILE_RUN = env_int("PROFILE_RUN", true) != 0
+PROFILE_RUN = ENV["PROFILE_RUN"]
 SKIP_GC     = !!env_int("SKIP_GC")
 DEBUG_FLAGS = Hash[(ENV["DEBUG_NODES"] || "")
               .split(/\s*,\s*/)
@@ -140,7 +141,7 @@ PERLIN_SPEED    = Vector2.new(x: 0.1, y: PERLIN_SCALE_Y)
 ###############################################################################
 # TODO: Run all simulations, and use a mixer to blend between them...
 num_lights          = CONFIG["main_lights"].length
-lights_for_threads  = in_groups(CONFIG["main_lights"])
+LIGHTS_FOR_THREADS  = in_groups(CONFIG["main_lights"])
 INTERACTION         = Launchpad::Interaction.new
 INT_STATES          = []
 NODES               = {}
@@ -160,7 +161,7 @@ last = NODES["STRETCHED"]  = Node::Transform::Contrast.new(function:   Perlin::C
                                                            source:     last)
 # Create one control group here per "quadrant"...
 t_index = 0
-lights_for_threads.each do |(_bridge_name, (lights, mask))|
+LIGHTS_FOR_THREADS.each do |(_bridge_name, (lights, mask))|
   mask = [false] * num_lights
   lights.map(&:first).each { |idx| mask[idx] = true }
 
@@ -202,7 +203,7 @@ SL_STATE                = Widget::RadioGroup.new(launchpad:   INTERACTION,
                                                  end)
 
 # The end node that will be rendered to the lights:
-FINAL_RESULT               = last
+FINAL_RESULT            = last
 
 NODES.each do |name, node|
   node.debug = DEBUG_FLAGS[name]
@@ -212,196 +213,230 @@ end
 # Operational Configuration
 ###############################################################################
 ITERATIONS = env_int("ITERATIONS", true) || 0
+TIME_TO_DIE = [false]
 
 ###############################################################################
-# Main Simulation
+# Profiling Support
 ###############################################################################
-if PROFILE_RUN
+EXIT_BUTTON = Widget::Toggle.new(launchpad: INTERACTION,
+                                 position:  :mixer,
+                                 on:        Widget::Base::DARK_GRAY,
+                                 off:       Widget::Base::DARK_GRAY,
+                                 down:      Widget::Base::WHITE,
+                                 on_press:  proc do |value|
+                                   TIME_TO_DIE[0] = true if value != 0
+                                 end)
+
+def start_ruby_prof!
+  return unless PROFILE_RUN == "ruby-prof"
+  important "Enabling ruby-prof, be careful!"
   require "ruby-prof"
   RubyProf.measure_mode = RubyProf::ALLOCATIONS
   RubyProf.start
 end
 
-if ITERATIONS > 0
-  debug "Running for #{ITERATIONS} iterations."
-else
-  debug "Running until we're killed.  Send SIGHUP to terminate with stats."
-end
-
-global_results = Results.new
-
-Thread.abort_on_exception = false
-
-# Brightness range controls:
-INT_STATES.each_with_index do |ctrl, idx|
-  ctrl.on_change = proc do |val|
-    puts "Intensity Controller ##{idx} => #{val}"
-    NODES["SHIFTED_#{idx}"].set_range(INT_VALUES[val][0], INT_VALUES[val][1])
+def stop_ruby_prof!
+  return unless PROFILE_RUN == "ruby-prof"
+  result  = RubyProf.stop
+  printer = RubyProf::CallStackPrinter.new(result)
+  File.open("results.html", "w") do |fh|
+    printer.print(fh)
   end
 end
 
-input_thread = Thread.new do
-  guard_call("Input Handler Setup") do
-    Thread.stop
-    # TODO: This isn't setting the actual light state properly.  AUGH!  It
-    # TODO: *does* set the LED and the controller state which is handy, but
-    # TODO: still...
-    INT_STATES.each { |ctrl| ctrl.update(0) }
-    SL_STATE.update(nil)
-
-    # ... and of course we don't want to sleep on this loop, or `join` the
-    # thread for the same reason.
-    INTERACTION.start
+###############################################################################
+# Main Simulation
+###############################################################################
+def main
+  if ITERATIONS > 0
+    debug "Running for #{ITERATIONS} iterations."
+  else
+    debug "Running until we're killed.  Send SIGHUP to terminate with stats."
   end
-end
 
-sim_thread = Thread.new do
-  guard_call("Base Simulation") do
-    Thread.stop
+  global_results = Results.new
 
-    loop do
-      t = Time.now.to_f
-      FINAL_RESULT.update(t)
-      elapsed = Time.now.to_f - t
-      # Try to adhere to a specific update frequency...
-      sleep FRAME_PERIOD - elapsed if elapsed < FRAME_PERIOD
+  Thread.abort_on_exception = false
+
+  # Brightness range controls:
+  INT_STATES.each_with_index do |ctrl, idx|
+    ctrl.on_change = proc do |val|
+      info "Intensity Controller ##{idx} => #{val}"
+      NODES["SHIFTED_#{idx}"].set_range(INT_VALUES[val][0], INT_VALUES[val][1])
     end
   end
-end
 
-if USE_SWEEP
-  # TODO: Make this terminate after main simulation threads have all stopped.
-  sweep_thread = Thread.new do
-    hue_target  = MAX_HUE
-    results     = Results.new
+  input_thread = Thread.new do
+    guard_call("Input Handler Setup") do
+      Thread.stop
+      # TODO: This isn't setting the actual light state properly.  AUGH!  It
+      # TODO: *does* set the LED and the controller state which is handy, but
+      # TODO: still...
+      INT_STATES.each { |ctrl| ctrl.update(0) }
+      SL_STATE.update(nil)
+      EXIT_BUTTON.update(false)
 
-    guard_call("Sweeper") do
+      # ... and of course we don't want to sleep on this loop, or `join` the
+      # thread for the same reason.
+      INTERACTION.start
+    end
+  end
+
+  sim_thread = Thread.new do
+    guard_call("Base Simulation") do
       Thread.stop
 
       loop do
-        before_time = Time.now.to_f
-        # TODO: Hoist this into a sawtooth simulation function.
-        hue_target  = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
-        data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
-        requests    = CONFIG["bridges"]
-                      .map do |(_name, config)|
-                        { method:   :put,
-                          url:      hue_group_endpoint(config, 0),
-                          put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
+        t = Time.now.to_f
+        FINAL_RESULT.update(t)
+        elapsed = Time.now.to_f - t
+        # Try to adhere to a specific update frequency...
+        sleep FRAME_PERIOD - elapsed if elapsed < FRAME_PERIOD
+      end
+    end
+  end
+
+  if USE_SWEEP
+    # TODO: Make this terminate after main simulation threads have all stopped.
+    sweep_thread = Thread.new do
+      hue_target  = MAX_HUE
+      results     = Results.new
+
+      guard_call("Sweeper") do
+        Thread.stop
+
+        loop do
+          before_time = Time.now.to_f
+          # TODO: Hoist this into a sawtooth simulation function.
+          hue_target  = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
+          data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
+          requests    = CONFIG["bridges"]
+                        .map do |(_name, config)|
+                          { method:   :put,
+                            url:      hue_group_endpoint(config, 0),
+                            put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
+                        end
+
+          Curl::Multi.http(requests, MULTI_OPTIONS) do # |easy|
+            # Apparently performed for each request?  Or when idle?  Or...
+
+            # dns_cache_timeout head header_size header_str headers
+            # http_connect_code last_effective_url last_result low_speed_limit
+            # low_speed_time num_connects on_header os_errno redirect_count
+            # request_size
+
+            # app_connect_time connect_time name_lookup_time pre_transfer_time
+            # start_transfer_time total_time
+
+            # Bytes/sec, I think:
+            # download_speed upload_speed
+
+            # The following are all Float, and downloaded_content_length can be
+            # -1.0 when a transfer times out(?).
+            # downloaded_bytes downloaded_content_length uploaded_bytes
+            # uploaded_content_length
+          end
+
+          global_results.add_from(results)
+          results.clear!
+
+          sleep 0.05 while (Time.now.to_f - before_time) <= SWEEP_LENGTH
+        end
+      end
+    end
+  end
+
+  threads = LIGHTS_FOR_THREADS.map do |(bridge_name, (lights, _mask))|
+    Thread.new do
+      guard_call(bridge_name) do
+        config    = CONFIG["bridges"][bridge_name]
+        results   = Results.new
+        iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
+
+        debug bridge_name, "Thread set to handle #{lights.count} lights (#{lights.map(&:first).join(", ")})."
+
+        Thread.stop
+        sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
+
+        requests  = lights
+                    .map do |(idx, lid)|
+                      LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
+                        data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
+                        with_transition_time(data, TRANSITION)
                       end
-
-        Curl::Multi.http(requests, MULTI_OPTIONS) do # |easy|
-          # Apparently performed for each request?  Or when idle?  Or...
-
-          # dns_cache_timeout head header_size header_str headers
-          # http_connect_code last_effective_url last_result low_speed_limit
-          # low_speed_time num_connects on_header os_errno redirect_count
-          # request_size
-
-          # app_connect_time connect_time name_lookup_time pre_transfer_time
-          # start_transfer_time total_time
-
-          # Bytes/sec, I think:
-          # download_speed upload_speed
-
-          # The following are all Float, and downloaded_content_length can be
-          # -1.0 when a transfer times out(?).
-          # downloaded_bytes downloaded_content_length uploaded_bytes
-          # uploaded_content_length
-        end
-
-        global_results.add_from(results)
-        results.clear!
-
-        sleep 0.05 while (Time.now.to_f - before_time) <= SWEEP_LENGTH
-      end
-    end
-  end
-end
-
-threads = lights_for_threads.map do |(bridge_name, (lights, _mask))|
-  Thread.new do
-    guard_call(bridge_name) do
-      config    = CONFIG["bridges"][bridge_name]
-      results   = Results.new
-      iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
-
-      debug bridge_name, "Thread set to handle #{lights.count} lights (#{lights.map(&:first).join(", ")})."
-
-      Thread.stop
-      sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
-
-      requests  = lights
-                  .map do |(idx, lid)|
-                    LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
-                      data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
-                      with_transition_time(data, TRANSITION)
                     end
-                  end
 
-      iterator.each do
-        Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
+        iterator.each do
+          Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
+          end
+
+          global_results.add_from(results)
+          results.clear!
+
+          sleep(BETWEEN_SLEEP) unless BETWEEN_SLEEP == 0
+          break if TIME_TO_DIE[0]
         end
-
-        global_results.add_from(results)
-        results.clear!
-
-        sleep(BETWEEN_SLEEP) unless BETWEEN_SLEEP == 0
       end
     end
   end
-end
 
-# Wait for threads to finish initializing...
-sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
-sleep 0.01 while sweep_thread.status != "sleep" if USE_SWEEP
-sleep 0.01 while sim_thread.status != "sleep"
-sleep 0.01 while input_thread.status != "sleep"
-if SKIP_GC
-  important "Disabling garbage collection!  BE CAREFUL!"
-  GC.disable
-end
-debug "Threads are ready to go, waking them up."
-global_results.begin!
-sim_thread.run
-sweep_thread.run if USE_SWEEP
-threads.each(&:run)
-input_thread.run
+  # Wait for threads to finish initializing...
+  sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
+  sleep 0.01 while sweep_thread.status != "sleep" if USE_SWEEP
+  sleep 0.01 while sim_thread.status != "sleep"
+  sleep 0.01 while input_thread.status != "sleep"
+  if SKIP_GC
+    important "Disabling garbage collection!  BE CAREFUL!"
+    GC.disable
+  end
+  debug "Threads are ready to go, waking them up."
+  global_results.begin!
+  start_ruby_prof!
+  sim_thread.run
+  sweep_thread.run if USE_SWEEP
+  threads.each(&:run)
+  input_thread.run
 
-trap("EXIT") do
-  guard_call("Exit Handler") do
-    global_results.done!
-    print_results(global_results)
-    (0..7).each do |x|
-      (0..7).each do |y|
-        INTERACTION.device.change_grid(x, y, 0x00, 0x00, 0x00)
-        sleep 0.001
+  trap("EXIT") do
+    guard_call("Exit Handler") do
+      global_results.done!
+      print_results(global_results)
+      INT_STATES.map(&:blank)
+      SL_STATE.blank
+      EXIT_BUTTON.blank
+
+      stop_ruby_prof!
+      index = 0
+      NODES.each do |name, node|
+        next unless DEBUG_FLAGS[name]
+        node.snapshot_to!("%02d_%s.png" % [index, name.downcase])
+        index += 1
       end
-    end
-
-    if PROFILE_RUN
-      result  = RubyProf.stop
-      printer = RubyProf::CallStackPrinter.new(result)
-      File.open("results.html", "w") do |fh|
-        printer.print(fh)
-      end
-    end
-    index = 0
-    NODES.each do |name, node|
-      next unless DEBUG_FLAGS[name]
-      node.snapshot_to!("%02d_%s.png" % [index, name.downcase])
-      index += 1
-    end
-    if DEBUG_FLAGS["OUTPUT"]
-      File.open("output.raw", "w") do |fh|
-        fh.write(LazyRequestConfig::GLOBAL_HISTORY.join("\n"))
-        fh.write("\n")
+      if DEBUG_FLAGS["OUTPUT"]
+        File.open("output.raw", "w") do |fh|
+          fh.write(LazyRequestConfig::GLOBAL_HISTORY.join("\n"))
+          fh.write("\n")
+        end
       end
     end
   end
+
+  threads.each(&:join)
+  input_thread.terminate
+  sweep_thread.terminate if USE_SWEEP
+  sim_thread.terminate
 end
 
-threads.each(&:join)
-input_thread.terminate
-sweep_thread.terminate if USE_SWEEP
-sim_thread.terminate
+###############################################################################
+# Launcher
+###############################################################################
+if PROFILE_RUN == "memory_profiler"
+  important "Enabling memory_profiler, be careful!"
+  require "memory_profiler"
+  report = MemoryProfiler.report do
+    main
+  end
+  report.pretty_print
+else
+  main
+end
