@@ -95,7 +95,7 @@ protected
       # printf ("%02X" % @index)
     else
       @results.success! if @results
-      printf "." if VERBOSE > 0
+      printf "." if VERBOSE > 1
     end
   end
 end
