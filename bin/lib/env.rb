@@ -9,3 +9,5 @@ def env_float(name)
   return nil unless ENV.key?(name)
   ENV[name].to_f
 end
+
+VERBOSE = env_int("VERBOSE") || 0

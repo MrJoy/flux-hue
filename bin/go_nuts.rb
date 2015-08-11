@@ -80,7 +80,6 @@ require_relative "./lib/widget/radio_group"
 # Profiling and Debugging
 ###############################################################################
 PROFILE_RUN = env_int("PROFILE_RUN", true) != 0
-VERBOSE     = env_int("VERBOSE")
 SKIP_GC     = !!env_int("SKIP_GC")
 DEBUG_FLAGS = Hash[(ENV["DEBUG_NODES"] || "")
               .split(/\s*,\s*/)
