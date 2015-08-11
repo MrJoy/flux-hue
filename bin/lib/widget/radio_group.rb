@@ -14,7 +14,7 @@ module Widget
         (0..max_y).each do |yy|
           col = (value == index_for(x: xx, y: yy)) ? on : off
 
-          change_grid(x: x + xx, y: y + yy, color: col)
+          change_grid(x: xx, y: yy, color: col)
         end
       end
     end

@@ -20,7 +20,7 @@ module Widget
       @value      = value
       @pressed    = {}
 
-      @launchpad.response_to(:grid, :both, x: (@x..max_x), y: (@y..max_y)) do |inter, action|
+      @launchpad.response_to(:grid, :both, x: (@x..(@x + max_x)), y: (@y..(@y + max_y))) do |inter, action|
         guard_call("#{self.class.name}(#{@x},#{@y})") do
           xx  = action[:x] - @x
           yy  = action[:y] - @y
@@ -54,7 +54,7 @@ module Widget
 
     attr_reader :launchpad
 
-    def index_for(x:, y:); x * width + y; end
+    def index_for(x:, y:); (y * width) + x; end
     def coords_for(idx:); [idx / width, idx % width]; end
 
     # Defaults that you may want to override:
@@ -64,14 +64,12 @@ module Widget
 
     # Internal utilities for you to use:
     def change_grid(x:, y:, color:)
-      xx = x + @x
-      yy = y + @y
-      return if (xx > max_x) || (xx < 0)
-      return if (yy > max_y) || (yy < 0)
-      launchpad.device.change_grid(xx, yy, color[:r], color[:g], color[:b])
+      return if (x > max_x) || (x < 0)
+      return if (y > max_y) || (y < 0)
+      launchpad.device.change_grid(x + @x, y + @y, color[:r], color[:g], color[:b])
     end
 
-    def max_y; @max_y ||= (y + height) - 1; end
-    def max_x; @max_x ||= (x + width) - 1; end
+    def max_y; @max_y ||= height - 1; end
+    def max_x; @max_x ||= width - 1; end
   end
 end
