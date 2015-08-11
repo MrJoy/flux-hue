@@ -5,8 +5,7 @@ module Widget
 
     def initialize(launchpad:, x:, y:, height:, on:, off:, down:, on_change: nil, value: 0)
       super(launchpad: launchpad, x: x, y: y, width: 1, height: height, on: on, off: off, down: down, value: value)
-      @max_v      = height - 1
-      @on_change  = on_change
+      @on_change = on_change
     end
 
     def render
