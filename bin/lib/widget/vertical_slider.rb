@@ -12,13 +12,13 @@ module Widget
       (0..max_v).each do |yy|
         change_grid(x: 0, y: yy, color: (value >= yy) ? on : off)
       end
+      super
     end
 
   protected
 
     def on_down(x:, y:)
       @value = y
-      render
       super(x: x, y: y)
       on_change.call(value) if on_change
     end

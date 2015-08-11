@@ -23,11 +23,8 @@ module Widget
 
     def on_down(x:, y:)
       vv = value_for(x: x, y: y)
-      if value == vv
-        @value = nil
-      else
-        update(vv)
-      end
+      vv = nil if value == vv
+      @value = vv
       super(x: x, y: y)
 
       handler = value ? on_select : on_deselect
