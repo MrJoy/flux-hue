@@ -32,7 +32,11 @@ module Widget
     def max_v; @max_v ||= (height * width) - 1; end
 
     def change_grid(x:, y:, color:)
-      launchpad.device.change_grid(x + @x, y + @y, color[:r], color[:g], color[:b])
+      xx = x + @x
+      yy = y + @y
+      return if (xx > max_x) || (xx < 0)
+      return if (yy > max_y) || (yy < 0)
+      launchpad.device.change_grid(xx, yy, color[:r], color[:g], color[:b])
     end
 
     attr_reader :launchpad
