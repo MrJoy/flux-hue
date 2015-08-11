@@ -60,17 +60,17 @@ require_relative "./lib/results"
 require_relative "./lib/http"
 require_relative "./lib/vector2"
 
-require_relative "./lib/node"
-require_relative "./lib/root_node"
-require_relative "./lib/transform_node"
+require_relative "./lib/node/base"
+require_relative "./lib/node/simulation/base"
+require_relative "./lib/node/transform/base"
 
-require_relative "./lib/const_simulation"
-require_relative "./lib/perlin_simulation"
-require_relative "./lib/wave2_simulation"
+require_relative "./lib/node/simulation/const"
+require_relative "./lib/node/simulation/perlin"
+require_relative "./lib/node/simulation/wave2"
 
-require_relative "./lib/contrast_transform"
-require_relative "./lib/range_transform"
-require_relative "./lib/spotlight_transform"
+require_relative "./lib/node/transform/contrast"
+require_relative "./lib/node/transform/range"
+require_relative "./lib/node/transform/spotlight"
 
 require_relative "./lib/widget/base"
 require_relative "./lib/widget/vertical_slider"
@@ -149,25 +149,25 @@ NODES               = {}
 # Simulation Graph Configuration / Setup
 ###############################################################################
 # Root nodes (don't act as modifiers on other nodes' output):
-       NODES["CONST"]      = ConstSimulation.new(lights: num_lights)
-       NODES["WAVE2"]      = Wave2Simulation.new(lights: num_lights, speed: WAVE2_SPEED)
-last = NODES["PERLIN"]     = PerlinSimulation.new(lights: num_lights, speed: PERLIN_SPEED)
+       NODES["CONST"]      = Node::Simulation::Const.new(lights: num_lights)
+       NODES["WAVE2"]      = Node::Simulation::Wave2.new(lights: num_lights, speed: WAVE2_SPEED)
+last = NODES["PERLIN"]     = Node::Simulation::Perlin.new(lights: num_lights, speed: PERLIN_SPEED)
 
 # Transform nodes (act as a chain of modifiers):
 # TODO: Parameterize a few more things like function/iterations below.
-last = NODES["STRETCHED"]  = ContrastTransform.new(function:   Perlin::Curve::CUBIC, # LINEAR, CUBIC, QUINTIC -- don't bother using iterations>1 with LINEAR!
-                                                   iterations: 3,
-                                                   source:     last)
+last = NODES["STRETCHED"]  = Node::Transform::Contrast.new(function:   Perlin::Curve::CUBIC, # LINEAR, CUBIC, QUINTIC -- don't bother using iterations>1 with LINEAR!
+                                                           iterations: 3,
+                                                           source:     last)
 # Create one control group here per "quadrant"...
 t_index = 0
 lights_for_threads.each do |(_bridge_name, (lights, mask))|
   mask = [false] * num_lights
   lights.map(&:first).each { |idx| mask[idx] = true }
 
-  last                = RangeTransform.new(initial_min: INT_VALUES[0][0],
-                                           initial_max: INT_VALUES[0][1],
-                                           source:      last,
-                                           mask:        mask)
+  last                = Node::Transform::Range.new(initial_min: INT_VALUES[0][0],
+                                                   initial_max: INT_VALUES[0][1],
+                                                   source:      last,
+                                                   mask:        mask)
   INT_STATES[t_index] = Widget::VerticalSlider.new(launchpad: INTERACTION,
                                                    x:         t_index,
                                                    y:         2,
@@ -179,7 +179,7 @@ lights_for_threads.each do |(_bridge_name, (lights, mask))|
   t_index                     += 1
 end
 
-last = NODES["SPOTLIT"] = SpotlightTransform.new(source: last)
+last = NODES["SPOTLIT"] = Node::Transform::Spotlight.new(source: last)
 sl_positions_raw        = CONFIG["spotlight_positions"].map { |row| row.map { |i| i.to_i }}
 sl_width                = sl_positions_raw.map { |row| row.length }.sort.last
 sl_height               = sl_positions_raw.length
