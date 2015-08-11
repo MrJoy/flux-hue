@@ -12,7 +12,7 @@ module Widget
     def render
       (0..max_x).each do |xx|
         (0..max_y).each do |yy|
-          col = (value == value_for(x: xx, y: yy)) ? on : off
+          col = (value == index_for(x: xx, y: yy)) ? on : off
 
           change_grid(x: x + xx, y: y + yy, color: col)
         end
@@ -22,7 +22,7 @@ module Widget
   protected
 
     def on_down(x:, y:)
-      vv = value_for(x: x, y: y)
+      vv = index_for(x: x, y: y)
       vv = nil if value == vv
       @value = vv
       super(x: x, y: y)
@@ -30,7 +30,5 @@ module Widget
       handler = value ? on_select : on_deselect
       handler.call(value) if handler
     end
-
-    def value_for(x:, y:); (y * width) + x; end
   end
 end

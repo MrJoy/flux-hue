@@ -24,7 +24,7 @@ module Widget
         guard_call("#{self.class.name}(#{@x},#{@y})") do
           xx  = action[:x] - @x
           yy  = action[:y] - @y
-          idx = xx * width + yy
+          idx = index_for(x: xx, y: yy)
           if action[:state] == :down
             @pressed[idx] = true
             on_down(x: xx, y: yy)
@@ -45,13 +45,17 @@ module Widget
     def render
       @pressed.map do |idx, value|
         next unless value
-        change_grid(x: idx / width, y: idx % width, color: down)
+        xx, yy = coords_for(idx: idx)
+        change_grid(x: xx, y: yy, color: down)
       end
     end
 
   protected
 
     attr_reader :launchpad
+
+    def index_for(x:, y:); x * width + y; end
+    def coords_for(idx:); [idx / width, idx % width]; end
 
     # Defaults that you may want to override:
     def max_v; @max_v ||= (height * width) - 1; end
