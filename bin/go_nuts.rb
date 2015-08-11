@@ -72,8 +72,9 @@ require_relative "./lib/contrast_transform"
 require_relative "./lib/range_transform"
 require_relative "./lib/spotlight_transform"
 
-require_relative "./lib/bar_control"
-require_relative "./lib/radio_control"
+require_relative "./lib/widget/base"
+require_relative "./lib/widget/vertical_slider"
+require_relative "./lib/widget/radio_group"
 
 ###############################################################################
 # Profiling and Debugging
@@ -166,13 +167,13 @@ lights_for_threads.each do |(_bridge_name, (lights, mask))|
                                            initial_max: INT_VALUES[0][1],
                                            source:      last,
                                            mask:        mask)
-  INT_STATES[t_index] = BarControl.new(launchpad: INTERACTION,
-                        x:         t_index,
-                        y:         4,
-                        height:    4,
-                        on:        INT_ON,
-                        off:       INT_OFF,
-                        down:      INT_DOWN)
+  INT_STATES[t_index] = Widget::VerticalSlider.new(launchpad: INTERACTION,
+                                                   x:         t_index,
+                                                   y:         4,
+                                                   height:    4,
+                                                   on:        INT_ON,
+                                                   off:       INT_OFF,
+                                                   down:      INT_DOWN)
   NODES["SHIFTED_#{t_index}"]  = last
   t_index                     += 1
 end
@@ -182,22 +183,22 @@ sl_positions_raw        = CONFIG["spotlight_positions"].map { |row| row.map { |i
 sl_width                = sl_positions_raw.map { |row| row.length }.sort.last
 sl_height               = sl_positions_raw.length
 SL_POSITIONS            = sl_positions_raw.flatten
-SL_STATE                = RadioControl.new(launchpad: INTERACTION,
-                                           x:         0,
-                                           y:         0,
-                                           height:    sl_height,
-                                           width:     sl_width,
-                                           on:        SL_ON,
-                                           off:       SL_OFF,
-                                           down:      SL_DOWN,
-                                           on_select: proc do |x|
-                                             puts "Spotlight Controller => #{x ? x : 'off'}"
-                                             if x
-                                               NODES["SPOTLIT"].spotlight(SL_POSITIONS[x])
-                                             else
-                                               NODES["SPOTLIT"].clear!
-                                             end
-                                           end)
+SL_STATE                = Widget::RadioGroup.new(launchpad:   INTERACTION,
+                                                 x:           0,
+                                                 y:           0,
+                                                 height:      sl_height,
+                                                 width:       sl_width,
+                                                 on:          SL_ON,
+                                                 off:         SL_OFF,
+                                                 down:        SL_DOWN,
+                                                 on_select:   proc do |x|
+                                                   info "Spotlighting ##{x}"
+                                                   NODES["SPOTLIT"].spotlight(SL_POSITIONS[x])
+                                                 end,
+                                                 on_deselect: proc do
+                                                   info "Spotlighting Disabled"
+                                                   NODES["SPOTLIT"].clear!
+                                                 end)
 
 # The end node that will be rendered to the lights:
 FINAL_RESULT               = last
