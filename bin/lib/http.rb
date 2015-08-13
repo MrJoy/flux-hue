@@ -55,7 +55,11 @@ class LazyRequestConfig
 
   def delete(field)
     return @fixed[field] if @fixed.key?(field)
-    return Oj.dump(@callback.call) if field == :put_data
+    if field == :put_data
+      tmp = Oj.dump(@callback.call)
+      journal("BEGIN", body: tmp)
+      return tmp
+    end
 
     wtf!(field)
     nil
@@ -63,9 +67,9 @@ class LazyRequestConfig
 
 protected
 
-  def journal(easy)
+  def journal(stage, easy: nil, body: nil)
     return unless DEBUG_FLAGS["OUTPUT"]
-    GLOBAL_HISTORY << "#{Time.now.to_f},#{easy.body_str}"
+    GLOBAL_HISTORY << "#{Time.now.to_f},#{stage},#{@url},#{easy ? easy.body_str : body}"
   end
 
   def wtf!(field)
@@ -74,7 +78,7 @@ protected
   end
 
   def failure!(easy)
-    journal(easy)
+    journal("END", easy: easy)
     case easy.response_code
     when 404
       # Hit Bridge hardware limit.
@@ -90,8 +94,8 @@ protected
   end
 
   def success!(easy)
+    journal("END", easy: easy)
     if easy.body =~ /error/
-      journal(easy)
       # TODO: Check the error type field to be sure, and handle accordingly.
 
       # Hit bridge rate limit / possibly ZigBee
@@ -102,7 +106,6 @@ protected
       # TODO: something...
       # printf ("%02X" % @index)
     else
-      journal(easy)
       @results.success! if @results
       printf "." if VERBOSE > 1
     end
