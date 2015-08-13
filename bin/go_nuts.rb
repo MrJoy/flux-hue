@@ -438,7 +438,9 @@ if PROFILE_RUN == "memory_profiler"
   require "memory_profiler"
   report = MemoryProfiler.report do
     main
+    important "Preparing MemoryProfiler report..."
   end
+  important "Dumping MemoryProfiler report..."
   report.pretty_print
 else
   main
