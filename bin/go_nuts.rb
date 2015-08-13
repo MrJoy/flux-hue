@@ -428,7 +428,9 @@ def main
       global_results.done!
       print_results(global_results)
       INT_STATES.map(&:blank)
+      sleep 0.01
       SAT_STATES.map(&:blank)
+      sleep 0.01
       SL_STATE.blank
       EXIT_BUTTON.blank
 
