@@ -20,7 +20,9 @@ export MAX_CONNECTS=3
 # Visual Effects
 ###############################################################################
 # Whether to use background sweep thread for saw-tooth pattern on hue:
-export USE_SWEEP=1
+export USE_SWEEP=0
+# Whether to actually run main lighting threads:
+export USE_LIGHTS=0
 
 # Which effects to apply to which components:
 export BRI_FUNC=perlin

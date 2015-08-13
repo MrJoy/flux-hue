@@ -87,6 +87,8 @@ DEBUG_FLAGS = Hash[(ENV["DEBUG_NODES"] || "")
               .split(/\s*,\s*/)
               .map(&:upcase)
               .map { |nn| [nn, true] }]
+USE_SWEEP   = (env_int("USE_SWEEP", true) || 1) != 0
+USE_LIGHTS  = (env_int("USE_LIGHTS", true) || 1) != 0
 
 ###############################################################################
 # Timing Configuration
@@ -105,7 +107,6 @@ BETWEEN_SLEEP   = env_float("BETWEEN_SLEEP") || 0.0
 # Tweak this to change the visual effect(s).
 ###############################################################################
 # TODO: Move all of these into the config...
-USE_SWEEP       = (env_int("USE_SWEEP", true) || 1) != 0
 SWEEP_LENGTH    = 2.0
 
 TRANSITION      = env_float("TRANSITION") || 0.4 # In seconds, 1/10th sec. prec!
@@ -349,42 +350,46 @@ def main
     end
   end
 
-  threads = LIGHTS_FOR_THREADS.map do |(bridge_name, (lights, _mask))|
-    Thread.new do
-      guard_call(bridge_name) do
-        config    = CONFIG["bridges"][bridge_name]
-        results   = Results.new
-        iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
+  if USE_LIGHTS
+    threads = LIGHTS_FOR_THREADS.map do |(bridge_name, (lights, _mask))|
+      Thread.new do
+        guard_call(bridge_name) do
+          config    = CONFIG["bridges"][bridge_name]
+          results   = Results.new
+          iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
-        debug bridge_name, "Thread set to handle #{lights.count} lights (#{lights.map(&:first).join(", ")})."
+          debug bridge_name, "Thread set to handle #{lights.count} lights (#{lights.map(&:first).join(", ")})."
 
-        Thread.stop
-        sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
+          Thread.stop
+          sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
 
-        requests  = lights
-                    .map do |(idx, lid)|
-                      LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
-                        data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
-                        with_transition_time(data, TRANSITION)
+          requests  = lights
+                      .map do |(idx, lid)|
+                        LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
+                          data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
+                          with_transition_time(data, TRANSITION)
+                        end
                       end
-                    end
 
-        iterator.each do
-          Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
+          iterator.each do
+            Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
+            end
+
+            global_results.add_from(results)
+            results.clear!
+
+            sleep(BETWEEN_SLEEP) unless BETWEEN_SLEEP == 0
+            break if TIME_TO_DIE[0]
           end
-
-          global_results.add_from(results)
-          results.clear!
-
-          sleep(BETWEEN_SLEEP) unless BETWEEN_SLEEP == 0
-          break if TIME_TO_DIE[0]
         end
       end
     end
+  else
+    threads = []
   end
 
   # Wait for threads to finish initializing...
-  sleep 0.01 while threads.find { |thread| thread.status != "sleep" }
+  sleep 0.01 while threads.find { |thread| thread.status != "sleep" } if USE_LIGHTS
   sleep 0.01 while sweep_thread.status != "sleep" if USE_SWEEP
   sleep 0.01 while sim_thread.status != "sleep"
   sleep 0.01 while input_thread.status != "sleep"
@@ -397,7 +402,7 @@ def main
   start_ruby_prof!
   sim_thread.run
   sweep_thread.run if USE_SWEEP
-  threads.each(&:run)
+  threads.each(&:run) if USE_LIGHTS
   input_thread.run
 
   trap("EXIT") do
@@ -424,7 +429,14 @@ def main
     end
   end
 
-  threads.each(&:join)
+  if USE_LIGHTS
+    threads.each(&:join)
+  else
+    loop do
+      break if TIME_TO_DIE[0]
+      sleep 0.1
+    end
+  end
   input_thread.terminate
   sweep_thread.terminate if USE_SWEEP
   sim_thread.terminate
