@@ -1,6 +1,6 @@
 GIT
   remote: git@github.com:MrJoy/launchpad.git
-  revision: 13a57ffcb1f7eabdb9522fb17f0c2f2f9da25e45
+  revision: 6292f33c70fa9ae15120c428dab6b8bb5a820e06
   specs:
     launchpad (0.3.0)
       ffi

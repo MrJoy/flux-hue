@@ -144,7 +144,7 @@ PERLIN_SPEED    = Vector2.new(x: 0.1, y: PERLIN_SCALE_Y)
 # TODO: Run all simulations, and use a mixer to blend between them...
 num_lights          = CONFIG["main_lights"].length
 LIGHTS_FOR_THREADS  = in_groups(CONFIG["main_lights"])
-INTERACTION         = Launchpad::Interaction.new
+INTERACTION         = Launchpad::Interaction.new(use_threads: false)
 INT_STATES          = []
 NODES               = {}
 
