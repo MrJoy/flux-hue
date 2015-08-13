@@ -128,6 +128,10 @@ INT_ON          = { r: 0x27,          b: 0x3F }
 INT_OFF         = { r: 0x02,          b: 0x04 }
 INT_DOWN        = { r: 0x27, g: 0x10, b: 0x3F }
 
+SAT_ON          = { r: 0x10,          b: 0x3F }
+SAT_OFF         = { r: 0x01,          b: 0x04 }
+SAT_DOWN        = { r: 0x10, g: 0x10, b: 0x3F }
+
 SL_ON           = { r: 0x27, g: 0x00, b: 0x00 }
 SL_OFF          = { r: 0x02, g: 0x00, b: 0x00 }
 SL_DOWN         = { r: 0x3F, g: 0x10, b: 0x10 }
@@ -182,6 +186,18 @@ LIGHTS_FOR_THREADS.each do |(_bridge_name, (lights, mask))|
   NODES["SHIFTED_#{t_index}"]  = last
   t_index                     += 1
 end
+
+SAT_STATES = []
+(2..7).each do |yy|
+  SAT_STATES << Widget::HorizontalSlider.new(launchpad: INTERACTION,
+                                             x:         4,
+                                             y:         yy,
+                                             width:     4,
+                                             on:        SAT_ON,
+                                             off:       SAT_OFF,
+                                             down:      SAT_DOWN)
+end
+
 
 last = NODES["SPOTLIT"] = Node::Transform::Spotlight.new(source: last)
 sl_positions_raw        = CONFIG["spotlight_positions"].map { |row| row.map { |i| i.to_i }}
@@ -278,6 +294,7 @@ def main
       # TODO: *does* set the LED and the controller state which is handy, but
       # TODO: still...
       INT_STATES.each { |ctrl| ctrl.update(0) }
+      SAT_STATES.each { |ctrl| ctrl.update(3) }
       SL_STATE.update(nil)
       EXIT_BUTTON.update(false)
 
@@ -411,6 +428,7 @@ def main
       global_results.done!
       print_results(global_results)
       INT_STATES.map(&:blank)
+      SAT_STATES.map(&:blank)
       SL_STATE.blank
       EXIT_BUTTON.blank
 
