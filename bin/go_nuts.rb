@@ -73,6 +73,7 @@ require_relative "./lib/node/transform/range"
 require_relative "./lib/node/transform/spotlight"
 
 require_relative "./lib/widget/base"
+require_relative "./lib/widget/horizontal_slider"
 require_relative "./lib/widget/vertical_slider"
 require_relative "./lib/widget/radio_group"
 require_relative "./lib/widget/toggle"
