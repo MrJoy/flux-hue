@@ -16,9 +16,9 @@ module Widget
       @position   = position
       @width      = width
       @height     = height
-      @on         = BLACK.merge(on)
-      @off        = BLACK.merge(off)
-      @down       = BLACK.merge(down)
+      @on         = on.is_a?(Array) ? on.map { |oo| BLACK.merge(oo) } : BLACK.merge(on)
+      @off        = off.is_a?(Array) ? off.map { |oo| BLACK.merge(oo) } : BLACK.merge(off)
+      @down       = down.is_a?(Array) ? down.map { |oo| BLACK.merge(oo) } : BLACK.merge(down)
       @launchpad  = launchpad
       @value      = value
       @pressed    = {}
@@ -120,7 +120,8 @@ module Widget
     def change_grid(x:, y:, color:)
       return if (x > max_x) || (x < 0)
       return if (y > max_y) || (y < 0)
-      launchpad.device.change_grid(x + @x, y + @y, color[:r], color[:g], color[:b])
+      col = color.is_a?(Array) ? color[index_for(x: x, y: y)] : color
+      launchpad.device.change_grid(x + @x, y + @y, col[:r], col[:g], col[:b])
     end
 
     def change_command(position:, color:)
