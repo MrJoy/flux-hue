@@ -23,6 +23,8 @@ export MAX_CONNECTS=3
 export USE_SWEEP=0
 # Whether to actually run main lighting threads:
 export USE_LIGHTS=0
+# Whether or not to run the simulation:
+export USE_SIM=0
 
 # Which effects to apply to which components:
 export BRI_FUNC=perlin

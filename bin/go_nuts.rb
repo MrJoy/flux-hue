@@ -90,6 +90,7 @@ DEBUG_FLAGS = Hash[(ENV["DEBUG_NODES"] || "")
                    .map { |nn| [nn, true] }]
 USE_SWEEP   = (env_int("USE_SWEEP", true) || 1) != 0
 USE_LIGHTS  = (env_int("USE_LIGHTS", true) || 1) != 0
+USE_SIM     = (env_int("USE_SIM", true) || 1) != 0
 
 ###############################################################################
 # Timing Configuration
@@ -311,16 +312,18 @@ def main
     end
   end
 
-  sim_thread = Thread.new do
-    guard_call("Base Simulation") do
-      Thread.stop
+  if USE_SIM
+    sim_thread = Thread.new do
+      guard_call("Base Simulation") do
+        Thread.stop
 
-      loop do
-        t = Time.now.to_f
-        FINAL_RESULT.update(t)
-        elapsed = Time.now.to_f - t
-        # Try to adhere to a specific update frequency...
-        sleep FRAME_PERIOD - elapsed if elapsed < FRAME_PERIOD
+        loop do
+          t = Time.now.to_f
+          FINAL_RESULT.update(t)
+          elapsed = Time.now.to_f - t
+          # Try to adhere to a specific update frequency...
+          sleep FRAME_PERIOD - elapsed if elapsed < FRAME_PERIOD
+        end
       end
     end
   end
