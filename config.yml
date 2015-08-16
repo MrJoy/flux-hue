@@ -57,19 +57,19 @@ simulation:
       - [0.50, 1.00]
       colors:
         "on":
-        - 0x0A0010
-        - 0x100019
-        - 0x150023
-        - 0x1B002C
-        - 0x210036
-        - 0x27003F
-        "off":  #0x020004
-        - 0x010002
-        - 0x020004
+        - 0x080010
+        - 0x0D0019
+        - 0x130023
+        - 0x17002C
+        - 0x1C0036
+        - 0x22003F
+        "off":
+        - 0x020003
         - 0x030006
-        - 0x040008
-        - 0x05000A
-        - 0x06000C
+        - 0x050009
+        - 0x07000D
+        - 0x080010
+        - 0x0A0013
         "down": 0x27103F
     saturation:
       widget: Widgets::HorizontalSlider
@@ -108,9 +108,9 @@ simulation:
       # Bridge 1/2:
       - [ 3, 4, 5, 6,       7,  8,  9, 10]
       colors:
-        "on":   0x270000
-        "off":  0x020000
-        "down": 0x3F1010
+        "on":   0x272700
+        "off":  0x020200
+        "down": 0x3F3F10
 # Main Lights is the group for which the main simulation will be applied.
 # It can be any number of lights from any number of bridges but you'll need to
 # plan groups out for saturation controls.
