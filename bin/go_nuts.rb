@@ -170,24 +170,28 @@ NODES["STRETCHED"] = last = Node::Transform::Contrast.new(function:   Perlin::Cu
                                                           iterations: 3,
                                                           source:     last)
 # Create one control group here per "quadrant"...
-t_index = 0
-LIGHTS_FOR_THREADS.each do |(_bridge_name, (lights, mask))|
+LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
   mask = [false] * num_lights
-  lights.map(&:first).each { |idx| mask[idx] = true }
+  lights.map(&:first).each { |ii| mask[ii] = true }
 
   last = Node::Transform::Range.new(initial_min: INT_VALUES[0][0],
                                     initial_max: INT_VALUES[0][1],
                                     source:      last,
                                     mask:        mask)
-  INT_STATES[t_index] = Widgets::VerticalSlider.new(launchpad: INTERACTION,
-                                                    x:         t_index,
-                                                    y:         2,
-                                                    height:    6,
-                                                    on:        INT_ON,
-                                                    off:       INT_OFF,
-                                                    down:      INT_DOWN)
-  NODES["SHIFTED_#{t_index}"]  = last
-  t_index                     += 1
+  INT_STATES[idx] = Widgets::VerticalSlider.new(launchpad: INTERACTION,
+                                                x:         idx,
+                                                y:         2,
+                                                height:    6,
+                                                on:        INT_ON,
+                                                off:       INT_OFF,
+                                                down:      INT_DOWN,
+                                                on_change: proc do |val|
+                                                  info "Intensity Controller ##{idx} => #{val}"
+                                                  ival = INT_VALUES[val]
+                                                  NODES["SHIFTED_#{idx}"]
+                                                    .set_range(ival[0], ival[1])
+                                                end)
+  NODES["SHIFTED_#{idx}"] = last
 end
 
 SAT_STATES = []
@@ -277,18 +281,19 @@ def announce_iteration_config(iters)
   end
 end
 
+def clear_board!
+  INT_STATES.map(&:blank)
+  sleep 0.01 # 88 updates/sec input limit!
+  SAT_STATES.map(&:blank)
+  sleep 0.01 # 88 updates/sec input limit!
+  SL_STATE.blank
+  EXIT_BUTTON.blank
+end
+
 def main
   announce_iteration_config(ITERATIONS)
 
   global_results = Results.new
-
-  # Brightness range controls:
-  INT_STATES.each_with_index do |ctrl, idx|
-    ctrl.on_change = proc do |val|
-      info "Intensity Controller ##{idx} => #{val}"
-      NODES["SHIFTED_#{idx}"].set_range(INT_VALUES[val][0], INT_VALUES[val][1])
-    end
-  end
 
   input_thread = Thread.new do
     guard_call("Input Handler Setup") do
@@ -432,12 +437,7 @@ def main
     guard_call("Exit Handler") do
       global_results.done!
       print_results(global_results)
-      INT_STATES.map(&:blank)
-      sleep 0.01
-      SAT_STATES.map(&:blank)
-      sleep 0.01
-      SL_STATE.blank
-      EXIT_BUTTON.blank
+      clear_board!
 
       stop_ruby_prof!
       index = 0
