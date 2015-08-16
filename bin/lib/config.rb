@@ -2,9 +2,13 @@ require "yaml"
 require_relative "./vector2"
 
 def unpack_color(col)
-  { r: ((col >> 16) & 0xFF),
-    g: ((col >> 8) & 0xFF),
-    b: (col & 0xFF) }
+  if col.is_a?(String)
+    Widget.const_get(col.upcase).dup
+  else
+    { r: ((col >> 16) & 0xFF),
+      g: ((col >> 8) & 0xFF),
+      b: (col & 0xFF) }
+  end
 end
 
 def unpack_colors_in_place!(cfg)

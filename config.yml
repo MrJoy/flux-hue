@@ -35,6 +35,11 @@ simulation:
       function:   cubic
       iterations: 3
   controls:
+    exit:
+      position: mixer
+      colors:
+        "color": dark_gray
+        "down":  white
     intensity:
       widget: Widgets::VerticalSlider
       positions:

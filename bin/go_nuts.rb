@@ -218,15 +218,15 @@ Thread.abort_on_exception = false
 ###############################################################################
 # Profiling Support
 ###############################################################################
+e_cfg = CONFIG["simulation"]["controls"]["exit"]
 EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
-                                  position:  :mixer,
-                                  color:     Widget::DARK_GRAY,
-                                  down:      Widget::WHITE,
-                                  on_press:  proc do |value|
-                                    if value != 0
-                                      important "Goodnight, Gracie!"
-                                      TIME_TO_DIE[0] = true
-                                    end
+                                  position:  e_cfg["position"],
+                                  color:     e_cfg["colors"]["color"],
+                                  down:      e_cfg["colors"]["down"],
+                                  on_press:  lambda do |value|
+                                    return unless value != 0
+                                    important "Ending simulation."
+                                    TIME_TO_DIE[0] = true
                                   end)
 
 def start_ruby_prof!
