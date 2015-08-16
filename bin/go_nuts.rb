@@ -45,19 +45,6 @@
 ###############################################################################
 require_relative "./lib/flux_hue"
 
-require_relative "./lib/nodes/simulations/const"
-require_relative "./lib/nodes/simulations/perlin"
-require_relative "./lib/nodes/simulations/wave2"
-
-require_relative "./lib/nodes/transforms/contrast"
-require_relative "./lib/nodes/transforms/range"
-require_relative "./lib/nodes/transforms/spotlight"
-
-require_relative "./widgets/horizontal_slider"
-require_relative "./widgets/vertical_slider"
-require_relative "./widgets/radio_group"
-require_relative "./widgets/button"
-
 ###############################################################################
 # Profiling and Debugging
 ###############################################################################

@@ -2,6 +2,16 @@ require "bundler/gem_tasks"
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
+task_dir        = File.expand_path("../tasks", __FILE__)
+raw_task_files  = FileList["#{task_dir}/**/*.rake"] +
+                  FileList["tasks/**/*.rake"]
+raw_task_files
+  .map { |fname| File.expand_path(fname) }
+  .sort
+  .each do |fname|
+    load fname
+  end
+
 require "rspec/core/rake_task"
 RSpec::Core::RakeTask.new(:spec)
 task default: :spec
