@@ -85,9 +85,9 @@ require_relative "./lib/widget/button"
 PROFILE_RUN = ENV["PROFILE_RUN"]
 SKIP_GC     = !!env_int("SKIP_GC")
 DEBUG_FLAGS = Hash[(ENV["DEBUG_NODES"] || "")
-              .split(/\s*,\s*/)
-              .map(&:upcase)
-              .map { |nn| [nn, true] }]
+                   .split(/\s*,\s*/)
+                   .map(&:upcase)
+                   .map { |nn| [nn, true] }]
 USE_SWEEP   = (env_int("USE_SWEEP", true) || 1) != 0
 USE_LIGHTS  = (env_int("USE_LIGHTS", true) || 1) != 0
 
@@ -99,8 +99,8 @@ USE_LIGHTS  = (env_int("USE_LIGHTS", true) || 1) != 0
 # TODO: Instead of a between sleep, we should look at how many ms we ought to
 # TODO: wait after an update to avoid flooding the network.  That'll depend on
 # TODO: number of components updated, etc.
-SPREAD_SLEEP    = env_float("SPREAD_SLEEP") || 0.0
-BETWEEN_SLEEP   = env_float("BETWEEN_SLEEP") || 0.0
+SPREAD_SLEEP  = env_float("SPREAD_SLEEP") || 0.0
+BETWEEN_SLEEP = env_float("BETWEEN_SLEEP") || 0.0
 
 ###############################################################################
 # Effect Configuration
@@ -108,21 +108,21 @@ BETWEEN_SLEEP   = env_float("BETWEEN_SLEEP") || 0.0
 # Tweak this to change the visual effect(s).
 ###############################################################################
 # TODO: Move all of these into the config...
-SWEEP_LENGTH    = 2.0
+SWEEP_LENGTH  = 2.0
 
-TRANSITION      = env_float("TRANSITION") || 0.4 # In seconds, 1/10th sec. prec!
+TRANSITION    = env_float("TRANSITION") || 0.4 # In seconds, 1/10th sec. prec!
 
 # Ballpark estimation of Jen's palette:
-MIN_HUE         = env_int("MIN_HUE", true) || 48_000
-MAX_HUE         = env_int("MAX_HUE", true) || 51_000
+MIN_HUE       = env_int("MIN_HUE", true) || 48_000
+MAX_HUE       = env_int("MAX_HUE", true) || 51_000
 
 # Intensity ranges:
-INT_VALUES  = [ [0.00, 0.00],
-                [0.00, 0.10],
-                [0.05, 0.20],
-                [0.15, 0.35],
-                [0.30, 0.60],
-                [0.50, 1.00] ]
+INT_VALUES = [[0.00, 0.00],
+              [0.00, 0.10],
+              [0.05, 0.20],
+              [0.15, 0.35],
+              [0.30, 0.60],
+              [0.50, 1.00]]
 
 INT_ON          = { r: 0x27,          b: 0x3F }
 INT_OFF         = { r: 0x02,          b: 0x04 }
@@ -163,25 +163,26 @@ NODES               = {}
 # Simulation Graph Configuration / Setup
 ###############################################################################
 # Root nodes (don't act as modifiers on other nodes' output):
-       NODES["CONST"]      = Node::Simulation::Const.new(lights: num_lights)
-       NODES["WAVE2"]      = Node::Simulation::Wave2.new(lights: num_lights, speed: WAVE2_SPEED)
-last = NODES["PERLIN"]     = Node::Simulation::Perlin.new(lights: num_lights, speed: PERLIN_SPEED)
+NODES["CONST"]          = Node::Simulation::Const.new(lights: num_lights)
+NODES["WAVE2"]          = Node::Simulation::Wave2.new(lights: num_lights, speed: WAVE2_SPEED)
+NODES["PERLIN"] = last  = Node::Simulation::Perlin.new(lights: num_lights, speed: PERLIN_SPEED)
 
 # Transform nodes (act as a chain of modifiers):
 # TODO: Parameterize a few more things like function/iterations below.
-last = NODES["STRETCHED"]  = Node::Transform::Contrast.new(function:   Perlin::Curve::CUBIC, # LINEAR, CUBIC, QUINTIC -- don't bother using iterations>1 with LINEAR!
-                                                           iterations: 3,
-                                                           source:     last)
+# Function; LINEAR, CUBIC, QUINTIC -- don't bother using iterations>1 with LINEAR!
+NODES["STRETCHED"] = last = Node::Transform::Contrast.new(function:   Perlin::Curve::CUBIC,
+                                                          iterations: 3,
+                                                          source:     last)
 # Create one control group here per "quadrant"...
 t_index = 0
 LIGHTS_FOR_THREADS.each do |(_bridge_name, (lights, mask))|
   mask = [false] * num_lights
   lights.map(&:first).each { |idx| mask[idx] = true }
 
-  last                = Node::Transform::Range.new(initial_min: INT_VALUES[0][0],
-                                                   initial_max: INT_VALUES[0][1],
-                                                   source:      last,
-                                                   mask:        mask)
+  last = Node::Transform::Range.new(initial_min: INT_VALUES[0][0],
+                                    initial_max: INT_VALUES[0][1],
+                                    source:      last,
+                                    mask:        mask)
   INT_STATES[t_index] = Widget::VerticalSlider.new(launchpad: INTERACTION,
                                                    x:         t_index,
                                                    y:         2,
@@ -204,10 +205,10 @@ SAT_STATES = []
                                              down:      SAT_DOWN)
 end
 
-
 last = NODES["SPOTLIT"] = Node::Transform::Spotlight.new(source: last)
-sl_positions_raw        = CONFIG["spotlight_positions"].map { |row| row.map { |i| i.to_i }}
-sl_width                = sl_positions_raw.map { |row| row.length }.sort.last
+FINAL_RESULT            = last # The end node that will be rendered to the lights.
+sl_positions_raw        = CONFIG["spotlight_positions"].map { |row| row.map(&:to_i) }
+sl_width                = sl_positions_raw.map(&:length).sort.last
 sl_height               = sl_positions_raw.length
 SL_POSITIONS            = sl_positions_raw.flatten
 SL_STATE                = Widget::RadioGroup.new(launchpad:   INTERACTION,
@@ -227,9 +228,6 @@ SL_STATE                = Widget::RadioGroup.new(launchpad:   INTERACTION,
                                                    NODES["SPOTLIT"].clear!
                                                  end)
 
-# The end node that will be rendered to the lights:
-FINAL_RESULT            = last
-
 NODES.each do |name, node|
   node.debug = DEBUG_FLAGS[name]
 end
@@ -237,8 +235,9 @@ end
 ###############################################################################
 # Operational Configuration
 ###############################################################################
-ITERATIONS = env_int("ITERATIONS", true) || 0
-TIME_TO_DIE = [false]
+ITERATIONS                = env_int("ITERATIONS", true) || 0
+TIME_TO_DIE               = [false]
+Thread.abort_on_exception = false
 
 ###############################################################################
 # Profiling Support
@@ -274,16 +273,18 @@ end
 ###############################################################################
 # Main Simulation
 ###############################################################################
-def main
-  if ITERATIONS > 0
-    debug "Running for #{ITERATIONS} iterations."
+def announce_iteration_config(iters)
+  if iters > 0
+    debug "Running for #{iters} iterations."
   else
     debug "Running until we're killed.  Send SIGHUP to terminate with stats."
   end
+end
+
+def main
+  announce_iteration_config(ITERATIONS)
 
   global_results = Results.new
-
-  Thread.abort_on_exception = false
 
   # Brightness range controls:
   INT_STATES.each_with_index do |ctrl, idx|
