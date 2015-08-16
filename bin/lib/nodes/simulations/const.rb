@@ -1,7 +1,7 @@
-module Node
-  module Simulation
+module Nodes
+  module Simulations
     # For debugging, output 1.0 all the time.
-    class Const < Base
+    class Const < Simulation
       def update(t)
         @lights.times do |n|
           self[n] = 1.0

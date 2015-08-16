@@ -55,17 +55,17 @@ require_relative "./lib/utility"
 require_relative "./lib/results"
 require_relative "./lib/http"
 
-require_relative "./lib/node/base"
-require_relative "./lib/node/simulation/base"
-require_relative "./lib/node/transform/base"
+require_relative "./lib/node"
+require_relative "./lib/nodes/simulation"
+require_relative "./lib/nodes/transform"
 
-require_relative "./lib/node/simulation/const"
-require_relative "./lib/node/simulation/perlin"
-require_relative "./lib/node/simulation/wave2"
+require_relative "./lib/nodes/simulations/const"
+require_relative "./lib/nodes/simulations/perlin"
+require_relative "./lib/nodes/simulations/wave2"
 
-require_relative "./lib/node/transform/contrast"
-require_relative "./lib/node/transform/range"
-require_relative "./lib/node/transform/spotlight"
+require_relative "./lib/nodes/transforms/contrast"
+require_relative "./lib/nodes/transforms/range"
+require_relative "./lib/nodes/transforms/spotlight"
 
 require_relative "./lib/widget"
 
@@ -122,17 +122,17 @@ NODES               = {}
 ###############################################################################
 # Root nodes (don't act as modifiers on other nodes' output):
 n_cfg           = CONFIG["simulation"]["nodes"]
-NODES["CONST"]  = Node::Simulation::Const.new(lights: num_lights)
-NODES["WAVE2"]  = Node::Simulation::Wave2.new(lights: num_lights, speed: n_cfg["wave2"]["speed"])
-NODES["PERLIN"] = Node::Simulation::Perlin.new(lights: num_lights, speed: n_cfg["perlin"]["speed"])
+NODES["CONST"]  = Nodes::Simulations::Const.new(lights: num_lights)
+NODES["WAVE2"]  = Nodes::Simulations::Wave2.new(lights: num_lights, speed: n_cfg["wave2"]["speed"])
+NODES["PERLIN"] = Nodes::Simulations::Perlin.new(lights: num_lights, speed: n_cfg["perlin"]["speed"])
 last            = NODES["PERLIN"]
 
 # Transform nodes (act as a chain of modifiers):
 c_cfg   = n_cfg["contrast"]
 c_func  = Perlin::Curve.const_get(c_cfg["function"].upcase)
-NODES["STRETCHED"] = last = Node::Transform::Contrast.new(function:   c_func,
-                                                          iterations: c_cfg["iterations"],
-                                                          source:     last)
+NODES["STRETCHED"] = last = Nodes::Transforms::Contrast.new(function:   c_func,
+                                                            iterations: c_cfg["iterations"],
+                                                            source:     last)
 # Create one control group here per "quadrant"...
 intensity_cfg = CONFIG["simulation"]["controls"]["intensity"]
 LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
@@ -143,10 +143,10 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
   int_colors  = intensity_cfg["colors"]
   int_widget  = Kernel.const_get(intensity_cfg["widget"])
   pos         = intensity_cfg["positions"][idx]
-  last        = Node::Transform::Range.new(initial_min: int_vals[0][0],
-                                           initial_max: int_vals[0][1],
-                                           source:      last,
-                                           mask:        mask)
+  last        = Nodes::Transforms::Range.new(initial_min: int_vals[0][0],
+                                             initial_max: int_vals[0][1],
+                                             source:      last,
+                                             mask:        mask)
   INT_STATES[idx] = int_widget.new(launchpad: INTERACTION,
                                    x:         pos[0],
                                    y:         pos[1],
@@ -177,7 +177,7 @@ sat_cfg["positions"].each do |(xx, yy)|
                                down:      sat_colors["down"])
 end
 
-last = NODES["SPOTLIT"] = Node::Transform::Spotlight.new(source: last)
+last = NODES["SPOTLIT"] = Nodes::Transforms::Spotlight.new(source: last)
 FINAL_RESULT            = last # The end node that will be rendered to the lights.
 sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
 sl_colors               = sl_cfg["colors"]
@@ -296,7 +296,7 @@ def main
           FINAL_RESULT.update(t)
           elapsed = Time.now.to_f - t
           # Try to adhere to a specific update frequency...
-          sleep FRAME_PERIOD - elapsed if elapsed < FRAME_PERIOD
+          sleep Node::FRAME_PERIOD - elapsed if elapsed < Node::FRAME_PERIOD
         end
       end
     end

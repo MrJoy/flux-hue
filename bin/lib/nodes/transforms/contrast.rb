@@ -1,7 +1,7 @@
-module Node
-  module Transform
+module Nodes
+  module Transforms
     # Transform values from 0..1 into a new range.
-    class Contrast < Base
+    class Contrast < Transform
       def initialize(function:, iterations:, source:, mask: nil)
         super(source: source, mask: mask)
         @contrast = Perlin::Curve.contrast(function, iterations)

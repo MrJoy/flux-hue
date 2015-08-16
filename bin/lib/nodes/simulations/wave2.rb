@@ -1,7 +1,7 @@
-module Node
-  module Simulation
+module Nodes
+  module Simulations
     # Manage and run a simulation of just `sin(x + y)`.
-    class Wave2 < Base
+    class Wave2 < Simulation
       def initialize(lights:, initial_state: nil, speed:)
         super(lights: lights, initial_state: initial_state)
         @speed = speed
