@@ -10,22 +10,11 @@ class Widget
     @position   = position
     @width      = width
     @height     = height
-    @on         = on.is_a?(Array) ? on.map { |oo| BLACK.merge(oo) } : BLACK.merge(on)
-    @off        = off.is_a?(Array) ? off.map { |oo| BLACK.merge(oo) } : BLACK.merge(off)
-    @down       = down.is_a?(Array) ? down.map { |oo| BLACK.merge(oo) } : BLACK.merge(down)
     @launchpad  = launchpad
     @value      = value
     @pressed    = {}
-
-    if @x
-      @launchpad.response_to(:grid, :both, x: (@x..(@x + max_x)), y: (@y..(@y + max_y))) do |_inter, action|
-        handle_grid_response(action)
-      end
-    else
-      @launchpad.response_to(@position, :both) do |inter, action|
-        handle_command_response(action)
-      end
-    end
+    set_colors!(on, off, down)
+    attach_handler!
   end
 
   def update(value, render_now = true)
@@ -62,28 +51,44 @@ protected
 
   attr_reader :launchpad
 
+  def tag
+    @tag ||= begin
+      pos = @x ? "#{@x},#{@y}" : @position
+      "#{self.class.name}(#{pos})"
+    end
+  end
+
+  def pressed!(x: nil, y: nil, position: nil)
+    idx = x ? index_for(x: x, y: y) : position
+    @pressed[idx] = true
+  end
+
+  def released!(x: nil, y: nil, position: nil)
+    idx = x ? index_for(x: x, y: y) : position
+    @pressed.delete(idx) if @pressed.key?(idx)
+  end
+
   def handle_grid_response(action)
-    guard_call("#{self.class.name}(#{@x},#{@y})") do
+    guard_call(tag) do
       xx  = action[:x] - @x
       yy  = action[:y] - @y
-      idx = index_for(x: xx, y: yy)
       if action[:state] == :down
-        @pressed[idx] = true
+        pressed!(x: xx, y: yy)
         on_down(x: xx, y: yy)
       else
-        @pressed.delete(idx) if @pressed.key?(idx)
+        released!(x: xx, y: yy)
         on_up(x: xx, y: yy)
       end
     end
   end
 
   def handle_command_response(action)
-    guard_call("#{self.class.name}(#{@position})") do
+    guard_call(tag) do
       if action[:state] == :down
-        @pressed[@position] = true
+        pressed!(position: @position)
         on_down(position: @position)
       else
-        @pressed.delete(@position) if @pressed.key?(@position)
+        released!(position: @position)
         on_up(position: @position)
       end
     end
@@ -133,6 +138,40 @@ protected
 
   def max_y; @max_y ||= height - 1; end
   def max_x; @max_x ||= width - 1; end
+
+private
+
+  def set_colors!(on, off, down)
+    @on   = normalize_color!(on)
+    @off  = normalize_color!(off)
+    @down = normalize_color!(down)
+  end
+
+  def normalize_color!(color)
+    black = Color::BLACK
+    color.is_a?(Array) ? color.map { |oo| black.merge(oo) } : black.merge(color)
+  end
+
+  def attach_handler!
+    attach_grid_handler!
+    attach_position_handler!
+  end
+
+  def attach_grid_handler!
+    return unless @x
+    xx = @x..(@x + max_x)
+    yy = @y..(@y + max_y)
+    @launchpad.response_to(:grid, :both, x: xx, y: yy) do |_inter, action|
+      handle_grid_response(action)
+    end
+  end
+
+  def attach_position_handler!
+    return if @x
+    @launchpad.response_to(@position, :both) do |_inter, action|
+      handle_command_response(action)
+    end
+  end
 end
 
 require_relative "./widgets/horizontal_slider"
