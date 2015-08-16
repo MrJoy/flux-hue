@@ -1,6 +1,6 @@
-module Widget
+module Widgets
   # Class to represent a slider-style control on a Novation Launchpad.
-  class HorizontalSlider < Base
+  class HorizontalSlider < Widget
     attr_accessor :on_change
 
     def initialize(launchpad:, x:, y:, width:, on:, off:, down:, on_change: nil, value: 0)

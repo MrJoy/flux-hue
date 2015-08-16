@@ -1,6 +1,6 @@
-module Widget
+module Widgets
   # Class to represent a single toggle button.
-  class Toggle < Base
+  class Toggle < Widget
     attr_accessor :on_press
 
     def initialize(launchpad:, position:, on:, off:, down:, on_press: nil, value: 0)

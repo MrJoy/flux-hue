@@ -1,4 +1,4 @@
-module Widget
+module Widgets
   # Class to represent a single stateless button.
   class Button < Toggle
     def initialize(launchpad:, position:, color:, down:, on_press: nil, value: 0)

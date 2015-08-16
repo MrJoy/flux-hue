@@ -1,6 +1,6 @@
-module Widget
+module Widgets
   # Class to represent a radio-button group control on a Novation Launchpad.
-  class RadioGroup < Base
+  class RadioGroup < Widget
     attr_accessor :on_select, :on_deselect
 
     def initialize(launchpad:, x:, y:, width:, height:, on:, off:, down:, on_select: nil, on_deselect:, value: nil)

@@ -72,12 +72,7 @@ require_relative "./lib/node/transform/contrast"
 require_relative "./lib/node/transform/range"
 require_relative "./lib/node/transform/spotlight"
 
-require_relative "./lib/widget/base"
-require_relative "./lib/widget/horizontal_slider"
-require_relative "./lib/widget/vertical_slider"
-require_relative "./lib/widget/radio_group"
-require_relative "./lib/widget/toggle"
-require_relative "./lib/widget/button"
+require_relative "./lib/widget"
 
 ###############################################################################
 # Profiling and Debugging
@@ -184,26 +179,26 @@ LIGHTS_FOR_THREADS.each do |(_bridge_name, (lights, mask))|
                                     initial_max: INT_VALUES[0][1],
                                     source:      last,
                                     mask:        mask)
-  INT_STATES[t_index] = Widget::VerticalSlider.new(launchpad: INTERACTION,
-                                                   x:         t_index,
-                                                   y:         2,
-                                                   height:    6,
-                                                   on:        INT_ON,
-                                                   off:       INT_OFF,
-                                                   down:      INT_DOWN)
+  INT_STATES[t_index] = Widgets::VerticalSlider.new(launchpad: INTERACTION,
+                                                    x:         t_index,
+                                                    y:         2,
+                                                    height:    6,
+                                                    on:        INT_ON,
+                                                    off:       INT_OFF,
+                                                    down:      INT_DOWN)
   NODES["SHIFTED_#{t_index}"]  = last
   t_index                     += 1
 end
 
 SAT_STATES = []
 (2..7).each do |yy|
-  SAT_STATES << Widget::HorizontalSlider.new(launchpad: INTERACTION,
-                                             x:         4,
-                                             y:         yy,
-                                             width:     4,
-                                             on:        SAT_ON,
-                                             off:       SAT_OFF,
-                                             down:      SAT_DOWN)
+  SAT_STATES << Widgets::HorizontalSlider.new(launchpad: INTERACTION,
+                                              x:         4,
+                                              y:         yy,
+                                              width:     4,
+                                              on:        SAT_ON,
+                                              off:       SAT_OFF,
+                                              down:      SAT_DOWN)
 end
 
 last = NODES["SPOTLIT"] = Node::Transform::Spotlight.new(source: last)
@@ -212,22 +207,22 @@ sl_positions_raw        = CONFIG["spotlight_positions"].map { |row| row.map(&:to
 sl_width                = sl_positions_raw.map(&:length).sort.last
 sl_height               = sl_positions_raw.length
 SL_POSITIONS            = sl_positions_raw.flatten
-SL_STATE                = Widget::RadioGroup.new(launchpad:   INTERACTION,
-                                                 x:           0,
-                                                 y:           0,
-                                                 height:      sl_height,
-                                                 width:       sl_width,
-                                                 on:          SL_ON,
-                                                 off:         SL_OFF,
-                                                 down:        SL_DOWN,
-                                                 on_select:   proc do |x|
-                                                   info "Spotlighting ##{x}"
-                                                   NODES["SPOTLIT"].spotlight(SL_POSITIONS[x])
-                                                 end,
-                                                 on_deselect: proc do
-                                                   info "Spotlighting Disabled"
-                                                   NODES["SPOTLIT"].clear!
-                                                 end)
+SL_STATE                = Widgets::RadioGroup.new(launchpad:   INTERACTION,
+                                                  x:           0,
+                                                  y:           0,
+                                                  height:      sl_height,
+                                                  width:       sl_width,
+                                                  on:          SL_ON,
+                                                  off:         SL_OFF,
+                                                  down:        SL_DOWN,
+                                                  on_select:   proc do |x|
+                                                    info "Spotlighting ##{x}"
+                                                    NODES["SPOTLIT"].spotlight(SL_POSITIONS[x])
+                                                  end,
+                                                  on_deselect: proc do
+                                                    info "Spotlighting Disabled"
+                                                    NODES["SPOTLIT"].clear!
+                                                  end)
 
 NODES.each do |name, node|
   node.debug = DEBUG_FLAGS[name]
@@ -243,16 +238,16 @@ Thread.abort_on_exception = false
 ###############################################################################
 # Profiling Support
 ###############################################################################
-EXIT_BUTTON = Widget::Button.new(launchpad: INTERACTION,
-                                 position:  :mixer,
-                                 color:     Widget::Base::DARK_GRAY,
-                                 down:      Widget::Base::WHITE,
-                                 on_press:  proc do |value|
-                                   if value != 0
-                                     important "Goodnight, Gracie!"
-                                     TIME_TO_DIE[0] = true
-                                   end
-                                 end)
+EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
+                                  position:  :mixer,
+                                  color:     Widget::DARK_GRAY,
+                                  down:      Widget::WHITE,
+                                  on_press:  proc do |value|
+                                    if value != 0
+                                      important "Goodnight, Gracie!"
+                                      TIME_TO_DIE[0] = true
+                                    end
+                                  end)
 
 def start_ruby_prof!
   return unless PROFILE_RUN == "ruby-prof"
@@ -419,7 +414,7 @@ def main
   # Wait for threads to finish initializing...
   sleep 0.01 while threads.find { |thread| thread.status != "sleep" } if USE_LIGHTS
   sleep 0.01 while sweep_thread.status != "sleep" if USE_SWEEP
-  sleep 0.01 while sim_thread.status != "sleep"
+  sleep 0.01 while sim_thread.status != "sleep" if USE_SIM
   sleep 0.01 while input_thread.status != "sleep"
   if SKIP_GC
     important "Disabling garbage collection!  BE CAREFUL!"
@@ -428,7 +423,7 @@ def main
   debug "Threads are ready to go, waking them up."
   global_results.begin!
   start_ruby_prof!
-  sim_thread.run
+  sim_thread.run if USE_SIM
   sweep_thread.run if USE_SWEEP
   threads.each(&:run) if USE_LIGHTS
   input_thread.run
@@ -470,7 +465,7 @@ def main
   end
   input_thread.terminate
   sweep_thread.terminate if USE_SWEEP
-  sim_thread.terminate
+  sim_thread.terminate if USE_SIM
 end
 
 ###############################################################################
