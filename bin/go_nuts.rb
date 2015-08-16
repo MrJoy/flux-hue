@@ -46,10 +46,6 @@
 require "rubygems"
 require "bundler/setup"
 Bundler.setup
-require "yaml"
-require "perlin_noise"
-require "oily_png"
-require "launchpad"
 
 require_relative "./lib/output"
 require_relative "./lib/config"

@@ -1,3 +1,5 @@
+require "perlin_noise"
+
 module Node
   module Simulation
     # Manage and run a Perlin-noise based simulation.

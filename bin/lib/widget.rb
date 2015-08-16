@@ -1,3 +1,6 @@
+require "launchpad"
+require "oily_png"
+
 # Base class for Launchpad UI widgets.
 class Widget
   attr_reader :value, :x, :y, :width, :height
