@@ -220,7 +220,7 @@ Thread.abort_on_exception = false
 ###############################################################################
 e_cfg = CONFIG["simulation"]["controls"]["exit"]
 EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
-                                  position:  e_cfg["position"],
+                                  position:  e_cfg["position"].to_sym,
                                   color:     e_cfg["colors"]["color"],
                                   down:      e_cfg["colors"]["down"],
                                   on_press:  lambda do |value|
