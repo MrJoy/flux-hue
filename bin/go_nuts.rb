@@ -466,6 +466,7 @@ def main
   input_thread.terminate
   sweep_thread.terminate if USE_SWEEP
   sim_thread.terminate if USE_SIM
+  sleep 0.1
 end
 
 ###############################################################################
