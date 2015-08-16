@@ -56,8 +56,20 @@ simulation:
       - [0.30, 0.60]
       - [0.50, 1.00]
       colors:
-        "on":   0x27003F
-        "off":  0x020004
+        "on":
+        - 0x0A0010
+        - 0x100019
+        - 0x150023
+        - 0x1B002C
+        - 0x210036
+        - 0x27003F
+        "off":  #0x020004
+        - 0x010002
+        - 0x020004
+        - 0x030006
+        - 0x040008
+        - 0x05000A
+        - 0x06000C
         "down": 0x27103F
     saturation:
       widget: Widgets::HorizontalSlider
