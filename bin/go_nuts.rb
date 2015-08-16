@@ -321,6 +321,7 @@ def main
           # TODO: Hoist this into a sawtooth simulation function.
           hue_target  = (hue_target == max_hue) ? min_hue : max_hue
           data        = with_transition_time({ "hue" => hue_target }, sweep_len)
+          # TODO: Hoist the hash into something reusable above...
           requests    = CONFIG["bridges"]
                         .map do |(_name, config)|
                           { method:   :put,

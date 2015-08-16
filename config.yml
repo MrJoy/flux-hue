@@ -32,7 +32,7 @@ simulation:
     contrast:
       # Function: LINEAR, CUBIC, QUINTIC -- don't bother using iterations > 1
       # with LINEAR, as LINEAR is a no-op.
-      function: cubic
+      function:   cubic
       iterations: 3
   controls:
     intensity:
@@ -126,6 +126,13 @@ main_lights:
 - ["Bridge-04", 9]
 - ["Bridge-04", 8]
 - ["Bridge-04", 1]
+# TODO: Move four lights out of simulation, and into dance-floor group.
+#
+# TODO: Come up with appropriate behaviors/extensions of behavior for dance
+# TODO: floor:
+# TODO: * Spotighting.
+# TODO: * Saturation.
+# TODO: * Intensity.
 dance_floor_lights: []
 accent_lights:
 - ["Bridge-01", 9]
