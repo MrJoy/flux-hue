@@ -26,6 +26,6 @@ def print_results(results)
   print_stats(results)
 
   important "* #{format_float(results.failure_rate)}% failure rate"
-  suffix  = " (#{format_float(results.elapsed / ITERATIONS.to_f)}/iteration)" if ITERATIONS > 0
+  suffix = " (#{format_float(results.elapsed / ITERATIONS.to_f)}/iteration)" if ITERATIONS > 0
   important "* #{format_float(results.elapsed)} seconds elapsed#{suffix}"
 end
