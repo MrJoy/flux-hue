@@ -58,7 +58,6 @@ require_relative "./lib/env"
 require_relative "./lib/utility"
 require_relative "./lib/results"
 require_relative "./lib/http"
-require_relative "./lib/vector2"
 
 require_relative "./lib/node/base"
 require_relative "./lib/node/simulation/base"
@@ -104,39 +103,6 @@ BETWEEN_SLEEP = env_float("BETWEEN_SLEEP") || 0.0
 # Tweak this to change the visual effect(s).
 ###############################################################################
 # TODO: Move all of these into the config...
-SWEEP_LENGTH  = 2.0
-
-TRANSITION    = env_float("TRANSITION") || 0.4 # In seconds, 1/10th sec. prec!
-
-# Ballpark estimation of Jen's palette:
-MIN_HUE       = env_int("MIN_HUE", true) || 48_000
-MAX_HUE       = env_int("MAX_HUE", true) || 51_000
-
-# Intensity ranges:
-INT_VALUES = [[0.00, 0.00],
-              [0.00, 0.10],
-              [0.05, 0.20],
-              [0.15, 0.35],
-              [0.30, 0.60],
-              [0.50, 1.00]]
-
-INT_ON          = { r: 0x27,          b: 0x3F }
-INT_OFF         = { r: 0x02,          b: 0x04 }
-INT_DOWN        = { r: 0x27, g: 0x10, b: 0x3F }
-
-SAT_OFF         = [{ r: 0x03, g: 0x03, b: 0x04 },
-                   { r: 0x02, g: 0x02, b: 0x04 },
-                   { r: 0x01, g: 0x01, b: 0x04 },
-                   { r: 0x01, g: 0x00, b: 0x04 }]
-SAT_DOWN        = { r: 0x10, g: 0x10, b: 0x3F }
-SAT_ON          = [{ r: 0x35, g: 0x30, b: 0x3F },
-                   { r: 0x28, g: 0x20, b: 0x3F },
-                   { r: 0x1C, g: 0x10, b: 0x3F },
-                   { r: 0x10, g: 0x00, b: 0x3F }]
-
-SL_ON           = { r: 0x27, g: 0x00, b: 0x00 }
-SL_OFF          = { r: 0x02, g: 0x00, b: 0x00 }
-SL_DOWN         = { r: 0x3F, g: 0x10, b: 0x10 }
 
 WAVE2_SCALE_X   = env_float("WAVE2_SCALE_X") || 0.1
 WAVE2_SCALE_Y   = env_float("WAVE2_SCALE_Y") || 1.0
@@ -159,64 +125,74 @@ NODES               = {}
 # Simulation Graph Configuration / Setup
 ###############################################################################
 # Root nodes (don't act as modifiers on other nodes' output):
-NODES["CONST"]          = Node::Simulation::Const.new(lights: num_lights)
-NODES["WAVE2"]          = Node::Simulation::Wave2.new(lights: num_lights, speed: WAVE2_SPEED)
-NODES["PERLIN"] = last  = Node::Simulation::Perlin.new(lights: num_lights, speed: PERLIN_SPEED)
+n_cfg           = CONFIG["simulation"]["nodes"]
+NODES["CONST"]  = Node::Simulation::Const.new(lights: num_lights)
+NODES["WAVE2"]  = Node::Simulation::Wave2.new(lights: num_lights, speed: n_cfg["wave2"]["speed"])
+NODES["PERLIN"] = Node::Simulation::Perlin.new(lights: num_lights, speed: n_cfg["perlin"]["speed"])
+last            = NODES["PERLIN"]
 
 # Transform nodes (act as a chain of modifiers):
-# TODO: Parameterize a few more things like function/iterations below.
-# Function; LINEAR, CUBIC, QUINTIC -- don't bother using iterations>1 with LINEAR!
-NODES["STRETCHED"] = last = Node::Transform::Contrast.new(function:   Perlin::Curve::CUBIC,
-                                                          iterations: 3,
+c_cfg   = n_cfg["contrast"]
+c_func  = Perlin::Curve.const_get(c_cfg["function"].upcase)
+NODES["STRETCHED"] = last = Node::Transform::Contrast.new(function:   c_func,
+                                                          iterations: c_cfg["iterations"],
                                                           source:     last)
 # Create one control group here per "quadrant"...
+intensity_cfg = CONFIG["simulation"]["controls"]["intensity"]
 LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
   mask = [false] * num_lights
   lights.map(&:first).each { |ii| mask[ii] = true }
 
-  last = Node::Transform::Range.new(initial_min: INT_VALUES[0][0],
-                                    initial_max: INT_VALUES[0][1],
-                                    source:      last,
-                                    mask:        mask)
+  int_vals    = intensity_cfg["values"]
+  int_colors  = intensity_cfg["colors"]
+  pos         = intensity_cfg["positions"][idx]
+  last        = Node::Transform::Range.new(initial_min: int_vals[0][0],
+                                           initial_max: int_vals[0][1],
+                                           source:      last,
+                                           mask:        mask)
   INT_STATES[idx] = Widgets::VerticalSlider.new(launchpad: INTERACTION,
-                                                x:         idx,
-                                                y:         2,
-                                                height:    6,
-                                                on:        INT_ON,
-                                                off:       INT_OFF,
-                                                down:      INT_DOWN,
+                                                x:         pos[0],
+                                                y:         pos[1],
+                                                height:    intensity_cfg["height"],
+                                                on:        int_colors["on"],
+                                                off:       int_colors["off"],
+                                                down:      int_colors["down"],
                                                 on_change: proc do |val|
                                                   info "Intensity Controller ##{idx} => #{val}"
-                                                  ival = INT_VALUES[val]
+                                                  ival = int_vals[val]
                                                   NODES["SHIFTED_#{idx}"]
                                                     .set_range(ival[0], ival[1])
                                                 end)
   NODES["SHIFTED_#{idx}"] = last
 end
 
-SAT_STATES = []
-(2..7).each do |yy|
+SAT_STATES  = []
+sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
+sat_colors  = sat_cfg["colors"]
+sat_cfg["positions"].each do |(xx, yy)|
   SAT_STATES << Widgets::HorizontalSlider.new(launchpad: INTERACTION,
-                                              x:         4,
+                                              x:         xx,
                                               y:         yy,
-                                              width:     4,
-                                              on:        SAT_ON,
-                                              off:       SAT_OFF,
-                                              down:      SAT_DOWN)
+                                              width:     sat_cfg["width"],
+                                              on:        sat_colors["on"],
+                                              off:       sat_colors["off"],
+                                              down:      sat_colors["down"])
 end
 
 last = NODES["SPOTLIT"] = Node::Transform::Spotlight.new(source: last)
 FINAL_RESULT            = last # The end node that will be rendered to the lights.
-sl_pos_raw              = CONFIG["spotlight_positions"].map { |row| row.map(&:to_i) }
+sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
+sl_colors               = sl_cfg["colors"]
+sl_pos_raw              = sl_cfg["positions"]
 SL_POSITIONS            = sl_pos_raw.flatten
 SL_STATE                = Widgets::RadioGroup.new(launchpad:   INTERACTION,
                                                   x:           0,
                                                   y:           0,
                                                   height:      sl_pos_raw.length,
                                                   width:       sl_pos_raw.map(&:length).sort[-1],
-                                                  on:          SL_ON,
-                                                  off:         SL_OFF,
-                                                  down:        SL_DOWN,
+                                                  on:          sl_colors["on"],
+                                                  off:         sl_colors["off"],
+                                                  down:        sl_colors["down"],
                                                   on_select:   proc do |x|
                                                     info "Spotlighting ##{x}"
                                                     NODES["SPOTLIT"].spotlight(SL_POSITIONS[x])
@@ -329,17 +305,20 @@ def main
   if USE_SWEEP
     # TODO: Make this terminate after main simulation threads have all stopped.
     sweep_thread = Thread.new do
-      hue_target  = MAX_HUE
-      results     = Results.new
+      max_hue     = CONFIG["simulation"]["sweep"]["max"]
+      min_hue     = CONFIG["simulation"]["sweep"]["min"]
+      sweep_len   = CONFIG["simulation"]["sweep"]["length"]
 
+      results     = Results.new
+      hue_target  = max_hue
       guard_call("Sweeper") do
         Thread.stop
 
         loop do
           before_time = Time.now.to_f
           # TODO: Hoist this into a sawtooth simulation function.
-          hue_target  = (hue_target == MAX_HUE) ? MIN_HUE : MAX_HUE
-          data        = with_transition_time({ "hue" => hue_target }, SWEEP_LENGTH)
+          hue_target  = (hue_target == max_hue) ? min_hue : max_hue
+          data        = with_transition_time({ "hue" => hue_target }, sweep_len)
           requests    = CONFIG["bridges"]
                         .map do |(_name, config)|
                           { method:   :put,
@@ -370,32 +349,34 @@ def main
           global_results.add_from(results)
           results.clear!
 
-          sleep 0.05 while (Time.now.to_f - before_time) <= SWEEP_LENGTH
+          sleep 0.05 while (Time.now.to_f - before_time) <= sweep_len
         end
       end
     end
   end
 
   if USE_LIGHTS
-    threads = LIGHTS_FOR_THREADS.map do |(bridge_name, (lights, _mask))|
+    transition  = CONFIG["simulation"]["transition"]
+    threads     = LIGHTS_FOR_THREADS.map do |(bridge_name, (lights, _mask))|
       Thread.new do
         guard_call(bridge_name) do
           config    = CONFIG["bridges"][bridge_name]
           results   = Results.new
           iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
-          debug bridge_name, "Thread set to handle #{lights.count} lights (#{lights.map(&:first).join(", ")})."
+          debug bridge_name, "Thread set to handle #{lights.count} lights"\
+            " (#{lights.map(&:first).join(', ')})."
 
           Thread.stop
           sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
 
-          requests  = lights
-                      .map do |(idx, lid)|
-                        LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
-                          data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
-                          with_transition_time(data, TRANSITION)
-                        end
-                      end
+          requests = lights
+                     .map do |(idx, lid)|
+                       LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
+                         data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
+                         with_transition_time(data, transition)
+                       end
+                     end
 
           iterator.each do
             Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
