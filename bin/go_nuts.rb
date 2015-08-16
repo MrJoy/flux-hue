@@ -207,15 +207,13 @@ end
 
 last = NODES["SPOTLIT"] = Node::Transform::Spotlight.new(source: last)
 FINAL_RESULT            = last # The end node that will be rendered to the lights.
-sl_positions_raw        = CONFIG["spotlight_positions"].map { |row| row.map(&:to_i) }
-sl_width                = sl_positions_raw.map(&:length).sort.last
-sl_height               = sl_positions_raw.length
-SL_POSITIONS            = sl_positions_raw.flatten
+sl_pos_raw              = CONFIG["spotlight_positions"].map { |row| row.map(&:to_i) }
+SL_POSITIONS            = sl_pos_raw.flatten
 SL_STATE                = Widgets::RadioGroup.new(launchpad:   INTERACTION,
                                                   x:           0,
                                                   y:           0,
-                                                  height:      sl_height,
-                                                  width:       sl_width,
+                                                  height:      sl_pos_raw.length,
+                                                  width:       sl_pos_raw.map(&:length).sort[-1],
                                                   on:          SL_ON,
                                                   off:         SL_OFF,
                                                   down:        SL_DOWN,
