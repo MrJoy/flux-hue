@@ -237,6 +237,7 @@ def clear_board!
   SAT_STATES.map(&:blank)
   sleep 0.01 # 88 updates/sec input limit!
   SL_STATE.blank
+  sleep 0.01
   EXIT_BUTTON.blank
 end
 
