@@ -186,7 +186,7 @@ FINAL_RESULT            = last # The end node that will be rendered to the light
 sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
 sl_colors               = sl_cfg["colors"]
 sl_map_raw              = sl_cfg["mappings"]
-SL_POSITIONS            = sl_map_raw.flatten
+sl_pos                  = sl_map_raw.flatten
 SL_STATE                = Widgets::RadioGroup.new(launchpad:   INTERACTION,
                                                   x:           sl_cfg["x"],
                                                   y:           sl_cfg["y"],
@@ -197,7 +197,7 @@ SL_STATE                = Widgets::RadioGroup.new(launchpad:   INTERACTION,
                                                   down:        sl_colors["down"],
                                                   on_select:   proc do |x|
                                                     info "Spotlighting ##{x}"
-                                                    NODES["SPOTLIT"].spotlight(SL_POSITIONS[x])
+                                                    NODES["SPOTLIT"].spotlight(sl_pos[x])
                                                   end,
                                                   on_deselect: proc do
                                                     info "Spotlighting Disabled"
