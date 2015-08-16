@@ -231,14 +231,16 @@ EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
 
 def start_ruby_prof!
   return unless PROFILE_RUN == "ruby-prof"
+
   important "Enabling ruby-prof, be careful!"
   require "ruby-prof"
-  RubyProf.measure_mode = RubyProf::ALLOCATIONS
+  RubyProf.measure_mode = RubyProf.const_get(ENV.fetch("RUBY_PROF_MODE").upcase)
   RubyProf.start
 end
 
 def stop_ruby_prof!
   return unless PROFILE_RUN == "ruby-prof"
+
   result  = RubyProf.stop
   printer = RubyProf::CallStackPrinter.new(result)
   File.open("results.html", "w") do |fh|

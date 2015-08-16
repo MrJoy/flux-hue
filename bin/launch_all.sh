@@ -46,6 +46,8 @@ export VERBOSE=0
 
 # Whether to run a profiler:
 export PROFILE_RUN= # ruby-prof|memory_profiler
+# If using ruby-prof, what mode to run it in:
+export RUBY_PROF_MODE=allocations  # ALLOCATIONS, CPU_TIME, GC_RUNS, GC_TIME, MEMORY, PROCESS_TIME, WALL_TIME
 
 # Dump various PNGs showing the results of given nodes in the DAG over time.
 # This is VERY VERY memory intensize!  Don't try to use it for a long run!
