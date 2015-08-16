@@ -1,9 +1,10 @@
 require "yaml"
 require_relative "./vector2"
+require_relative "./color"
 
 def unpack_color(col)
   if col.is_a?(String)
-    Widget.const_get(col.upcase).dup
+    Color.const_get(col.upcase).dup
   else
     { r: ((col >> 16) & 0xFF),
       g: ((col >> 8) & 0xFF),
@@ -32,6 +33,7 @@ CONFIG = YAML.load(File.read("config.yml"))
 unpack_colors_in_place!(CONFIG["simulation"]["controls"]["intensity"]["colors"])
 unpack_colors_in_place!(CONFIG["simulation"]["controls"]["saturation"]["colors"])
 unpack_colors_in_place!(CONFIG["simulation"]["controls"]["spotlighting"]["colors"])
+unpack_colors_in_place!(CONFIG["simulation"]["controls"]["exit"]["colors"])
 
 unpack_vector_in_place!(CONFIG["simulation"]["nodes"]["wave2"])
 unpack_vector_in_place!(CONFIG["simulation"]["nodes"]["perlin"])

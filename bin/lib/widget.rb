@@ -1,10 +1,5 @@
+# Base class for Launchpad UI widgets.
 class Widget
-  # TODO: Way of enforcing color limits...
-  BLACK       = { r: 0,    g: 0,    b: 0    }.freeze
-  DARK_GRAY   = { r: 0x0F, g: 0x0F, b: 0x0F }.freeze
-  LIGHT_GRAY  = { r: 0x27, g: 0x27, b: 0x27 }.freeze
-  WHITE       = { r: 0x3F, g: 0x3F, b: 0x3F }.freeze
-
   attr_reader :value, :x, :y, :width, :height
   attr_accessor :on, :off, :down
 
@@ -55,11 +50,11 @@ class Widget
     if @x
       (0..max_x).each do |xx|
         (0..max_y).each do |yy|
-          change_grid(x: xx, y: yy, color: BLACK)
+          change_grid(x: xx, y: yy, color: Color::BLACK)
         end
       end
     else
-      change_command(position: @position, color: BLACK)
+      change_command(position: @position, color: Color::BLACK)
     end
   end
 
