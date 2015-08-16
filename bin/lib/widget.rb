@@ -39,14 +39,15 @@ class Widget
   end
 
   def blank
+    black = Color::LaunchPad::BLACK.to_h
     if @x
       (0..max_x).each do |xx|
         (0..max_y).each do |yy|
-          change_grid(x: xx, y: yy, color: Color::BLACK)
+          change_grid(x: xx, y: yy, color: black)
         end
       end
     else
-      change_command(position: @position, color: Color::BLACK)
+      change_command(position: @position, color: black)
     end
   end
 
@@ -151,7 +152,7 @@ private
   end
 
   def normalize_color!(color)
-    black = Color::BLACK
+    black = Color::LaunchPad::BLACK.to_h
     color.is_a?(Array) ? color.map { |oo| black.merge(oo) } : black.merge(color)
   end
 

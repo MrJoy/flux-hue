@@ -4,7 +4,7 @@ require_relative "./color"
 
 def unpack_color(col)
   if col.is_a?(String)
-    Color.const_get(col.upcase).dup
+    Color::LaunchPad.const_get(col.upcase).to_h
   else
     { r: ((col >> 16) & 0xFF),
       g: ((col >> 8) & 0xFF),
