@@ -26,25 +26,6 @@ export USE_LIGHTS=0
 # Whether or not to run the simulation:
 export USE_SIM=0
 
-# Which effects to apply to which components:
-export BRI_FUNC=perlin
-
-# How rapid the effects move (unrelated to speed of light updates):
-export PERLIN_SCALE_Y=4.0
-export WAVE2_SCALE_X=0.1
-export WAVE2_SCALE_Y=4.0
-
-# How long an individual change takes to apply (in seconds, at 1/10th sec
-# precision):
-export TRANSITION=0.3
-
-
-###############################################################################
-# Color Palette
-###############################################################################
-# export MIN_HUE=48000
-# export MAX_HUE=51000
-
 
 ###############################################################################
 # Simulation Duration
@@ -68,7 +49,7 @@ export PROFILE_RUN= # ruby-prof|memory_profiler
 
 # Dump various PNGs showing the results of given nodes in the DAG over time.
 # This is VERY VERY memory intensize!  Don't try to use it for a long run!
-export DEBUG_NODES= #perlin,stretched,shifted_0,shifted_1,shifted_2,shifted_3,spotlit
+export DEBUG_NODES= #perlin,stretched,shifted_0,shifted_1,shifted_2,shifted_3,spotlit,output
 
 
 ###############################################################################

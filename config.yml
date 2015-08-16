@@ -18,7 +18,7 @@ bridges:
     username: *common_username
     debug_hue: 12000
 simulation:
-  transition: 0.4
+  transition: 0.3
   sweep:
     length: 2.0
     # Ballpark estimation of Jen's palette:
