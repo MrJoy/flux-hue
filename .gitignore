@@ -18,5 +18,5 @@ tmp/
 etc/
 *.sublime-*
 /*.png
-/result.html
+/results.html
 /output.*
