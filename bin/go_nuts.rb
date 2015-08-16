@@ -145,51 +145,53 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
 
   int_vals    = intensity_cfg["values"]
   int_colors  = intensity_cfg["colors"]
+  int_widget  = Kernel.const_get(intensity_cfg["widget"])
   pos         = intensity_cfg["positions"][idx]
   last        = Node::Transform::Range.new(initial_min: int_vals[0][0],
                                            initial_max: int_vals[0][1],
                                            source:      last,
                                            mask:        mask)
-  INT_STATES[idx] = Widgets::VerticalSlider.new(launchpad: INTERACTION,
-                                                x:         pos[0],
-                                                y:         pos[1],
-                                                height:    intensity_cfg["height"],
-                                                on:        int_colors["on"],
-                                                off:       int_colors["off"],
-                                                down:      int_colors["down"],
-                                                on_change: proc do |val|
-                                                  info "Intensity Controller ##{idx} => #{val}"
-                                                  ival = int_vals[val]
-                                                  NODES["SHIFTED_#{idx}"]
-                                                    .set_range(ival[0], ival[1])
-                                                end)
+  INT_STATES[idx] = int_widget.new(launchpad: INTERACTION,
+                                   x:         pos[0],
+                                   y:         pos[1],
+                                   size:      intensity_cfg["size"],
+                                   on:        int_colors["on"],
+                                   off:       int_colors["off"],
+                                   down:      int_colors["down"],
+                                   on_change: proc do |val|
+                                     info "Intensity Controller ##{idx} => #{val}"
+                                     ival = int_vals[val]
+                                     NODES["SHIFTED_#{idx}"]
+                                       .set_range(ival[0], ival[1])
+                                   end)
   NODES["SHIFTED_#{idx}"] = last
 end
 
 SAT_STATES  = []
 sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
 sat_colors  = sat_cfg["colors"]
+sat_widget  = Kernel.const_get(sat_cfg["widget"])
 sat_cfg["positions"].each do |(xx, yy)|
-  SAT_STATES << Widgets::HorizontalSlider.new(launchpad: INTERACTION,
-                                              x:         xx,
-                                              y:         yy,
-                                              width:     sat_cfg["width"],
-                                              on:        sat_colors["on"],
-                                              off:       sat_colors["off"],
-                                              down:      sat_colors["down"])
+  SAT_STATES << sat_widget.new(launchpad: INTERACTION,
+                               x:         xx,
+                               y:         yy,
+                               size:      sat_cfg["size"],
+                               on:        sat_colors["on"],
+                               off:       sat_colors["off"],
+                               down:      sat_colors["down"])
 end
 
 last = NODES["SPOTLIT"] = Node::Transform::Spotlight.new(source: last)
 FINAL_RESULT            = last # The end node that will be rendered to the lights.
 sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
 sl_colors               = sl_cfg["colors"]
-sl_pos_raw              = sl_cfg["positions"]
-SL_POSITIONS            = sl_pos_raw.flatten
+sl_map_raw              = sl_cfg["mappings"]
+SL_POSITIONS            = sl_map_raw.flatten
 SL_STATE                = Widgets::RadioGroup.new(launchpad:   INTERACTION,
-                                                  x:           0,
-                                                  y:           0,
-                                                  height:      sl_pos_raw.length,
-                                                  width:       sl_pos_raw.map(&:length).sort[-1],
+                                                  x:           sl_cfg["x"],
+                                                  y:           sl_cfg["y"],
+                                                  size:        [sl_map_raw.map(&:length).sort[-1],
+                                                                sl_map_raw.length],
                                                   on:          sl_colors["on"],
                                                   off:         sl_colors["off"],
                                                   down:        sl_colors["down"],

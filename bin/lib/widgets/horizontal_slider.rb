@@ -3,8 +3,8 @@ module Widgets
   class HorizontalSlider < Widget
     attr_accessor :on_change
 
-    def initialize(launchpad:, x:, y:, width:, on:, off:, down:, on_change: nil, value: 0)
-      super(launchpad: launchpad, x: x, y: y, width: width, height: 1, on: on, off: off, down: down, value: value)
+    def initialize(launchpad:, x:, y:, size:, on:, off:, down:, on_change: nil, value: 0)
+      super(launchpad: launchpad, x: x, y: y, width: size, height: 1, on: on, off: off, down: down, value: value)
       @on_change = on_change
     end
 
