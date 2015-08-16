@@ -47,6 +47,7 @@ source "https://rubygems.org"
 
 gemspec
 
+gem "rgb",              require: false
 gem "curb",             require: false
 gem "perlin_noise",     require: false
 gem "launchpad",        require: false,

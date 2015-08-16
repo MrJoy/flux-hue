@@ -83,6 +83,7 @@ GEM
     rack (1.6.4)
     rainbow (2.0.0)
     rake (10.4.2)
+    rgb (0.1.0)
     rspec (3.3.0)
       rspec-core (~> 3.3.0)
       rspec-expectations (~> 3.3.0)
@@ -137,6 +138,7 @@ DEPENDENCIES
   perlin_noise
   pry
   rake
+  rgb
   rspec (~> 3.3.0)
   rubocop
   ruby-prof
