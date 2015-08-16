@@ -43,21 +43,7 @@
 ###############################################################################
 # Early Initialization/Helpers
 ###############################################################################
-require "rubygems"
-require "bundler/setup"
-Bundler.setup
-
-require_relative "./lib/output"
-require_relative "./lib/config"
-require_relative "./lib/logging"
-require_relative "./lib/env"
-require_relative "./lib/utility"
-require_relative "./lib/results"
-require_relative "./lib/http"
-
-require_relative "./lib/node"
-require_relative "./lib/nodes/simulation"
-require_relative "./lib/nodes/transform"
+require_relative "./lib/flux_hue"
 
 require_relative "./lib/nodes/simulations/const"
 require_relative "./lib/nodes/simulations/perlin"
@@ -67,7 +53,10 @@ require_relative "./lib/nodes/transforms/contrast"
 require_relative "./lib/nodes/transforms/range"
 require_relative "./lib/nodes/transforms/spotlight"
 
-require_relative "./lib/widget"
+require_relative "./widgets/horizontal_slider"
+require_relative "./widgets/vertical_slider"
+require_relative "./widgets/radio_group"
+require_relative "./widgets/button"
 
 ###############################################################################
 # Profiling and Debugging

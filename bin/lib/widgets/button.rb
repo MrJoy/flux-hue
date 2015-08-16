@@ -1,3 +1,5 @@
+require_relative "./toggle"
+
 module Widgets
   # Class to represent a single stateless button.
   class Button < Toggle

@@ -176,9 +176,3 @@ private
     end
   end
 end
-
-require_relative "./widgets/horizontal_slider"
-require_relative "./widgets/vertical_slider"
-require_relative "./widgets/radio_group"
-require_relative "./widgets/toggle"
-require_relative "./widgets/button"
