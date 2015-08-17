@@ -37,7 +37,7 @@ EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
 
 RESET_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
                                    position:  :session,
-                                   color:     Color::LaunchPad::GREEN.to_h,
+                                   color:     Color::LaunchPad::DARK_GREEN.to_h,
                                    down:      Color::LaunchPad::WHITE.to_h,
                                    on_press:  lambda do |value|
                                      return unless value != 0

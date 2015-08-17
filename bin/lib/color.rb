@@ -32,7 +32,9 @@ module Color
     LIGHT_GRAY  = RGBColor.new(0x27, 0x27, 0x27).freeze
     WHITE       = RGBColor.new(0x3F, 0x3F, 0x3F).freeze
     RED         = RGBColor.new(0x3F, 0x00, 0x00).freeze
+    DARK_GREEN  = RGBColor.new(0x00, 0x07, 0x00).freeze
     GREEN       = RGBColor.new(0x00, 0x3F, 0x00).freeze
+    LIGHT_GREEN = RGBColor.new(0x10, 0x4F, 0x10).freeze
     BLUE        = RGBColor.new(0x00, 0x00, 0x3F).freeze
   end
 end
