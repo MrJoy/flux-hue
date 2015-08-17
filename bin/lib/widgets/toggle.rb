@@ -3,13 +3,18 @@ module Widgets
   class Toggle < Widget
     attr_accessor :on_press
 
-    def initialize(launchpad:, position:, on:, off:, down:, on_press: nil, value: 0)
-      super(launchpad: launchpad, position: position, width: 1, height: 1, on: on, off: off, down: down, value: value)
+    def initialize(launchpad:, position: nil, x: nil, y: nil, on:, off:, down:, on_press: nil, value: 0)
+      super(launchpad: launchpad, position: position, x: x, y: y, width: 1, height: 1, on: on, off: off, down: down, value: value)
       @on_press = on_press
     end
 
     def render
-      change_command(position: @position, color: (value != 0) ? on : off)
+      val = (value != 0) ? on : off
+      if @x
+        change_grid(x: 0, y: 0, color: val)
+      else
+        change_command(position: @position, color: val)
+      end
       super
     end
 
