@@ -10,7 +10,7 @@ module Widgets
 
     def render
       (0..max_v).each do |yy|
-        change_grid(x: 0, y: yy, color: (value >= yy) ? on : off)
+        change_grid(x: 0, y: yy, color: (value && value >= yy) ? on : off)
       end
       super
     end
