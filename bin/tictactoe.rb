@@ -35,17 +35,32 @@ EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
                                     INTERACTION.stop
                                   end)
 
+RESET_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
+                                   position:  :session,
+                                   color:     Color::LaunchPad::GREEN.to_h,
+                                   down:      Color::LaunchPad::WHITE.to_h,
+                                   on_press:  lambda do |value|
+                                     return unless value != 0
+                                     init_board!
+                                   end)
+
+def init_board!
+  BOARD.flatten.map { |b| b.update(false) }
+  EXIT_BUTTON.update(false)
+  RESET_BUTTON.update(false)
+end
+
 def clear_board!
   BOARD.flatten.map(&:blank)
   sleep 0.01 # 88 updates/sec input limit!
   EXIT_BUTTON.blank
+  RESET_BUTTON.blank
 end
 
 def main
-  BOARD.flatten.map { |b| b.update(false) }
-  EXIT_BUTTON.update(false)
+  init_board!
   INTERACTION.start
+  clear_board!
 end
 
 main
-clear_board!
