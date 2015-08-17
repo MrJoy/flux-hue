@@ -12,13 +12,13 @@ end
 
 # Jen's palette color:
 # on = RGB::Color.from_fractions(49500/65535.0, 1.0, 0.5)
-on = RGB::Color.from_fractions(49500/65535.0, 1.0, 0.5)
+on = RGB::Color.from_fractions(49500/65535.0, 1.0, 0.08)
 puts "#{on.h.round(1)}, #{on.s.round(3)}, #{on.l.round(3)}"
 
 results = []
 results << to_hex(on)
 5.times do
-  on.l -= 0.075
+  on.l -= 0.0125
   results << to_hex(on)
 end
 
