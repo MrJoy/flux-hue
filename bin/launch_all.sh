@@ -9,7 +9,7 @@ export USE_LIGHTS=1
 # Whether or not to run the simulation:
 export USE_SIM=1
 # Whether or not to use Novation LaunchPad for controls:
-export USE_INPUT=0
+export USE_INPUT=1
 
 
 ###############################################################################
