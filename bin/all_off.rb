@@ -13,15 +13,6 @@ require_relative "./lib/env"
 require_relative "./lib/http"
 
 ###############################################################################
-# Effect
-#
-# Tweak this to change the visual effect.
-###############################################################################
-INIT_HUE      = env_int("INIT_HUE", true) || 49_500
-INIT_SAT      = env_int("INIT_SAT", true) || 254
-INIT_BRI      = env_int("INIT_BRI", true) || 127
-
-###############################################################################
 # Helper Functions
 ###############################################################################
 def make_req_struct(url, data)
@@ -31,10 +22,7 @@ def make_req_struct(url, data)
 end
 
 def hue_init(config)
-  make_req_struct(hue_group_endpoint(config, 0), "on"  => true,
-                                                 "bri" => INIT_BRI,
-                                                 "sat" => INIT_SAT,
-                                                 "hue" => INIT_HUE)
+  make_req_struct(hue_group_endpoint(config, 0), "on" => false)
 end
 
 ###############################################################################

@@ -243,6 +243,7 @@ end
 
 def clear_board!
   return unless USE_INPUT
+
   INT_STATES.map(&:blank)
   sleep 0.01 # 88 updates/sec input limit!
   SAT_STATES.map(&:blank)
@@ -365,7 +366,8 @@ def main
 
           requests = lights
                      .map do |(idx, lid)|
-                       LazyRequestConfig.new(LOGGER, config, hue_light_endpoint(config, lid), results) do
+                       url = hue_light_endpoint(config, lid)
+                       LazyRequestConfig.new(LOGGER, config, url, results) do
                          data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
                          with_transition_time(data, transition)
                        end
@@ -452,6 +454,7 @@ if PROFILE_RUN == "memory_profiler"
     LOGGER.unknown { "Preparing MemoryProfiler report." }
   end
   LOGGER.unknown { "Dumping MemoryProfiler report." }
+  # TODO: Dump this to a file...
   report.pretty_print
 else
   main

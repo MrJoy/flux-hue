@@ -1,4 +1,3 @@
-require "bundler/gem_tasks"
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
@@ -32,7 +31,6 @@ desc "Open a Ruby console to Pry."
 task :console do
   # rubocop:disable Lint/Debugger
   require "pry"
-  require "flux_hue"
   binding.pry
   # rubocop:enable Lint/Debugger
 end

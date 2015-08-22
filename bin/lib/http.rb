@@ -27,7 +27,7 @@ end
 # possible, to undo the temporal skew that comes from updating the simulation
 # then spending a bunch of time feeding updates to lights.
 class LazyRequestConfig
-  GLOBAL_HISTORY=[]
+  GLOBAL_HISTORY = []
   # TODO: Transition should be updated late as well...
   def initialize(logger, config, url, results = nil, &callback)
     @logger     = logger
@@ -35,17 +35,7 @@ class LazyRequestConfig
     @url        = url
     @results    = results
     @callback   = callback
-    @fixed    ||= {  url:          @url,
-                     method:       :put,
-                     headers:      nil,
-                     # TODO: Maybe skip per-event callbacks and go for single
-                     # TODO: callback?
-                     on_failure:   proc { |easy, _| failure!(easy) },
-                     on_success:   proc { |easy| success!(easy) },
-                     on_progress:  nil,
-                     on_debug:     nil,
-                     on_body:      nil,
-                     on_header:    nil }
+    @fixed      = create_fixed(url)
   end
 
   def each(&block)
@@ -70,6 +60,21 @@ protected
 
   def error(&msg); @logger.error { "#{@config['name']}; #{@url}: #{msg.call}" }; end
   def debug(&msg); @logger.debug { "#{@config['name']}; #{@url}: #{msg.call}" }; end
+
+  def create_fixed(url)
+    {  url:          url,
+       method:       :put,
+       headers:      nil,
+       # TODO: Maybe skip per-event callbacks and go for single
+       # TODO: callback?
+       on_failure:   proc { |easy, _| failure!(easy) },
+       on_success:   proc { |easy| success!(easy) },
+       on_progress:  nil,
+       on_debug:     nil,
+       on_body:      nil,
+       on_header:    nil }
+  end
+
   def journal(stage, easy: nil, body: nil)
     return unless DEBUG_FLAGS["OUTPUT"]
     GLOBAL_HISTORY << "#{Time.now.to_f},#{stage},#{@url},#{easy ? easy.body_str : body}"

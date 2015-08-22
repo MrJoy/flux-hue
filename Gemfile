@@ -45,8 +45,7 @@ source "https://rubygems.org"
 #   https://github.com/typhoeus/typhoeus#readme
 #   https://github.com/igrigorik/em-http-request
 
-gemspec
-
+gem "oj",               require: false
 gem "rgb",              require: false
 gem "curb",             require: false
 gem "perlin_noise",     require: false

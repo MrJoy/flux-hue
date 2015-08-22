@@ -16,7 +16,7 @@ current_player  = 0
                                       off:  Color::LaunchPad::DARK_GRAY.to_h,
                                       on:   Color::LaunchPad::LIGHT_GRAY.to_h,
                                       down: Color::LaunchPad::WHITE.to_h,
-                                      on_press: proc do |val|
+                                      on_press: proc do |_val|
                                         BOARD[x][y].on = PLAYER_COLORS[current_player]
                                         current_player += 1
                                         current_player = 0 if current_player > 1
