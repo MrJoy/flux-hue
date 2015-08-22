@@ -48,7 +48,7 @@ init_reqs = CONFIG["bridges"]
             .map { |config| hue_init(config) }
 Curl::Multi.http(init_reqs, MULTI_OPTIONS) do |easy|
   if easy.response_code != 200
-    error "Failed to initialize light (will try again): #{easy.url}"
+    LOGGER.error { "Failed to initialize light: #{easy.url}" }
     add(easy)
   end
 end

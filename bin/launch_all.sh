@@ -43,8 +43,8 @@ export RUN_FOREVER=1
 # Forcibly disable Ruby GC:
 export SKIP_GC=0
 
-# Whether or not to show success information.
-export VERBOSE=0
+# Logging verbosity.  Valid values: DEBUG, INFO, WARN, ERROR.  Default is INFO.
+export FLUX_LOGLEVEL=DEBUG
 
 # Whether to run a profiler:
 export PROFILE_RUN= # ruby-prof|memory_profiler

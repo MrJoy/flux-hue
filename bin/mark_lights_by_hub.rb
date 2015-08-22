@@ -15,13 +15,12 @@ require_relative "./lib/http"
 ###############################################################################
 # Main Logic
 ###############################################################################
-VERBOSE = false
 # TODO: Also mark accent lights!
 in_groups(CONFIG["main_lights"]).map do |(bridge_name, lights)|
   config    = CONFIG["bridges"][bridge_name]
   requests  = lights
               .map do |(idx, lid)|
-                LazyRequestConfig.new(config, hue_light_endpoint(config, lid)) do
+                LazyRequestConfig.new(LOGGER, config, hue_light_endpoint(config, lid)) do
                   target = (254 * ((idx + 1) / lights.length.to_f)).round
                   data = {}
                   data["on"] = true

@@ -136,7 +136,7 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
                                    off:       int_colors["off"],
                                    down:      int_colors["down"],
                                    on_change: proc do |val|
-                                     info "Intensity Controller ##{idx} => #{val}"
+                                     LOGGER.info { "Intensity[#{idx}]: #{val}" }
                                      ival = int_vals[val]
                                      NODES["SHIFTED_#{idx}"]
                                        .set_range(ival[0], ival[1])
@@ -175,11 +175,11 @@ if USE_INPUT
                                      off:         sl_colors["off"],
                                      down:        sl_colors["down"],
                                      on_select:   proc do |x|
-                                       info "Spotlighting ##{x}"
+                                       LOGGER.info { "Spotlighting ##{sl_pos[x]}" }
                                        NODES["SPOTLIT"].spotlight(sl_pos[x])
                                      end,
                                      on_deselect: proc do
-                                       info "Spotlighting Disabled"
+                                       LOGGER.info { "Spotlighting Off" }
                                        NODES["SPOTLIT"].clear!
                                      end)
 end
@@ -206,7 +206,7 @@ if USE_INPUT
                                     down:      e_cfg["colors"]["down"],
                                     on_press:  lambda do |value|
                                       return unless value != 0
-                                      important "Ending simulation."
+                                      LOGGER.unknown { "Ending simulation." }
                                       TIME_TO_DIE[0] = true
                                     end)
 end
@@ -214,7 +214,7 @@ end
 def start_ruby_prof!
   return unless PROFILE_RUN == "ruby-prof"
 
-  important "Enabling ruby-prof, be careful!"
+  LOGGER.unknown { "Enabling ruby-prof, be careful!" }
   require "ruby-prof"
   RubyProf.measure_mode = RubyProf.const_get(ENV.fetch("RUBY_PROF_MODE").upcase)
   RubyProf.start
@@ -235,9 +235,9 @@ end
 ###############################################################################
 def announce_iteration_config(iters)
   if iters > 0
-    debug "Running for #{iters} iterations."
+    LOGGER.debug { "Running for #{iters} iterations." }
   else
-    debug "Running until we're killed.  Send SIGHUP to terminate with stats."
+    LOGGER.debug { "Running until we're killed.  Send SIGHUP to terminate with stats." }
   end
 end
 
@@ -355,15 +355,17 @@ def main
           results   = Results.new
           iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
-          debug bridge_name, "Thread set to handle #{lights.count} lights"\
-            " (#{lights.map(&:first).join(', ')})."
+          LOGGER.debug do
+            light_list = lights.map(&:first).join(", ")
+            "#{bridge_name}: Thread set to handle #{lights.count} lights (#{light_list})."
+          end
 
           Thread.stop
           sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
 
           requests = lights
                      .map do |(idx, lid)|
-                       LazyRequestConfig.new(config, hue_light_endpoint(config, lid), results) do
+                       LazyRequestConfig.new(LOGGER, config, hue_light_endpoint(config, lid), results) do
                          data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
                          with_transition_time(data, transition)
                        end
@@ -392,10 +394,10 @@ def main
   sleep 0.01 while sim_thread.status != "sleep" if USE_SIM
   sleep 0.01 while input_thread.status != "sleep" if USE_INPUT
   if SKIP_GC
-    important "Disabling garbage collection!  BE CAREFUL!"
+    LOGGER.unknown { "Disabling garbage collection!  BE CAREFUL!" }
     GC.disable
   end
-  debug "Threads are ready to go, waking them up."
+  LOGGER.debug { "Threads are ready to go, waking them up." }
   global_results.begin!
   start_ruby_prof!
   sim_thread.run if USE_SIM
@@ -443,13 +445,13 @@ end
 # Launcher
 ###############################################################################
 if PROFILE_RUN == "memory_profiler"
-  important "Enabling memory_profiler, be careful!"
+  LOGGER.unknown { "Enabling memory_profiler, be careful!" }
   require "memory_profiler"
   report = MemoryProfiler.report do
     main
-    important "Preparing MemoryProfiler report..."
+    LOGGER.unknown { "Preparing MemoryProfiler report." }
   end
-  important "Dumping MemoryProfiler report..."
+  LOGGER.unknown { "Dumping MemoryProfiler report." }
   report.pretty_print
 else
   main

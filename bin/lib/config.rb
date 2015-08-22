@@ -30,6 +30,10 @@ def unpack_vector_in_place!(cfg)
 end
 
 CONFIG = YAML.load(File.read("config.yml"))
+CONFIG["bridges"].map do |name, cfg|
+  cfg["name"] = name
+end
+
 unpack_colors_in_place!(CONFIG["simulation"]["controls"]["intensity"]["colors"])
 unpack_colors_in_place!(CONFIG["simulation"]["controls"]["saturation"]["colors"])
 unpack_colors_in_place!(CONFIG["simulation"]["controls"]["spotlighting"]["colors"])

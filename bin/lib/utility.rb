@@ -2,9 +2,8 @@
 def guard_call(bridge_name, &block)
   block.call
 rescue Exception => e
-  error bridge_name, "Exception for #{bridge_name}, got:"
-  error bridge_name, "\t#{e.message}"
-  error bridge_name, "\t#{e.backtrace.join("\n\t")}"
+  LOGGER.error { "#{bridge_name}: Exception for #{bridge_name}: #{e.message}" }
+  LOGGER.error { "#{bridge_name}:\t#{e.backtrace.join("\n#{bridge_name}:\t")}" }
 end
 # rubocop:enable Lint/RescueException
 

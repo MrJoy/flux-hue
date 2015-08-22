@@ -31,7 +31,7 @@ EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
                                   down:      Color::LaunchPad::WHITE.to_h,
                                   on_press:  lambda do |value|
                                     return unless value != 0
-                                    important "Ending simulation."
+                                    LOGGER.unknown { "Ending simulation." }
                                     INTERACTION.stop
                                   end)
 

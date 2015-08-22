@@ -3,7 +3,7 @@ def format_float(num); num ? num.round(2) : "-"; end
 def format_rate(rate); "#{format_float(rate)}/sec"; end
 
 def print_stat(name, value, rate)
-  important "* #{value} #{name} (#{format_rate(rate)})"
+  LOGGER.unknown { "* #{value} #{name} (#{format_rate(rate)})" }
 end
 
 STATS = [
@@ -22,10 +22,9 @@ end
 
 # TODO: Show per-bridge and aggregate stats.
 def print_results(results)
-  important ""
   print_stats(results)
 
-  important "* #{format_float(results.failure_rate)}% failure rate"
+  LOGGER.unknown { "* #{format_float(results.failure_rate)}% failure rate" }
   suffix = " (#{format_float(results.elapsed / ITERATIONS.to_f)}/iteration)" if ITERATIONS > 0
-  important "* #{format_float(results.elapsed)} seconds elapsed#{suffix}"
+  LOGGER.unknown { "* #{format_float(results.elapsed)} seconds elapsed#{suffix}" }
 end

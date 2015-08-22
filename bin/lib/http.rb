@@ -29,7 +29,8 @@ end
 class LazyRequestConfig
   GLOBAL_HISTORY=[]
   # TODO: Transition should be updated late as well...
-  def initialize(config, url, results = nil, &callback)
+  def initialize(logger, config, url, results = nil, &callback)
+    @logger     = logger
     @config     = config
     @url        = url
     @results    = results
@@ -61,20 +62,17 @@ class LazyRequestConfig
       return tmp
     end
 
-    wtf!(field)
+    error "Request for unknown field: `#{field}`!  Has Curb been updated in a breaking way?"
     nil
   end
 
 protected
 
+  def error(&msg); @logger.error { "#{@config['name']}; #{@url}: #{msg.call}" }; end
+  def debug(&msg); @logger.debug { "#{@config['name']}; #{@url}: #{msg.call}" }; end
   def journal(stage, easy: nil, body: nil)
     return unless DEBUG_FLAGS["OUTPUT"]
     GLOBAL_HISTORY << "#{Time.now.to_f},#{stage},#{@url},#{easy ? easy.body_str : body}"
-  end
-
-  def wtf!(field)
-    error @config, "Request for unknown field: `#{field}`!  Has Curb been updated"\
-      " in a breaking way?"
   end
 
   def failure!(easy)
@@ -83,13 +81,13 @@ protected
     when 404
       # Hit Bridge hardware limit.
       @results.failed! if @results
-      printf "*"
+      error { "Failed updating light, bridge overloaded: #{easy.body}" }
     when 0
       # Hit timeout.
       @results.hard_timeout! if @results
-      printf "-"
+      error { "Failed updating light, request timed out." }
     else
-      error bridge_name, "WAT: #{easy.response_code}"
+      error { "Failed updating light, unknown error: #{easy.response_code}, #{easy.body}" }
     end
   end
 
@@ -101,13 +99,13 @@ protected
       # Hit bridge rate limit / possibly ZigBee
       # limit?.
       @results.soft_timeout! if @results
-      printf "~"
+      error { "Failed updating light: #{easy.body}" }
       # TODO: Colorized output for all feedback types, or running counters, or
       # TODO: something...
       # printf ("%02X" % @index)
     else
       @results.success! if @results
-      printf "." if VERBOSE > 1
+      debug { "Updated light." }
     end
   end
 end
