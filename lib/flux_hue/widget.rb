@@ -1,4 +1,4 @@
-require "launchpad"
+require "launchpad" if USE_INPUT
 require "oily_png"
 
 # Base class for Launchpad UI widgets.
