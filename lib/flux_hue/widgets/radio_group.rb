@@ -19,6 +19,12 @@ module Widgets
       end
     end
 
+    def update(*args)
+      super(*args)
+      on_select.call(value) if on_select && value
+      on_deselect.call(value) if on_deselect && !value
+    end
+
   protected
 
     def on_down(x:, y:)

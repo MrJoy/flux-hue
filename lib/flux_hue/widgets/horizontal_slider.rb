@@ -15,6 +15,11 @@ module Widgets
       super
     end
 
+    def update(*args)
+      super(*args)
+      on_change.call(value) if on_change
+    end
+
   protected
 
     def on_down(x:, y:)
