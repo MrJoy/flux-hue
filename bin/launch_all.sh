@@ -20,11 +20,13 @@ export MAX_CONNECTS=3
 # Visual Effects
 ###############################################################################
 # Whether to use background sweep thread for saw-tooth pattern on hue:
-export USE_SWEEP=0
+export USE_SWEEP=1
 # Whether to actually run main lighting threads:
-export USE_LIGHTS=0
+export USE_LIGHTS=1
 # Whether or not to run the simulation:
-export USE_SIM=0
+export USE_SIM=1
+# Whether or not to use Novation LaunchPad for controls:
+export USE_INPUT=1
 
 
 ###############################################################################

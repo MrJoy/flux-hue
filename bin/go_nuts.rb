@@ -57,6 +57,7 @@ DEBUG_FLAGS = Hash[(ENV["DEBUG_NODES"] || "")
 USE_SWEEP   = (env_int("USE_SWEEP", true) || 1) != 0
 USE_LIGHTS  = (env_int("USE_LIGHTS", true) || 1) != 0
 USE_SIM     = (env_int("USE_SIM", true) || 1) != 0
+USE_INPUT   = (env_int("USE_INPUT", true) || 1) != 0
 
 ###############################################################################
 # Timing Configuration
@@ -89,7 +90,7 @@ PERLIN_SPEED    = Vector2.new(x: 0.1, y: PERLIN_SCALE_Y)
 # TODO: Run all simulations, and use a mixer to blend between them...
 num_lights          = CONFIG["main_lights"].length
 LIGHTS_FOR_THREADS  = in_groups(CONFIG["main_lights"])
-INTERACTION         = Launchpad::Interaction.new(use_threads: false)
+INTERACTION         = Launchpad::Interaction.new(use_threads: false) if USE_INPUT
 INT_STATES          = []
 NODES               = {}
 
@@ -104,8 +105,8 @@ NODES["PERLIN"] = Nodes::Simulations::Perlin.new(lights: num_lights, speed: n_cf
 last            = NODES["PERLIN"]
 
 # Transform nodes (act as a chain of modifiers):
-c_cfg   = n_cfg["contrast"]
-c_func  = Perlin::Curve.const_get(c_cfg["function"].upcase)
+c_cfg              = n_cfg["contrast"]
+c_func             = Perlin::Curve.const_get(c_cfg["function"].upcase)
 NODES["STRETCHED"] = last = Nodes::Transforms::Contrast.new(function:   c_func,
                                                             iterations: c_cfg["iterations"],
                                                             source:     last)
@@ -116,13 +117,17 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
   lights.map(&:first).each { |ii| mask[ii] = true }
 
   int_vals    = intensity_cfg["values"]
-  int_colors  = intensity_cfg["colors"]
-  int_widget  = Kernel.const_get(intensity_cfg["widget"])
-  pos         = intensity_cfg["positions"][idx]
   last        = Nodes::Transforms::Range.new(initial_min: int_vals[0][0],
                                              initial_max: int_vals[0][1],
                                              source:      last,
                                              mask:        mask)
+  NODES["SHIFTED_#{idx}"] = last
+
+  next unless USE_INPUT
+
+  int_colors      = intensity_cfg["colors"]
+  pos             = intensity_cfg["positions"][idx]
+  int_widget      = Kernel.const_get(intensity_cfg["widget"])
   INT_STATES[idx] = int_widget.new(launchpad: INTERACTION,
                                    x:         pos[0],
                                    y:         pos[1],
@@ -136,21 +141,22 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
                                      NODES["SHIFTED_#{idx}"]
                                        .set_range(ival[0], ival[1])
                                    end)
-  NODES["SHIFTED_#{idx}"] = last
 end
 
 SAT_STATES  = []
 sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
 sat_colors  = sat_cfg["colors"]
 sat_widget  = Kernel.const_get(sat_cfg["widget"])
-sat_cfg["positions"].each do |(xx, yy)|
-  SAT_STATES << sat_widget.new(launchpad: INTERACTION,
-                               x:         xx,
-                               y:         yy,
-                               size:      sat_cfg["size"],
-                               on:        sat_colors["on"],
-                               off:       sat_colors["off"],
-                               down:      sat_colors["down"])
+if USE_INPUT
+  sat_cfg["positions"].each do |(xx, yy)|
+    SAT_STATES << sat_widget.new(launchpad: INTERACTION,
+                                 x:         xx,
+                                 y:         yy,
+                                 size:      sat_cfg["size"],
+                                 on:        sat_colors["on"],
+                                 off:       sat_colors["off"],
+                                 down:      sat_colors["down"])
+  end
 end
 
 last = NODES["SPOTLIT"] = Nodes::Transforms::Spotlight.new(source: last)
@@ -159,22 +165,24 @@ sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
 sl_colors               = sl_cfg["colors"]
 sl_map_raw              = sl_cfg["mappings"]
 sl_pos                  = sl_map_raw.flatten
-SL_STATE                = Widgets::RadioGroup.new(launchpad:   INTERACTION,
-                                                  x:           sl_cfg["x"],
-                                                  y:           sl_cfg["y"],
-                                                  size:        [sl_map_raw.map(&:length).sort[-1],
-                                                                sl_map_raw.length],
-                                                  on:          sl_colors["on"],
-                                                  off:         sl_colors["off"],
-                                                  down:        sl_colors["down"],
-                                                  on_select:   proc do |x|
-                                                    info "Spotlighting ##{x}"
-                                                    NODES["SPOTLIT"].spotlight(sl_pos[x])
-                                                  end,
-                                                  on_deselect: proc do
-                                                    info "Spotlighting Disabled"
-                                                    NODES["SPOTLIT"].clear!
-                                                  end)
+if USE_INPUT
+  SL_STATE = Widgets::RadioGroup.new(launchpad:   INTERACTION,
+                                     x:           sl_cfg["x"],
+                                     y:           sl_cfg["y"],
+                                     size:        [sl_map_raw.map(&:length).sort[-1],
+                                                   sl_map_raw.length],
+                                     on:          sl_colors["on"],
+                                     off:         sl_colors["off"],
+                                     down:        sl_colors["down"],
+                                     on_select:   proc do |x|
+                                       info "Spotlighting ##{x}"
+                                       NODES["SPOTLIT"].spotlight(sl_pos[x])
+                                     end,
+                                     on_deselect: proc do
+                                       info "Spotlighting Disabled"
+                                       NODES["SPOTLIT"].clear!
+                                     end)
+end
 
 NODES.each do |name, node|
   node.debug = DEBUG_FLAGS[name]
@@ -190,16 +198,18 @@ Thread.abort_on_exception = false
 ###############################################################################
 # Profiling Support
 ###############################################################################
-e_cfg = CONFIG["simulation"]["controls"]["exit"]
-EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
-                                  position:  e_cfg["position"].to_sym,
-                                  color:     e_cfg["colors"]["color"],
-                                  down:      e_cfg["colors"]["down"],
-                                  on_press:  lambda do |value|
-                                    return unless value != 0
-                                    important "Ending simulation."
-                                    TIME_TO_DIE[0] = true
-                                  end)
+if USE_INPUT
+  e_cfg = CONFIG["simulation"]["controls"]["exit"]
+  EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
+                                    position:  e_cfg["position"].to_sym,
+                                    color:     e_cfg["colors"]["color"],
+                                    down:      e_cfg["colors"]["down"],
+                                    on_press:  lambda do |value|
+                                      return unless value != 0
+                                      important "Ending simulation."
+                                      TIME_TO_DIE[0] = true
+                                    end)
+end
 
 def start_ruby_prof!
   return unless PROFILE_RUN == "ruby-prof"
@@ -232,6 +242,7 @@ def announce_iteration_config(iters)
 end
 
 def clear_board!
+  return unless USE_INPUT
   INT_STATES.map(&:blank)
   sleep 0.01 # 88 updates/sec input limit!
   SAT_STATES.map(&:blank)
@@ -246,20 +257,22 @@ def main
 
   global_results = Results.new
 
-  input_thread = Thread.new do
-    guard_call("Input Handler Setup") do
-      Thread.stop
-      # TODO: This isn't setting the actual light state properly.  AUGH!  It
-      # TODO: *does* set the LED and the controller state which is handy, but
-      # TODO: still...
-      INT_STATES.each { |ctrl| ctrl.update(0) }
-      SAT_STATES.each { |ctrl| ctrl.update(3) }
-      SL_STATE.update(nil)
-      EXIT_BUTTON.update(false)
+  if USE_INPUT
+    input_thread = Thread.new do
+      guard_call("Input Handler Setup") do
+        Thread.stop
+        # TODO: This isn't setting the actual light state properly.  AUGH!  It
+        # TODO: *does* set the LED and the controller state which is handy, but
+        # TODO: still...
+        INT_STATES.each { |ctrl| ctrl.update(0) }
+        SAT_STATES.each { |ctrl| ctrl.update(3) }
+        SL_STATE.update(nil)
+        EXIT_BUTTON.update(false)
 
-      # ... and of course we don't want to sleep on this loop, or `join` the
-      # thread for the same reason.
-      INTERACTION.start
+        # ... and of course we don't want to sleep on this loop, or `join` the
+        # thread for the same reason.
+        INTERACTION.start
+      end
     end
   end
 
@@ -377,7 +390,7 @@ def main
   sleep 0.01 while threads.find { |thread| thread.status != "sleep" } if USE_LIGHTS
   sleep 0.01 while sweep_thread.status != "sleep" if USE_SWEEP
   sleep 0.01 while sim_thread.status != "sleep" if USE_SIM
-  sleep 0.01 while input_thread.status != "sleep"
+  sleep 0.01 while input_thread.status != "sleep" if USE_INPUT
   if SKIP_GC
     important "Disabling garbage collection!  BE CAREFUL!"
     GC.disable
@@ -388,7 +401,7 @@ def main
   sim_thread.run if USE_SIM
   sweep_thread.run if USE_SWEEP
   threads.each(&:run) if USE_LIGHTS
-  input_thread.run
+  input_thread.run if USE_INPUT
 
   trap("EXIT") do
     guard_call("Exit Handler") do
@@ -420,7 +433,7 @@ def main
       sleep 0.1
     end
   end
-  input_thread.terminate
+  input_thread.terminate if USE_INPUT
   sweep_thread.terminate if USE_SWEEP
   sim_thread.terminate if USE_SIM
   sleep 0.1
