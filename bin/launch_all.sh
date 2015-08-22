@@ -1,21 +1,4 @@
 #!/bin/bash
-unset HUE_BRIDGE_IP
-unset HUE_BRIDGE_USERNAME
-
-###############################################################################
-# Timing and Concurrency
-###############################################################################
-# Spread out spawning of threads:
-# export SPREAD_SLEEP=0.0
-
-# Spread out individual threads' loops:
-# export BETWEEN_SLEEP=0.0
-
-# Determine how we handle concurrency -- threads vs. async I/O.
-# export THREADS=1
-export MAX_CONNECTS=3
-
-
 ###############################################################################
 # Visual Effects
 ###############################################################################
@@ -30,16 +13,11 @@ export USE_INPUT=1
 
 
 ###############################################################################
-# Simulation Duration
+# Debugging
 ###############################################################################
 # Run for a fixed number of iterations, or until we're killed (0):
 export ITERATIONS=0
-export RUN_FOREVER=1
 
-
-###############################################################################
-# Debugging
-###############################################################################
 # Forcibly disable Ruby GC:
 export SKIP_GC=0
 
@@ -48,6 +26,7 @@ export FLUX_LOGLEVEL=DEBUG
 
 # Whether to run a profiler:
 export PROFILE_RUN= # ruby-prof|memory_profiler
+
 # If using ruby-prof, what mode to run it in:
 export RUBY_PROF_MODE=allocations  # ALLOCATIONS, CPU_TIME, GC_RUNS, GC_TIME, MEMORY, PROCESS_TIME, WALL_TIME
 
@@ -57,31 +36,4 @@ export DEBUG_NODES= #perlin,stretched,shifted_0,shifted_1,shifted_2,shifted_3,sp
 
 
 ###############################################################################
-HANDLER='kill -HUP $JOBPID 2>/dev/null'
-trap "$HANDLER" EXIT
-trap "$HANDLER" QUIT
-trap "$HANDLER" KILL
-
-{ ./bin/go_nuts.rb & }
-export JOBPID=$!
-
-if [[ $ITERATIONS != 0 ]]; then
-  export RUN_FOREVER=1
-fi
-
-
-if [[ $RUN_FOREVER == 0 ]]; then
-  echo "Sleeping while $JOBPID runs..."
-  sleep 120
-
-  echo
-  echo "Cleaning up."
-  kill -HUP $JOBPID
-else
-  if [[ $ITERATIONS != 0 ]]; then
-    echo "Waiting for $JOBPID to finish..."
-  else
-    echo "Waiting for $JOBPID until you kill me..."
-  fi
-  wait
-fi
+./bin/flux_hue.rb

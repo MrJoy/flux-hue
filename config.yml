@@ -1,5 +1,7 @@
 ---
 common_username: &common_username "1234567890"
+# Determine HTTP request concurrency for updating lights.  Per-bridge.
+max_connects: 3
 bridges:
   "Bridge-01":
     ip: "192.168.2.10"

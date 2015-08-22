@@ -60,17 +60,6 @@ USE_SIM     = (env_int("USE_SIM", true) || 1) != 0
 USE_INPUT   = (env_int("USE_INPUT", true) || 1) != 0
 
 ###############################################################################
-# Timing Configuration
-#
-# Play with this to see how error rates are affected.
-###############################################################################
-# TODO: Instead of a between sleep, we should look at how many ms we ought to
-# TODO: wait after an update to avoid flooding the network.  That'll depend on
-# TODO: number of components updated, etc.
-SPREAD_SLEEP  = env_float("SPREAD_SLEEP") || 0.0
-BETWEEN_SLEEP = env_float("BETWEEN_SLEEP") || 0.0
-
-###############################################################################
 # Effect Configuration
 #
 # Tweak this to change the visual effect(s).
@@ -362,7 +351,6 @@ def main
           end
 
           Thread.stop
-          sleep SPREAD_SLEEP unless SPREAD_SLEEP == 0
 
           requests = lights
                      .map do |(idx, lid)|
@@ -380,7 +368,6 @@ def main
             global_results.add_from(results)
             results.clear!
 
-            sleep(BETWEEN_SLEEP) unless BETWEEN_SLEEP == 0
             break if TIME_TO_DIE[0]
           end
         end
