@@ -14,11 +14,13 @@ require "flux_hue/utility"
 require "flux_hue/results"
 require "flux_hue/http"
 
+# Code loading configuration:
+USE_INPUT = (env_int("USE_INPUT", true) || 1) != 0
+
 # Base classes:
 require "flux_hue/node"
 require "flux_hue/nodes/simulation"
 require "flux_hue/nodes/transform"
-require "flux_hue/widget"
 
 # Simulation root nodes:
 require "flux_hue/nodes/simulations/const"
@@ -31,7 +33,10 @@ require "flux_hue/nodes/transforms/range"
 require "flux_hue/nodes/transforms/spotlight"
 
 # Launchpad widgets:
-require "flux_hue/widgets/horizontal_slider"
-require "flux_hue/widgets/vertical_slider"
-require "flux_hue/widgets/radio_group"
-require "flux_hue/widgets/button"
+if USE_INPUT
+  require "flux_hue/widget"
+  require "flux_hue/widgets/horizontal_slider"
+  require "flux_hue/widgets/vertical_slider"
+  require "flux_hue/widgets/radio_group"
+  require "flux_hue/widgets/button"
+end

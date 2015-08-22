@@ -59,7 +59,6 @@ DEBUG_FLAGS = Hash[(ENV["DEBUG_NODES"] || "")
 USE_SWEEP   = (env_int("USE_SWEEP", true) || 1) != 0
 USE_LIGHTS  = (env_int("USE_LIGHTS", true) || 1) != 0
 USE_SIM     = (env_int("USE_SIM", true) || 1) != 0
-USE_INPUT   = (env_int("USE_INPUT", true) || 1) != 0
 
 ###############################################################################
 # Effect Configuration
@@ -137,8 +136,8 @@ end
 SAT_STATES  = []
 sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
 sat_colors  = sat_cfg["colors"]
-sat_widget  = Kernel.const_get(sat_cfg["widget"])
 if USE_INPUT
+  sat_widget = Kernel.const_get(sat_cfg["widget"])
   sat_cfg["positions"].each do |(xx, yy)|
     SAT_STATES << sat_widget.new(launchpad: INTERACTION,
                                  x:         xx,

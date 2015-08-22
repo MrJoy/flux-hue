@@ -1,6 +1,6 @@
 require "yaml"
-require_relative "./vector2"
-require_relative "./color"
+require "flux_hue/vector2"
+require "flux_hue/color"
 
 def unpack_color(col)
   if col.is_a?(String)
