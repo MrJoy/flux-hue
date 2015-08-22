@@ -9,7 +9,7 @@ export USE_LIGHTS=1
 # Whether or not to run the simulation:
 export USE_SIM=1
 # Whether or not to use Novation LaunchPad for controls:
-export USE_INPUT=1
+export USE_INPUT=0
 
 
 ###############################################################################
@@ -36,4 +36,4 @@ export DEBUG_NODES= #perlin,stretched,shifted_0,shifted_1,shifted_2,shifted_3,sp
 
 
 ###############################################################################
-./bin/flux_hue.rb
+./bin/simulate.rb

@@ -1,34 +1,37 @@
+lib = File.expand_path("../", __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+
 require "rubygems"
 require "bundler/setup"
 Bundler.setup
 
 # Crufty common code:
-require_relative "./output"
-require_relative "./config"
-require_relative "./logging"
-require_relative "./env"
-require_relative "./utility"
-require_relative "./results"
-require_relative "./http"
+require "flux_hue/output"
+require "flux_hue/config"
+require "flux_hue/logging"
+require "flux_hue/env"
+require "flux_hue/utility"
+require "flux_hue/results"
+require "flux_hue/http"
 
 # Base classes:
-require_relative "./node"
-require_relative "./nodes/simulation"
-require_relative "./nodes/transform"
-require_relative "./widget"
+require "flux_hue/node"
+require "flux_hue/nodes/simulation"
+require "flux_hue/nodes/transform"
+require "flux_hue/widget"
 
 # Simulation root nodes:
-require_relative "./nodes/simulations/const"
-require_relative "./nodes/simulations/perlin"
-require_relative "./nodes/simulations/wave2"
+require "flux_hue/nodes/simulations/const"
+require "flux_hue/nodes/simulations/perlin"
+require "flux_hue/nodes/simulations/wave2"
 
 # Simulation transform nodes:
-require_relative "./nodes/transforms/contrast"
-require_relative "./nodes/transforms/range"
-require_relative "./nodes/transforms/spotlight"
+require "flux_hue/nodes/transforms/contrast"
+require "flux_hue/nodes/transforms/range"
+require "flux_hue/nodes/transforms/spotlight"
 
 # Launchpad widgets:
-require_relative "./widgets/horizontal_slider"
-require_relative "./widgets/vertical_slider"
-require_relative "./widgets/radio_group"
-require_relative "./widgets/button"
+require "flux_hue/widgets/horizontal_slider"
+require "flux_hue/widgets/vertical_slider"
+require "flux_hue/widgets/radio_group"
+require "flux_hue/widgets/button"

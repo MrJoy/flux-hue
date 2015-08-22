@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
 
-require_relative "../lib/flux_hue"
-require_relative "../lib/widgets/on_only"
+lib = File.expand_path("../../../lib", __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require "flux_hue"
 
 INTERACTION     = Launchpad::Interaction.new(use_threads: false)
 BOARD           = []

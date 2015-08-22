@@ -25,9 +25,16 @@ __TODO: Document how to register user with hub(s).__
 * `bin/on.rb`: Turn all configured lights on.
 * `bin/flux_hue.rb`: Run the effect system.
 
+
+## Using the Code
+
+* `bin/examples/tictactoe.rb`: A simple example of the Novation Launchpad widgets, and how to use/extend them.
+* `bin/examples/color_scale.rb`: A small playground for defining color schemes for Novation LaunchPad widgets.
+
+
 ## Debugging
 
-* `bin/watch_memory.sh`: External monitor to keep an eye on the process size of `flux_hue.rb`.
+* `bin/tools/watch_memory.sh`: External monitor to keep an eye on the process size of `flux_hue.rb`.
 
 
 ## Configuration
