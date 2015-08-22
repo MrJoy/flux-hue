@@ -1,3 +1,5 @@
+http://devblog.avdi.org/2015/06/03/benchmarking-ruby-dispatch-strategies/
+
 https://blog.engineyard.com/2015/seven-unusual-ruby-datastores
 http://samsaffron.com/archive/2015/03/31/debugging-memory-leaks-in-ruby
   http://tmm1.net/ruby21-objspace/
