@@ -62,7 +62,7 @@ trap "$HANDLER" EXIT
 trap "$HANDLER" QUIT
 trap "$HANDLER" KILL
 
-{ ./bin/go_nuts.rb ${CONFIGS[0]} & }
+{ ./bin/go_nuts.rb & }
 export JOBPID=$!
 
 if [[ $ITERATIONS != 0 ]]; then
