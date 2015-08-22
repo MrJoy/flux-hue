@@ -2,15 +2,7 @@
 ###############################################################################
 # Early Initialization/Helpers
 ###############################################################################
-require "rubygems"
-require "bundler/setup"
-Bundler.setup
-
-require_relative "./lib/config"
-require_relative "./lib/logging"
-require_relative "./lib/env"
-require_relative "./lib/utility"
-require_relative "./lib/http"
+require_relative "../lib/flux_hue"
 
 ###############################################################################
 # Main Logic

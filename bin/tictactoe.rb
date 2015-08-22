@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
-require_relative "./lib/flux_hue"
-require_relative "./lib/widgets/on_only"
+require_relative "../lib/flux_hue"
+require_relative "../lib/widgets/on_only"
 
 INTERACTION     = Launchpad::Interaction.new(use_threads: false)
 BOARD           = []
