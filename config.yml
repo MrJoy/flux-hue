@@ -58,8 +58,8 @@ simulation:
       - [0.30, 0.60]
       - [0.50, 1.00]
       colors:
-        "on": 0x22003F
-        "off": 0x05000A
+        "on":   0x22003F
+        "off":  0x05000A
         "down": 0x27103F
     saturation:
       widget: Widgets::VerticalSlider
@@ -82,8 +82,8 @@ simulation:
       - 203
       - 254
       colors:
-        "on": 0x1C103F
-        "off": 0x03030C
+        "on":   0x1C103F
+        "off":  0x03030C
         "down": 0x10103F
     spotlighting:
       x: 0
