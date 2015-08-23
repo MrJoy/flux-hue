@@ -50,6 +50,14 @@ class Widget
     end
   end
 
+  def max_v
+    if @x
+      @max_v ||= (height * width) - 1
+    else
+      1
+    end
+  end
+
 protected
 
   attr_reader :launchpad
@@ -101,14 +109,6 @@ protected
   def coords_for(idx:); [idx / width, idx % width]; end
 
   # Defaults that you may want to override:
-  def max_v
-    if @x
-      @max_v ||= (height * width) - 1
-    else
-      1
-    end
-  end
-
   def on_down(x: nil, y: nil, position: nil)
     if @x
       change_grid(x: x, y: y, color: down)

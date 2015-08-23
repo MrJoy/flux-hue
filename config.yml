@@ -24,8 +24,9 @@ simulation:
   sweep:
     length: 2.0
     # Ballpark estimation of Jen's palette:
-    min:    48000
-    max:    51000
+    values:
+    - 48000
+    - 51000
   nodes:
     wave2:
       speed: [0.1, 1.0]
@@ -58,42 +59,33 @@ simulation:
       - [0.30, 0.60]
       - [0.50, 1.00]
       colors:
-        "on":
-        - 0x080010
-        - 0x0D0019
-        - 0x130023
-        - 0x17002C
-        - 0x1C0036
-        - 0x22003F
-        "off":
-        - 0x020004
-        - 0x020004
-        - 0x020004
-        - 0x020004
-        - 0x020004
-        - 0x020004
+        "on":   0x22003F
+        "off":  0x05000A
         "down": 0x27103F
     saturation:
-      widget: Widgets::HorizontalSlider
+      widget: Widgets::VerticalSlider
+      transition: 0.3
       positions:
       - [4, 2]
-      - [4, 3]
-      - [4, 4]
-      - [4, 5]
-      - [4, 6]
-      - [4, 7]
-      size: 4
+      - [5, 2]
+      - [6, 2]
+      - [7, 2]
+      size: 6
+      groups:
+      - ["Bridge-01", 0]
+      - ["Bridge-02", 0]
+      - ["Bridge-03", 0]
+      - ["Bridge-04", 0]
+      values:
+      - 0
+      - 51
+      - 102
+      - 152
+      - 203
+      - 254
       colors:
-        "on":
-        - 0x35303F
-        - 0x28203F
-        - 0x1C103F
-        - 0x10003F
-        "off":
-        - 0x010104
-        - 0x020208
-        - 0x03030C
-        - 0x040410
+        "on":   0x1C103F
+        "off":  0x03030C
         "down": 0x10103F
     spotlighting:
       x: 0

@@ -51,7 +51,7 @@ FluxHue.init!("simulate")
 FluxHue.use_graph!
 
 # Code loading configuration:
-FluxHue.use_hue! if env_bool("USE_LIGHTS")
+FluxHue.use_hue!(api: true) if env_bool("USE_LIGHTS")
 FluxHue.use_launchpad! if env_bool("USE_INPUT")
 
 # Crufty common code:
@@ -70,20 +70,6 @@ USE_SWEEP   = env_bool("USE_SWEEP")
 USE_GRAPH   = env_bool("USE_GRAPH")
 
 ###############################################################################
-# Effect Configuration
-#
-# Tweak this to change the visual effect(s).
-###############################################################################
-# TODO: Move all of these into the config...
-
-WAVE2_SCALE_X   = env_float("WAVE2_SCALE_X") || 0.1
-WAVE2_SCALE_Y   = env_float("WAVE2_SCALE_Y") || 1.0
-WAVE2_SPEED     = Vector2.new(x: WAVE2_SCALE_X, y: WAVE2_SCALE_Y)
-
-PERLIN_SCALE_Y  = env_float("PERLIN_SCALE_Y") || 4.0
-PERLIN_SPEED    = Vector2.new(x: 0.1, y: PERLIN_SCALE_Y)
-
-###############################################################################
 # Shared State Setup
 ###############################################################################
 # TODO: Run all simulations, and use a mixer to blend between them...
@@ -92,6 +78,7 @@ LIGHTS_FOR_THREADS  = in_groups(CONFIG["main_lights"])
 INTERACTION         = Launchpad::Interaction.new(use_threads: false) if defined?(Launchpad)
 INT_STATES          = []
 NODES               = {}
+PENDING_COMMANDS    = Queue.new
 
 ###############################################################################
 # Simulation Graph Configuration / Setup
@@ -135,26 +122,41 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
                                    off:       int_colors["off"],
                                    down:      int_colors["down"],
                                    on_change: proc do |val|
-                                     FluxHue.logger.info { "Intensity[#{idx}]: #{val}" }
                                      ival = int_vals[val]
+                                     FluxHue.logger.info { "Intensity[#{idx},#{val}]: #{ival}" }
                                      NODES["SHIFTED_#{idx}"]
                                        .set_range(ival[0], ival[1])
                                    end)
 end
 
 SAT_STATES  = []
-sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
-sat_colors  = sat_cfg["colors"]
 if defined?(Launchpad)
-  sat_widget = Kernel.const_get(sat_cfg["widget"])
-  sat_cfg["positions"].each do |(xx, yy)|
+  sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
+  sat_len     = sat_cfg["transition"]
+  sat_colors  = sat_cfg["colors"]
+  sat_vals    = sat_cfg["values"]
+  sat_grps    = sat_cfg["groups"]
+  sat_widget  = Kernel.const_get(sat_cfg["widget"])
+  sat_cfg["positions"].each_with_index do |(xx, yy), idx|
+    sat_grp_info  = sat_grps[idx]
+    sat_bridge    = CONFIG["bridges"][sat_grp_info[0]]
+    sat_group     = sat_grp_info[1]
     SAT_STATES << sat_widget.new(launchpad: INTERACTION,
                                  x:         xx,
                                  y:         yy,
                                  size:      sat_cfg["size"],
                                  on:        sat_colors["on"],
                                  off:       sat_colors["off"],
-                                 down:      sat_colors["down"])
+                                 down:      sat_colors["down"],
+                                 on_change: proc do |val|
+                                   ival = sat_vals[val]
+                                   FluxHue.logger.info { "Saturation[#{idx},#{val}]: #{ival}" }
+                                   data = with_transition_time({ "sat" => ival }, sat_len)
+                                   req  = { method:   :put,
+                                            url:      hue_group_endpoint(sat_bridge, sat_group),
+                                            put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
+                                   PENDING_COMMANDS << req
+                                 end)
   end
 end
 
@@ -224,7 +226,7 @@ def stop_ruby_prof!
 
   result  = RubyProf.stop
   printer = RubyProf::CallStackPrinter.new(result)
-  File.open("results.html", "w") do |fh|
+  File.open("tmp/results.html", "w") do |fh|
     printer.print(fh)
   end
 end
@@ -234,9 +236,9 @@ end
 ###############################################################################
 def announce_iteration_config(iters)
   if iters > 0
-    FluxHue.logger.debug { "Running for #{iters} iterations." }
+    FluxHue.logger.unknown { "Running for #{iters} iterations." }
   else
-    FluxHue.logger.debug { "Running until we're killed.  Send SIGHUP to terminate with stats." }
+    FluxHue.logger.unknown { "Running until we're killed.  Send SIGHUP to terminate with stats." }
   end
 end
 
@@ -252,9 +254,14 @@ def clear_board!
   EXIT_BUTTON.blank
 end
 
+def any_in_state(threads, state)
+  threads = Array(threads)
+  threads.find { |th| th.status != state }
+end
+
 def wait_for(threads, state)
   threads = Array(threads)
-  sleep 0.01 while threads.find { |th| th.status != state }
+  sleep 0.01 while any_in_state(threads, state)
 end
 
 def main
@@ -268,7 +275,7 @@ def main
         Thread.stop
         # TODO: Sync up initial state with the simulation graph.
         INT_STATES.each { |ctrl| ctrl.update(0) }
-        SAT_STATES.each { |ctrl| ctrl.update(3) }
+        SAT_STATES.each { |ctrl| ctrl.update(ctrl.max_v) }
         SL_STATE.update(nil)
         EXIT_BUTTON.update(false)
 
@@ -298,52 +305,25 @@ def main
   if defined?(LazyRequestConfig) && USE_SWEEP
     # TODO: Make this terminate after main simulation threads have all stopped.
     sweep_thread = Thread.new do
-      max_hue     = CONFIG["simulation"]["sweep"]["max"]
-      min_hue     = CONFIG["simulation"]["sweep"]["min"]
+      hues        = CONFIG["simulation"]["sweep"]["values"]
       sweep_len   = CONFIG["simulation"]["sweep"]["length"]
 
-      results     = Results.new
-      hue_target  = max_hue
       guard_call("Sweeper") do
         Thread.stop
 
         loop do
           before_time = Time.now.to_f
-          # TODO: Hoist this into a sawtooth simulation function.
-          hue_target  = (hue_target == max_hue) ? min_hue : max_hue
-          data        = with_transition_time({ "hue" => hue_target }, sweep_len)
+          idx         = ((before_time / sweep_len) % hues.length).floor
+          data        = with_transition_time({ "hue" => hues[idx] }, sweep_len)
           # TODO: Hoist the hash into something reusable above...
-          requests    = CONFIG["bridges"]
-                        .map do |(_name, config)|
-                          { method:   :put,
-                            url:      hue_group_endpoint(config, 0),
-                            put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
-                        end
-
-          Curl::Multi.http(requests, MULTI_OPTIONS) do # |easy|
-            # Apparently performed for each request?  Or when idle?  Or...
-
-            # dns_cache_timeout head header_size header_str headers
-            # http_connect_code last_effective_url last_result low_speed_limit
-            # low_speed_time num_connects on_header os_errno redirect_count
-            # request_size
-
-            # app_connect_time connect_time name_lookup_time pre_transfer_time
-            # start_transfer_time total_time
-
-            # Bytes/sec, I think:
-            # download_speed upload_speed
-
-            # The following are all Float, and downloaded_content_length can be
-            # -1.0 when a transfer times out(?).
-            # downloaded_bytes downloaded_content_length uploaded_bytes
-            # uploaded_content_length
+          CONFIG["bridges"].each do |(_name, config)|
+            PENDING_COMMANDS << { method:   :put,
+                                  url:      hue_group_endpoint(config, 0),
+                                  put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
           end
 
-          global_results.add_from(results)
-          results.clear!
-
-          sleep 0.05 while (Time.now.to_f - before_time) <= sweep_len
+          elapsed = Time.now.to_f - before_time
+          sleep sweep_len - elapsed if elapsed < sweep_len
         end
       end
     end
@@ -376,13 +356,35 @@ def main
                      end
 
           iterator.each do
+            # TODO: Still need this dup?
             Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
             end
 
             global_results.add_from(results)
             results.clear!
+          end
+        end
+      end
+    end
 
-            break if TIME_TO_DIE[0]
+    threads << Thread.new do
+      guard_call("Command Queue") do
+        loop do
+          sleep 0.1 while PENDING_COMMANDS.empty?
+
+          # TODO: Gather stats about success/failure...
+          # results     = Results.new
+          # global_results.add_from(results)
+          # results.clear!
+
+          requests = []
+          requests << PENDING_COMMANDS.pop until PENDING_COMMANDS.empty?
+          next if requests.length == 0
+          FluxHue.logger.debug { "Processing #{requests.length} pending commands." }
+          Curl::Multi.http(requests, MULTI_OPTIONS) do |easy|
+            FluxHue.logger.debug do
+              "Processed command: #{easy.url} => #{easy.response_code}; #{easy.body}"
+            end
           end
         end
       end
@@ -415,6 +417,7 @@ def main
 
   loop do
     break if TIME_TO_DIE[0]
+    break if defined?(LazyRequestConfig) && !any_in_state(threads, false)
     sleep 0.1
   end
 
