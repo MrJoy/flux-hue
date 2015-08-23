@@ -295,8 +295,6 @@ def main
   if defined?(Launchpad)
     input_thread = Thread.new do
       guard_call("Input Handler Setup") do
-        Thread.stop
-
         SKIP_STATE_PERSISTENCE[0] = true
         INT_STATES.each_with_index do |ctrl, idx|
           ctrl.update(CURRENT_STATE.fetch("SHIFTED_#{idx}", 0))
@@ -308,6 +306,8 @@ def main
         EXIT_BUTTON.update(false)
         SKIP_STATE_PERSISTENCE[0] = false
         PENDING_COMMANDS.clear if HAVE_STATE_FILE # Don't send updates from our attempts at setting things up...
+
+        Thread.stop
 
         # ... and of course we don't want to sleep on this loop, or `join` the
         # thread for the same reason.
