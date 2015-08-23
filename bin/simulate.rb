@@ -224,7 +224,7 @@ def stop_ruby_prof!
 
   result  = RubyProf.stop
   printer = RubyProf::CallStackPrinter.new(result)
-  File.open("results.html", "w") do |fh|
+  File.open("tmp/results.html", "w") do |fh|
     printer.print(fh)
   end
 end
@@ -234,9 +234,9 @@ end
 ###############################################################################
 def announce_iteration_config(iters)
   if iters > 0
-    FluxHue.logger.debug { "Running for #{iters} iterations." }
+    FluxHue.logger.unknown { "Running for #{iters} iterations." }
   else
-    FluxHue.logger.debug { "Running until we're killed.  Send SIGHUP to terminate with stats." }
+    FluxHue.logger.unknown { "Running until we're killed.  Send SIGHUP to terminate with stats." }
   end
 end
 
