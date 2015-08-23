@@ -52,7 +52,7 @@ gem "perlin_noise",     require: false
 gem "logger-better",    require: false
 gem "playful",          require: false
 gem "mrjoy-launchpad",  require: false
-# gem "os",               require: false # https://github.com/rdp/os -- note rss_bytes is returning KiB, not B.
+# gem "os",               require: false # https://github.com/rdp/os -- rss_bytes returns KiB, not B
 
 group :development do
   gem "rake",             require: false
