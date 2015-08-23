@@ -305,19 +305,16 @@ def main
   if defined?(LazyRequestConfig) && USE_SWEEP
     # TODO: Make this terminate after main simulation threads have all stopped.
     sweep_thread = Thread.new do
-      max_hue     = CONFIG["simulation"]["sweep"]["max"]
-      min_hue     = CONFIG["simulation"]["sweep"]["min"]
+      hues        = CONFIG["simulation"]["sweep"]["values"]
       sweep_len   = CONFIG["simulation"]["sweep"]["length"]
 
-      hue_target  = max_hue
       guard_call("Sweeper") do
         Thread.stop
 
         loop do
           before_time = Time.now.to_f
-          # TODO: Hoist this into a sawtooth simulation function?
-          hue_target  = (hue_target == max_hue) ? min_hue : max_hue
-          data        = with_transition_time({ "hue" => hue_target }, sweep_len)
+          idx         = ((before_time / sweep_len) % hues.length).floor
+          data        = with_transition_time({ "hue" => hues[idx] }, sweep_len)
           # TODO: Hoist the hash into something reusable above...
           CONFIG["bridges"].each do |(_name, config)|
             PENDING_COMMANDS << { method:   :put,

@@ -24,8 +24,9 @@ simulation:
   sweep:
     length: 2.0
     # Ballpark estimation of Jen's palette:
-    min:    48000
-    max:    51000
+    values:
+    - 48000
+    - 51000
   nodes:
     wave2:
       speed: [0.1, 1.0]
