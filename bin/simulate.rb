@@ -62,6 +62,7 @@ FluxHue.use_graph!
 
 # Code loading configuration:
 FluxHue.use_hue!(api: true) if env_bool("USE_LIGHTS")
+FluxHue.use_widgets!
 FluxHue.use_launchpad! if env_bool("USE_INPUT")
 
 # Crufty common code:
@@ -86,7 +87,7 @@ USE_GRAPH     = env_bool("USE_GRAPH")
 # TODO: Run all simulations, and use a mixer to blend between them...
 num_lights              = CONFIG["main_lights"].length
 LIGHTS_FOR_THREADS      = in_groups(CONFIG["main_lights"])
-INTERACTION             = Launchpad::Interaction.new(use_threads: false) if defined?(Launchpad)
+INTERACTION             = defined?(Launchpad) ? Launchpad::Interaction.new(use_threads: false) : nil
 INT_STATES              = []
 NODES                   = {}
 PENDING_COMMANDS        = Queue.new
@@ -207,26 +208,24 @@ sl_colors               = sl_cfg["colors"]
 sl_map_raw              = sl_cfg["mappings"]
 sl_pos                  = sl_map_raw.flatten
 sl_key                  = "SPOTLIT"
-if defined?(Launchpad)
-  SL_STATE = Widgets::RadioGroup.new(launchpad:   INTERACTION,
-                                     x:           sl_cfg["x"],
-                                     y:           sl_cfg["y"],
-                                     size:        [sl_map_raw.map(&:length).sort[-1],
-                                                   sl_map_raw.length],
-                                     on:          sl_colors["on"],
-                                     off:         sl_colors["off"],
-                                     down:        sl_colors["down"],
-                                     on_select:   proc do |x|
-                                       FluxHue.logger.info { "Spotlighting ##{sl_pos[x]}" }
-                                       NODES[sl_key].spotlight!(sl_pos[x])
-                                       update_state!(sl_key, x)
-                                     end,
-                                     on_deselect: proc do
-                                       FluxHue.logger.info { "Spotlighting Off" }
-                                       NODES["SPOTLIT"].clear!
-                                       update_state!(sl_key, nil)
-                                     end)
-end
+SL_STATE = Widgets::RadioGroup.new(launchpad:   INTERACTION,
+                                   x:           sl_cfg["x"],
+                                   y:           sl_cfg["y"],
+                                   size:        [sl_map_raw.map(&:length).sort[-1],
+                                                 sl_map_raw.length],
+                                   on:          sl_colors["on"],
+                                   off:         sl_colors["off"],
+                                   down:        sl_colors["down"],
+                                   on_select:   proc do |x|
+                                     FluxHue.logger.info { "Spotlighting ##{sl_pos[x]}" }
+                                     NODES[sl_key].spotlight!(sl_pos[x])
+                                     update_state!(sl_key, x)
+                                   end,
+                                   on_deselect: proc do
+                                     FluxHue.logger.info { "Spotlighting Off" }
+                                     NODES["SPOTLIT"].clear!
+                                     update_state!(sl_key, nil)
+                                   end)
 
 NODES.each do |name, node|
   node.debug = DEBUG_FLAGS[name]
@@ -241,19 +240,17 @@ TIME_TO_DIE               = [false]
 ###############################################################################
 # Profiling Support
 ###############################################################################
-if defined?(Launchpad)
-  # TODO: Make this optional.
-  e_cfg = CONFIG["simulation"]["controls"]["exit"]
-  EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
-                                    position:  e_cfg["position"].to_sym,
-                                    color:     e_cfg["colors"]["color"],
-                                    down:      e_cfg["colors"]["down"],
-                                    on_press:  lambda do |value|
-                                      return unless value != 0
-                                      FluxHue.logger.unknown { "Ending simulation." }
-                                      TIME_TO_DIE[0] = true
-                                    end)
-end
+# TODO: Make this optional.
+e_cfg = CONFIG["simulation"]["controls"]["exit"]
+EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
+                                  position:  e_cfg["position"].to_sym,
+                                  color:     e_cfg["colors"]["color"],
+                                  down:      e_cfg["colors"]["down"],
+                                  on_press:  lambda do |value|
+                                    return unless value != 0
+                                    FluxHue.logger.unknown { "Ending simulation." }
+                                    TIME_TO_DIE[0] = true
+                                  end)
 
 def start_ruby_prof!
   return unless PROFILE_RUN == "ruby-prof"
@@ -305,7 +302,7 @@ def wait_for(threads, state)
 end
 
 def without_persistence(&block)
-  SKIP_STATE_PERSISTENCE[0] = true
+  SKIP_STATE_PERSISTENCE[0] = defined?(LaunchPad) ? true : false
   block.call
 ensure
   SKIP_STATE_PERSISTENCE[0] = false
@@ -336,8 +333,6 @@ def guarded_thread(name, &block)
 end
 
 def launch_input_thread!
-  return nil unless defined?(Launchpad)
-
   without_persistence do
     setup_intensity_controls!
     setup_saturation_controls!
@@ -347,6 +342,8 @@ def launch_input_thread!
   # Don't send updates from our attempts at setting things up when we're
   # picking up where we left of...
   PENDING_COMMANDS.clear if HAVE_STATE_FILE
+
+  return nil unless defined?(Launchpad)
 
   guarded_thread("Input Handler") do
     Thread.stop
@@ -405,11 +402,8 @@ end
 def launch_dummy_light_threads!
   threads = []
   threads << guarded_thread("Dummy Thread") do
-    puts "AA"
     Thread.stop
-    puts "BB"
     sleep ITERATIONS * 5.0
-    puts "CC"
     TIME_TO_DIE[0] = true
   end
   threads

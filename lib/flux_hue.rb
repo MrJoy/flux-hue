@@ -51,13 +51,17 @@ module FluxHue
     require "flux_hue/nodes/transforms/spotlight"
   end
 
-  # Load code/widgets for Novation LaunchPad.
-  def self.use_launchpad!
+  def self.use_widgets!
     require "flux_hue/widget"
     require "flux_hue/widgets/horizontal_slider"
     require "flux_hue/widgets/vertical_slider"
     require "flux_hue/widgets/radio_group"
     require "flux_hue/widgets/button"
+  end
+
+  # Load code/widgets for Novation LaunchPad.
+  def self.use_launchpad!
+    require "launchpad"
   end
 end
 

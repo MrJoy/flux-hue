@@ -1,5 +1,4 @@
 # TODO: Namespacing!
-require "launchpad"
 
 # Base class for Launchpad UI widgets.
 class Widget
@@ -135,10 +134,12 @@ protected
   end
 
   def change_command(position:, color:)
+    return unless launchpad
     launchpad.device.change_command(position, color[:r], color[:g], color[:b])
   end
 
   def grid_apply_color(x, y, color)
+    return unless launchpad
     launchpad.device.change_grid(x + @x, y + @y, color[:r], color[:g], color[:b])
   end
 
@@ -165,16 +166,18 @@ private
 
   def attach_grid_handler!
     return unless @x
+    return unless launchpad
     xx = @x..(@x + max_x)
     yy = @y..(@y + max_y)
-    @launchpad.response_to(:grid, :both, x: xx, y: yy) do |_inter, action|
+    launchpad.response_to(:grid, :both, x: xx, y: yy) do |_inter, action|
       handle_grid_response(action)
     end
   end
 
   def attach_position_handler!
     return if @x
-    @launchpad.response_to(@position, :both) do |_inter, action|
+    return unless launchpad
+    launchpad.response_to(@position, :both) do |_inter, action|
       handle_command_response(action)
     end
   end
