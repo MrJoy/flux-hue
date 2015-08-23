@@ -60,7 +60,8 @@ require "flux_hue/output"
 ###############################################################################
 # Profiling and Debugging
 ###############################################################################
-PROFILE_RUN   = ENV["PROFILE_RUN"]
+profile_run   = ENV["PROFILE_RUN"]
+PROFILE_RUN   = (profile_run != "") ? profile_run : nil
 SKIP_GC       = env_bool("SKIP_GC")
 DEBUG_FLAGS   = Hash[(ENV["DEBUG_NODES"] || "")
                      .split(/\s*,\s*/)
@@ -280,189 +281,178 @@ def wait_for(threads, state)
   sleep 0.01 while any_in_state(threads, state)
 end
 
-def main
-  announce_iteration_config(ITERATIONS)
+def without_persistence(&block)
+  SKIP_STATE_PERSISTENCE[0] = true
+  block.call
+ensure
+  SKIP_STATE_PERSISTENCE[0] = false
+end
 
-  global_results = Results.new
+def setup_intensity_controls!
+  INT_STATES.each_with_index do |ctrl, idx|
+    ctrl.update(CURRENT_STATE.fetch("SHIFTED_#{idx}", 0))
+  end
+end
 
-  if defined?(Launchpad)
-    SKIP_STATE_PERSISTENCE[0] = true
-    INT_STATES.each_with_index do |ctrl, idx|
-      ctrl.update(CURRENT_STATE.fetch("SHIFTED_#{idx}", 0))
-    end
-    SAT_STATES.each_with_index do |ctrl, idx|
-      ctrl.update(CURRENT_STATE.fetch("SAT_STATES[#{idx}]", ctrl.max_v))
-    end
-    SL_STATE.update(CURRENT_STATE.fetch("SPOTLIT", nil))
-    EXIT_BUTTON.update(false)
-    SKIP_STATE_PERSISTENCE[0] = false
-    # Don't send updates from our attempts at setting things up when we're
-    # picking up where we left of...
-    PENDING_COMMANDS.clear if HAVE_STATE_FILE
+def setup_saturation_controls!
+  SAT_STATES.each_with_index do |ctrl, idx|
+    ctrl.update(CURRENT_STATE.fetch("SAT_STATES[#{idx}]", ctrl.max_v))
+  end
+end
 
-    input_thread = Thread.new do
-      guard_call("Input Handler") do
-        Thread.stop
+def setup_spotlight_controls!
+  SL_STATE.update(CURRENT_STATE.fetch("SPOTLIT", nil))
+end
 
-        INTERACTION.start
-      end
+def setup_exit_controls!
+  EXIT_BUTTON.update(false)
+end
+
+def guarded_thread(name, &block)
+  Thread.new { guard_call(name, &block) }
+end
+
+def launch_input_thread!
+  return nil unless defined?(Launchpad)
+
+  without_persistence do
+    setup_intensity_controls!
+    setup_saturation_controls!
+    setup_spotlight_controls!
+    setup_exit_controls!
+  end
+  # Don't send updates from our attempts at setting things up when we're
+  # picking up where we left of...
+  PENDING_COMMANDS.clear if HAVE_STATE_FILE
+
+  guarded_thread("Input Handler") do
+    Thread.stop
+    INTERACTION.start
+  end
+end
+
+def launch_graph_thread!
+  return nil unless USE_GRAPH
+  guarded_thread("Graph Renderer") do
+    Thread.stop
+
+    loop do
+      t = Time.now.to_f
+      FINAL_RESULT.update(t)
+      elapsed = Time.now.to_f - t
+      # Try to adhere to a specific update frequency...
+      sleep Node::FRAME_PERIOD - elapsed if elapsed < Node::FRAME_PERIOD
     end
   end
+end
 
-  if USE_GRAPH
-    sim_thread = Thread.new do
-      guard_call("Base Simulation") do
-        Thread.stop
+def launch_sweep_thread!
+  return nil unless defined?(LazyRequestConfig) && USE_SWEEP
+  # TODO: Make this terminate after main simulation threads have all stopped.
+  sweep_cfg   = CONFIG["simulation"]["sweep"]
+  hues        = sweep_cfg["values"]
+  sweep_len   = sweep_cfg["length"]
+  guarded_thread("Sweeper") do
+    Thread.stop
 
-        loop do
-          t = Time.now.to_f
-          FINAL_RESULT.update(t)
-          elapsed = Time.now.to_f - t
-          # Try to adhere to a specific update frequency...
-          sleep Node::FRAME_PERIOD - elapsed if elapsed < Node::FRAME_PERIOD
-        end
+    loop do
+      before_time = Time.now.to_f
+      idx         = ((before_time / sweep_len) % hues.length).floor
+      data        = with_transition_time({ "hue" => hues[idx] }, sweep_len)
+      # TODO: Hoist the hash into something reusable above...
+      CONFIG["bridges"].each do |(_name, config)|
+        PENDING_COMMANDS << { method:   :put,
+                              url:      hue_group_endpoint(config, 0),
+                              put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
       end
+
+      elapsed = Time.now.to_f - before_time
+      sleep sweep_len - elapsed if elapsed < sweep_len
     end
   end
+end
 
-  if defined?(LazyRequestConfig) && USE_SWEEP
-    # TODO: Make this terminate after main simulation threads have all stopped.
-    sweep_thread = Thread.new do
-      hues        = CONFIG["simulation"]["sweep"]["values"]
-      sweep_len   = CONFIG["simulation"]["sweep"]["length"]
-
-      guard_call("Sweeper") do
-        Thread.stop
-
-        loop do
-          before_time = Time.now.to_f
-          idx         = ((before_time / sweep_len) % hues.length).floor
-          data        = with_transition_time({ "hue" => hues[idx] }, sweep_len)
-          # TODO: Hoist the hash into something reusable above...
-          CONFIG["bridges"].each do |(_name, config)|
-            PENDING_COMMANDS << { method:   :put,
-                                  url:      hue_group_endpoint(config, 0),
-                                  put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
-          end
-
-          elapsed = Time.now.to_f - before_time
-          sleep sweep_len - elapsed if elapsed < sweep_len
-        end
-      end
-    end
-  end
-
+def launch_light_threads!(global_results)
   threads = []
-  if defined?(LazyRequestConfig)
-    transition  = CONFIG["simulation"]["transition"]
-    debug       = DEBUG_FLAGS["OUTPUT"]
-    threads    += LIGHTS_FOR_THREADS.map do |(bridge_name, (lights, _mask))|
-      Thread.new do
-        guard_call(bridge_name) do
-          config    = CONFIG["bridges"][bridge_name]
-          results   = Results.new
-          iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
+  return threads unless defined?(LazyRequestConfig)
 
-          FluxHue.logger.unknown do
-            light_list = lights.map(&:first).join(", ")
-            "#{bridge_name}: Thread set to handle #{lights.count} lights (#{light_list})."
-          end
+  transition  = CONFIG["simulation"]["transition"]
+  debug       = DEBUG_FLAGS["OUTPUT"]
+  threads    += LIGHTS_FOR_THREADS.map do |(bridge_name, (lights, _mask))|
+    guarded_thread(bridge_name) do
+      config    = CONFIG["bridges"][bridge_name]
+      results   = Results.new
+      iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
-          Thread.stop
-
-          requests = lights
-                     .map do |(idx, lid)|
-                       url = hue_light_endpoint(config, lid)
-                       LazyRequestConfig.new(FluxHue.logger, config, url, results, debug: debug) do
-                         # TODO: Recycle this hash?
-                         data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
-                         with_transition_time(data, transition)
-                       end
-                     end
-
-          iterator.each do
-            Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
-            end
-
-            global_results.add_from(results)
-            results.clear!
-          end
-        end
+      FluxHue.logger.unknown do
+        light_list = lights.map(&:first).join(", ")
+        "#{bridge_name}: Thread set to handle #{lights.count} lights (#{light_list})."
       end
-    end
 
-    threads << Thread.new do
-      guard_call("Command Queue") do
-        loop do
-          sleep 0.05 while PENDING_COMMANDS.empty?
+      Thread.stop
 
-          # TODO: Gather stats about success/failure...
-          # results     = Results.new
-          # global_results.add_from(results)
-          # results.clear!
+      requests = lights
+                 .map do |(idx, lid)|
+                   url = hue_light_endpoint(config, lid)
+                   LazyRequestConfig.new(FluxHue.logger, config, url, results, debug: debug) do
+                     # TODO: Recycle this hash?
+                     data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
+                     with_transition_time(data, transition)
+                   end
+                 end
 
-          requests = []
-          requests << PENDING_COMMANDS.pop until PENDING_COMMANDS.empty?
-          next if requests.length == 0
-          FluxHue.logger.debug { "Processing #{requests.length} pending commands." }
-          Curl::Multi.http(requests, MULTI_OPTIONS) do |easy|
-            FluxHue.logger.debug do
-              "Processed command: #{easy.url} => #{easy.response_code}; #{easy.body}"
-            end
-          end
+      iterator.each do
+        Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
         end
+
+        global_results.add_from(results)
+        results.clear!
       end
     end
   end
 
+  threads << guarded_thread("Command Queue") do
+    Thread.stop
+    loop do
+      sleep 0.05 while PENDING_COMMANDS.empty?
+
+      # TODO: Gather stats about success/failure...
+      # results     = Results.new
+      # global_results.add_from(results)
+      # results.clear!
+
+      requests = []
+      requests << PENDING_COMMANDS.pop until PENDING_COMMANDS.empty?
+      next if requests.length == 0
+      FluxHue.logger.debug { "Processing #{requests.length} pending commands." }
+      Curl::Multi.http(requests, MULTI_OPTIONS) do |easy|
+        FluxHue.logger.debug do
+          "Processed command: #{easy.url} => #{easy.response_code}; #{easy.body}"
+        end
+      end
+    end
+  end
+end
+
+def launch_all_threads!(global_results)
+  tmp = { input:  [launch_input_thread!].compact,
+          graph:  [launch_graph_thread!].compact,
+          sweep:  [launch_sweep_thread!].compact,
+          lights: launch_light_threads!(global_results) }
+  tmp[:all] = tmp.values.flatten.compact
+  tmp
+end
+
+def setup_signal_handlers!
   trap("INT") do
     TIME_TO_DIE[0] = true
     # If we hit ctrl-c, it'll show up on the terminal, mucking with log output right when we're
     # about to produce reports.  This annoys me, so I'm working around it:
     puts
   end
+end
 
-  FluxHue.logger.unknown { "Waiting for threads to finish initializing..." }
-  wait_for(input_thread, "sleep") if defined?(Launchpad)
-  wait_for(sim_thread, "sleep") if USE_GRAPH
-  wait_for(sweep_thread, "sleep") if defined?(LazyRequestConfig) && USE_SWEEP
-  wait_for(threads, "sleep") if defined?(LazyRequestConfig)
-
-  FluxHue.logger.unknown { "Threads initialized, doing final setup..." }
-  if SKIP_GC
-    FluxHue.logger.unknown { "Disabling garbage collection!  BE CAREFUL!" }
-    GC.disable
-  end
-  global_results.begin!
-  start_ruby_prof!
-  FINAL_RESULT.update(Time.now.to_f)
-
-  FluxHue.logger.unknown { "Final setup done, waking threads..." }
-  sim_thread.run if USE_GRAPH
-  sweep_thread.run if defined?(LazyRequestConfig) && USE_SWEEP
-  threads.each(&:run) if defined?(LazyRequestConfig)
-  input_thread.run if defined?(Launchpad)
-
-  FluxHue.logger.unknown { "Waiting for the world to end..." }
-  loop do
-    break if TIME_TO_DIE[0]
-    break if defined?(LazyRequestConfig) && !any_in_state(threads, false)
-    sleep 0.1
-  end
-
-  FluxHue.logger.unknown { "Stopping threads..." }
-  threads.each(&:terminate) if defined?(LazyRequestConfig)
-  sweep_thread.terminate if defined?(LazyRequestConfig) && USE_SWEEP
-  sim_thread.terminate if USE_GRAPH
-  input_thread.terminate if defined?(Launchpad)
-  # sleep 0.1
-
-  FluxHue.logger.unknown { "Doing final shutdown..." }
-  global_results.done!
-  clear_board!
-
-  print_results(global_results)
-
+def dump_debug_data!
   nodes_under_debug = NODES.select { |name, _node| DEBUG_FLAGS[name] }
   return unless nodes_under_debug.length > 0 || DEBUG_FLAGS["OUTPUT"] || PROFILE_RUN # == "ruby-prof"
   FluxHue.logger.unknown { "Dumping debug data..." }
@@ -476,6 +466,49 @@ def main
     fh.write(LazyRequestConfig::GLOBAL_HISTORY.join("\n"))
     fh.write("\n")
   end
+end
+
+def main
+  announce_iteration_config(ITERATIONS)
+
+  global_results  = Results.new
+  threads         = launch_all_threads!(global_results)
+
+  setup_signal_handlers!
+
+  FluxHue.logger.unknown { "Waiting for threads to finish initializing..." }
+  wait_for(threads[:all], "sleep")
+
+  FluxHue.logger.unknown { "Threads initialized, doing final setup..." }
+  if SKIP_GC
+    FluxHue.logger.unknown { "Disabling garbage collection!  BE CAREFUL!" }
+    GC.disable
+  end
+  global_results.begin!
+  start_ruby_prof!
+  FINAL_RESULT.update(Time.now.to_f)
+
+  FluxHue.logger.unknown { "Final setup done, waking threads..." }
+  threads[:all].each(&:run)
+
+  FluxHue.logger.unknown { "Waiting for the world to end..." }
+  loop do
+    break if TIME_TO_DIE[0]
+    break if defined?(LazyRequestConfig) && !any_in_state(threads[:all], false)
+    sleep 0.1
+  end
+
+  FluxHue.logger.unknown { "Stopping threads..." }
+  %i(lights sweep graph input).each do |thread_group|
+    threads[thread_group].each(&:terminate)
+  end
+
+  FluxHue.logger.unknown { "Doing final shutdown..." }
+  global_results.done!
+  clear_board!
+
+  print_results(global_results)
+  dump_debug_data!
 end
 
 ###############################################################################
