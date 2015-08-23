@@ -73,20 +73,23 @@ USE_GRAPH   = env_bool("USE_GRAPH")
 # Shared State Setup
 ###############################################################################
 # TODO: Run all simulations, and use a mixer to blend between them...
-num_lights          = CONFIG["main_lights"].length
-LIGHTS_FOR_THREADS  = in_groups(CONFIG["main_lights"])
-INTERACTION         = Launchpad::Interaction.new(use_threads: false) if defined?(Launchpad)
-INT_STATES          = []
-NODES               = {}
-PENDING_COMMANDS    = Queue.new
-CURRENT_STATE       = {}
-STATE_FILENAME      = "tmp/state.tmp"
+num_lights              = CONFIG["main_lights"].length
+LIGHTS_FOR_THREADS      = in_groups(CONFIG["main_lights"])
+INTERACTION             = Launchpad::Interaction.new(use_threads: false) if defined?(Launchpad)
+INT_STATES              = []
+NODES                   = {}
+PENDING_COMMANDS        = Queue.new
+CURRENT_STATE           = {}
+STATE_FILENAME          = "tmp/state.tmp"
+SKIP_STATE_PERSISTENCE  = [false]
 CURRENT_STATE.merge!(YAML.load(File.read(STATE_FILENAME))) if File.exist?(STATE_FILENAME)
 
 def update_state!(key, value)
   old_value = CURRENT_STATE[key]
   return if old_value == value
   CURRENT_STATE[key] = value
+  return if SKIP_STATE_PERSISTENCE[0]
+  FluxHue.logger.debug { "Persisting control state." }
   File.open(STATE_FILENAME, "w") do |fh|
     fh.write(CURRENT_STATE.to_yaml)
   end
@@ -293,6 +296,7 @@ def main
       guard_call("Input Handler Setup") do
         Thread.stop
 
+        SKIP_STATE_PERSISTENCE[0] = true
         INT_STATES.each_with_index do |ctrl, idx|
           ctrl.update(CURRENT_STATE.fetch("SHIFTED_#{idx}", 0))
         end
@@ -301,6 +305,7 @@ def main
         end
         SL_STATE.update(CURRENT_STATE.fetch("SPOTLIT", nil))
         EXIT_BUTTON.update(false)
+        SKIP_STATE_PERSISTENCE[0] = false
 
         # ... and of course we don't want to sleep on this loop, or `join` the
         # thread for the same reason.
@@ -417,10 +422,11 @@ def main
   end
 
   # Wait for threads to finish initializing...
-  wait_for(threads, "sleep") if defined?(LazyRequestConfig)
-  wait_for(sweep_thread, "sleep") if defined?(LazyRequestConfig) && USE_SWEEP
-  wait_for(sim_thread, "sleep") if USE_GRAPH
+  FINAL_RESULT.update(Time.now.to_f)
   wait_for(input_thread, "sleep") if defined?(Launchpad)
+  wait_for(sim_thread, "sleep") if USE_GRAPH
+  wait_for(sweep_thread, "sleep") if defined?(LazyRequestConfig) && USE_SWEEP
+  wait_for(threads, "sleep") if defined?(LazyRequestConfig)
   if SKIP_GC
     FluxHue.logger.unknown { "Disabling garbage collection!  BE CAREFUL!" }
     GC.disable
@@ -445,9 +451,9 @@ def main
   end
 
   threads.each(&:terminate) if defined?(LazyRequestConfig)
-  input_thread.terminate if defined?(Launchpad)
   sweep_thread.terminate if defined?(LazyRequestConfig) && USE_SWEEP
   sim_thread.terminate if USE_GRAPH
+  input_thread.terminate if defined?(Launchpad)
   sleep 0.1
 
   global_results.done!
