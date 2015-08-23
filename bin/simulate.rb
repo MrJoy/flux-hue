@@ -411,40 +411,39 @@ def main
   threads.each(&:run) if USE_LIGHTS
   input_thread.run if defined?(Launchpad)
 
-  trap("EXIT") do
-    guard_call("Exit Handler") do
-      global_results.done!
-      print_results(global_results)
-      clear_board!
-
-      stop_ruby_prof!
-      index = 0
-      NODES.each do |name, node|
-        next unless DEBUG_FLAGS[name]
-        node.snapshot_to!("tmp/%02d_%s.png" % [index, name.downcase])
-        index += 1
-      end
-      if DEBUG_FLAGS["OUTPUT"]
-        File.open("tmp/output.raw", "w") do |fh|
-          fh.write(LazyRequestConfig::GLOBAL_HISTORY.join("\n"))
-          fh.write("\n")
-        end
-      end
-    end
+  trap("INT") do
+    TIME_TO_DIE[0] = true
+    puts
   end
 
-  if USE_LIGHTS
-    threads.each(&:join)
-  else
-    loop do
-      break if TIME_TO_DIE[0]
-      sleep 0.1
-    end
+  loop do
+    break if TIME_TO_DIE[0]
+    sleep 0.1
   end
+
+  threads.each(&:terminate) if USE_LIGHTS
   input_thread.terminate if defined?(Launchpad)
   sweep_thread.terminate if USE_SWEEP
   sim_thread.terminate if USE_GRAPH
   sleep 0.1
+
+  global_results.done!
+  print_results(global_results)
+  clear_board!
+
+  stop_ruby_prof!
+  index = 0
+  NODES.each do |name, node|
+    next unless DEBUG_FLAGS[name]
+    node.snapshot_to!("tmp/%02d_%s.png" % [index, name.downcase])
+    index += 1
+  end
+
+  return unless DEBUG_FLAGS["OUTPUT"]
+  File.open("tmp/output.raw", "w") do |fh|
+    fh.write(LazyRequestConfig::GLOBAL_HISTORY.join("\n"))
+    fh.write("\n")
+  end
 end
 
 ###############################################################################
