@@ -8,7 +8,7 @@ Bundler.setup
 module FluxHue
   def self.logger; @logger; end
 
-  def self.init!
+  def self.init!(name)
     require "logger-better"
     require "active_support/all"
     require "flux_hue/config"
@@ -16,6 +16,7 @@ module FluxHue
 
     @logger         = Logger::Better.new(STDOUT)
     @logger.level   = (ENV["FLUX_LOGLEVEL"] || "info").downcase.to_sym
+    @logger.progname = name
   end
 
   # Load code for talking to Philips Hue lighting system.
