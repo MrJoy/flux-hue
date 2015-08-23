@@ -282,7 +282,7 @@ end
 
 def setup_intensity_controls!
   INT_STATES.each_with_index do |ctrl, idx|
-    ctrl.update(CURRENT_STATE.fetch("SHIFTED_#{idx}", 0))
+    ctrl.update(CURRENT_STATE.fetch("SHIFTED_#{idx}", (ctrl.max_v / 2.0).round))
   end
 end
 
