@@ -79,7 +79,9 @@ protected
 
   def journal(stage, easy)
     return unless @debug
+    # rubocop:disable Style/RescueModifier
     GLOBAL_HISTORY << "#{Time.now.to_f},#{stage},#{@url},#{easy.body_str rescue nil}"
+    # rubocop:enable Style/RescueModifier
   end
 
   def failure!(easy)
