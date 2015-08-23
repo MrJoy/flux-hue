@@ -69,6 +69,18 @@ simulation:
       - [6, 2]
       - [7, 2]
       size: 6
+      groups:
+      - ["Bridge-01", 0]
+      - ["Bridge-02", 0]
+      - ["Bridge-03", 0]
+      - ["Bridge-04", 0]
+      values:
+      - 0
+      - 51
+      - 102
+      - 152
+      - 203
+      - 254
       colors:
         "on": 0x1C103F
         "off": 0x03030C

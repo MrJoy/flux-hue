@@ -129,18 +129,25 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
 end
 
 SAT_STATES  = []
-sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
-sat_colors  = sat_cfg["colors"]
 if defined?(Launchpad)
-  sat_widget = Kernel.const_get(sat_cfg["widget"])
-  sat_cfg["positions"].each do |(xx, yy)|
+  sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
+  sat_colors  = sat_cfg["colors"]
+  sat_vals    = sat_cfg["values"]
+  sat_grps    = sat_cfg["groups"]
+  sat_widget  = Kernel.const_get(sat_cfg["widget"])
+  sat_cfg["positions"].each_with_index do |(xx, yy), idx|
     SAT_STATES << sat_widget.new(launchpad: INTERACTION,
                                  x:         xx,
                                  y:         yy,
                                  size:      sat_cfg["size"],
                                  on:        sat_colors["on"],
                                  off:       sat_colors["off"],
-                                 down:      sat_colors["down"])
+                                 down:      sat_colors["down"],
+                                 on_change: proc do |val|
+                                   FluxHue.logger.info { "Saturation[#{idx}]: #{val}" }
+                                   ival = sat_vals[val]
+                                   # TODO: Implement me!
+                                 end)
   end
 end
 
