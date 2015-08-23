@@ -5,17 +5,15 @@ require "rubygems"
 require "bundler/setup"
 Bundler.setup
 
+require "logger-better"
+require "active_support/all"
+
 # System for building interesting, dynamic lighting effects for the Philips Hue,
 # using the Novation Launchpad for control.
 module FluxHue
   def self.logger; @logger; end
 
   def self.init!(name)
-    require "logger-better"
-    require "active_support/all"
-    require "flux_hue/config"
-    require "flux_hue/env"
-
     @logger         = Logger::Better.new(STDOUT)
     @logger.level   = (ENV["FLUX_LOGLEVEL"] || "info").downcase.to_sym
     @logger.progname = name
@@ -61,3 +59,6 @@ module FluxHue
     require "flux_hue/widgets/button"
   end
 end
+
+require "flux_hue/config"
+require "flux_hue/env"
