@@ -34,10 +34,12 @@ CONFIG["bridges"].map do |name, cfg|
   cfg["name"] = name
 end
 
-unpack_colors_in_place!(CONFIG["simulation"]["controls"]["intensity"]["colors"])
-unpack_colors_in_place!(CONFIG["simulation"]["controls"]["saturation"]["colors"])
-unpack_colors_in_place!(CONFIG["simulation"]["controls"]["spotlighting"]["colors"])
-unpack_colors_in_place!(CONFIG["simulation"]["controls"]["exit"]["colors"])
+CONFIG["simulation"]["controls"].values.each do |cfg|
+  next unless cfg && cfg["colors"]
+  unpack_colors_in_place!(cfg["colors"])
+end
 
-unpack_vector_in_place!(CONFIG["simulation"]["nodes"]["wave2"])
-unpack_vector_in_place!(CONFIG["simulation"]["nodes"]["perlin"])
+CONFIG["simulation"]["nodes"].values.each do |cfg|
+  next unless cfg
+  unpack_vector_in_place!(cfg)
+end
