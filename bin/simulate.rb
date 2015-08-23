@@ -70,20 +70,6 @@ USE_SWEEP   = env_bool("USE_SWEEP")
 USE_GRAPH   = env_bool("USE_GRAPH")
 
 ###############################################################################
-# Effect Configuration
-#
-# Tweak this to change the visual effect(s).
-###############################################################################
-# TODO: Move all of these into the config...
-
-WAVE2_SCALE_X   = env_float("WAVE2_SCALE_X") || 0.1
-WAVE2_SCALE_Y   = env_float("WAVE2_SCALE_Y") || 1.0
-WAVE2_SPEED     = Vector2.new(x: WAVE2_SCALE_X, y: WAVE2_SCALE_Y)
-
-PERLIN_SCALE_Y  = env_float("PERLIN_SCALE_Y") || 4.0
-PERLIN_SPEED    = Vector2.new(x: 0.1, y: PERLIN_SCALE_Y)
-
-###############################################################################
 # Shared State Setup
 ###############################################################################
 # TODO: Run all simulations, and use a mixer to blend between them...
