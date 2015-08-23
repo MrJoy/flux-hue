@@ -29,13 +29,13 @@ module FluxHue
   def self.use_graph!
     # Base classes:
     require "flux_hue/node"
-    require "flux_hue/nodes/simulation"
+    require "flux_hue/nodes/generator"
     require "flux_hue/nodes/transform"
 
     # Simulation root nodes:
-    require "flux_hue/nodes/simulations/const"
-    require "flux_hue/nodes/simulations/perlin"
-    require "flux_hue/nodes/simulations/wave2"
+    require "flux_hue/nodes/generators/const"
+    require "flux_hue/nodes/generators/perlin"
+    require "flux_hue/nodes/generators/wave2"
 
     # Simulation transform nodes:
     require "flux_hue/nodes/transforms/contrast"
