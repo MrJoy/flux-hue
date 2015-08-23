@@ -132,6 +132,7 @@ end
 SAT_STATES  = []
 if defined?(Launchpad)
   sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
+  sat_len     = sat_cfg["transition"]
   sat_colors  = sat_cfg["colors"]
   sat_vals    = sat_cfg["values"]
   sat_grps    = sat_cfg["groups"]
@@ -150,7 +151,7 @@ if defined?(Launchpad)
                                  on_change: proc do |val|
                                    ival = sat_vals[val]
                                    FluxHue.logger.info { "Saturation[#{idx},#{val}]: #{ival}" }
-                                   data = with_transition_time({ "sat" => ival }, 0.1)
+                                   data = with_transition_time({ "sat" => ival }, sat_len)
                                    req  = { method:   :put,
                                             url:      hue_group_endpoint(sat_bridge, sat_group),
                                             put_data: Oj.dump(data) }.merge(EASY_OPTIONS)

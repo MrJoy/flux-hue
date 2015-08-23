@@ -63,6 +63,7 @@ simulation:
         "down": 0x27103F
     saturation:
       widget: Widgets::VerticalSlider
+      transition: 0.3
       positions:
       - [4, 2]
       - [5, 2]
