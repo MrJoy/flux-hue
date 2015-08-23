@@ -23,13 +23,12 @@ __TODO: Document how to register user with hub(s).__
 * `bin/mark_lights_by_hub.rb`: Mark the lights to help ensure they're physically ordered properly.
 * `bin/off.rb`: Turn all configured lights off.
 * `bin/on.rb`: Turn all configured lights on.
-* `bin/flux_hue.rb`: Run the effect system.
-
+* `bin/simulate.rb`: Run the effect system.
 
 ## Using the Code
 
 * `bin/examples/tictactoe.rb`: A simple example of the Novation Launchpad widgets, and how to use/extend them.
-* `bin/examples/color_scale.rb`: A small playground for defining color schemes for Novation LaunchPad widgets.
+* `bin/tools/color_scale.rb`: A small playground for defining color schemes for Novation LaunchPad widgets.
 
 
 ## Debugging

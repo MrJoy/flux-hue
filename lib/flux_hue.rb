@@ -5,6 +5,8 @@ require "rubygems"
 require "bundler/setup"
 Bundler.setup
 
+# System for building interesting, dynamic lighting effects for the Philips Hue,
+# using the Novation Launchpad for control.
 module FluxHue
   def self.logger; @logger; end
 
