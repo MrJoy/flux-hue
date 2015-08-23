@@ -1,21 +1,12 @@
 #!/usr/bin/env ruby
 
-# TODO: Make node structure more soft-configurable.
-
 # TODO: Run update across nodes from back to front for simulation rather than
 # TODO: relying on a call-chain.  This should make it easy to eliminate the
 # TODO: `yield` usage and avoid associated allocations.
 
-# TODO: Journal debug information to a log file, and have a separate tool to
-# TODO: read that and produce PNGs.
-
-# TODO: Journal timing info about light updates (and transition!), and use that
-# TODO: to produce an "as-rendered" debug output.
+# TODO: Tool to read journaled debug data and produce a PNG.
 
 # TODO: Deeper memory profiling to ensure this process can run for hours.
-
-# TODO: When we integrate input handling and become stateful, journal state to
-# TODO: a file that's read on startup so we can survive a restart.
 
 # TODO: Pick four downlights for the dance floor, and treat them as a separate
 # TODO: simulation.  Consider how spotlighting and the like will be relevant to
@@ -23,11 +14,7 @@
 
 # TODO: Node to *clamp* brightness range so we can set the absolute limits at
 # TODO: the end of the chain?  Need to consider use-cases more thoroughly.
-
-# TODO: Tools for updating saturation on a group of lights, and a second
-# TODO: range-shifting node to allow the photographer some controls.
-
-# https://github.com/taf2/curb/tree/master/bench
+# TODO: May be useful for photographer!
 
 #   f = Fiber.new do
 #     meth(1) do
