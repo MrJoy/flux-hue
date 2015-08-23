@@ -48,13 +48,14 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "flux_hue"
 
 FluxHue.init!
-FluxHue.use_hue!
 FluxHue.use_graph!
+
 # Code loading configuration:
-FluxHue.use_launchpad! if (env_int("USE_INPUT", true) || 1) != 0
+FluxHue.use_hue! if env_bool("USE_LIGHTS")
+FluxHue.use_launchpad! if env_bool("USE_INPUT")
+
 # Crufty common code:
 require "flux_hue/output"
-
 
 ###############################################################################
 # Profiling and Debugging
@@ -66,7 +67,6 @@ DEBUG_FLAGS = Hash[(ENV["DEBUG_NODES"] || "")
                    .map(&:upcase)
                    .map { |nn| [nn, true] }]
 USE_SWEEP   = (env_int("USE_SWEEP", true) || 1) != 0
-USE_LIGHTS  = (env_int("USE_LIGHTS", true) || 1) != 0
 USE_GRAPH   = (env_int("USE_GRAPH", true) || 1) != 0
 
 ###############################################################################
@@ -295,7 +295,7 @@ def main
     end
   end
 
-  if USE_SWEEP
+  if defined?(LazyRequestConfig) && USE_SWEEP
     # TODO: Make this terminate after main simulation threads have all stopped.
     sweep_thread = Thread.new do
       max_hue     = CONFIG["simulation"]["sweep"]["max"]
@@ -349,7 +349,7 @@ def main
     end
   end
 
-  if USE_LIGHTS
+  if defined?(LazyRequestConfig)
     transition  = CONFIG["simulation"]["transition"]
     threads     = LIGHTS_FOR_THREADS.map do |(bridge_name, (lights, _mask))|
       Thread.new do
@@ -392,8 +392,8 @@ def main
   end
 
   # Wait for threads to finish initializing...
-  wait_for(threads, "sleep") if USE_LIGHTS
-  wait_for(sweep_thread, "sleep") if USE_SWEEP
+  wait_for(threads, "sleep") if defined?(LazyRequestConfig)
+  wait_for(sweep_thread, "sleep") if defined?(LazyRequestConfig) && USE_SWEEP
   wait_for(sim_thread, "sleep") if USE_GRAPH
   wait_for(input_thread, "sleep") if defined?(Launchpad)
   if SKIP_GC
@@ -404,8 +404,8 @@ def main
   global_results.begin!
   start_ruby_prof!
   sim_thread.run if USE_GRAPH
-  sweep_thread.run if USE_SWEEP
-  threads.each(&:run) if USE_LIGHTS
+  sweep_thread.run if defined?(LazyRequestConfig) && USE_SWEEP
+  threads.each(&:run) if defined?(LazyRequestConfig)
   input_thread.run if defined?(Launchpad)
 
   trap("INT") do
@@ -418,9 +418,9 @@ def main
     sleep 0.1
   end
 
-  threads.each(&:terminate) if USE_LIGHTS
+  threads.each(&:terminate) if defined?(LazyRequestConfig)
   input_thread.terminate if defined?(Launchpad)
-  sweep_thread.terminate if USE_SWEEP
+  sweep_thread.terminate if defined?(LazyRequestConfig) && USE_SWEEP
   sim_thread.terminate if USE_GRAPH
   sleep 0.1
 
