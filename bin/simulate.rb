@@ -51,7 +51,7 @@ FluxHue.init!("simulate")
 FluxHue.use_graph!
 
 # Code loading configuration:
-FluxHue.use_hue! if env_bool("USE_LIGHTS")
+FluxHue.use_hue!(api: true) if env_bool("USE_LIGHTS")
 FluxHue.use_launchpad! if env_bool("USE_INPUT")
 
 # Crufty common code:

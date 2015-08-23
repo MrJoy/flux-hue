@@ -22,10 +22,16 @@ module FluxHue
   end
 
   # Load code for talking to Philips Hue lighting system.
-  def self.use_hue!
-    require "flux_hue/utility"
-    require "flux_hue/results"
-    require "flux_hue/http"
+  def self.use_hue!(discovery: false, api: false)
+    if api
+      require "flux_hue/utility"
+      require "flux_hue/results"
+      require "flux_hue/http"
+    end
+
+    if discovery
+      require "flux_hue/hue/ssdp"
+    end
   end
 
   # Load code for graph-structured effect generation.

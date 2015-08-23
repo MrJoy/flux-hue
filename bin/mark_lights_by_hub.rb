@@ -6,7 +6,7 @@ lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "flux_hue"
 FluxHue.init!("mark_lights_by_hub")
-FluxHue.use_hue!
+FluxHue.use_hue!(api: true)
 
 ###############################################################################
 # Main Logic
