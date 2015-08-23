@@ -98,9 +98,9 @@ NODES               = {}
 ###############################################################################
 # Root nodes (don't act as modifiers on other nodes' output):
 n_cfg           = CONFIG["simulation"]["nodes"]
-NODES["CONST"]  = Nodes::Simulations::Const.new(lights: num_lights)
-NODES["WAVE2"]  = Nodes::Simulations::Wave2.new(lights: num_lights, speed: n_cfg["wave2"]["speed"])
-NODES["PERLIN"] = Nodes::Simulations::Perlin.new(lights: num_lights, speed: n_cfg["perlin"]["speed"])
+NODES["CONST"]  = Nodes::Generators::Const.new(lights: num_lights)
+NODES["WAVE2"]  = Nodes::Generators::Wave2.new(lights: num_lights, speed: n_cfg["wave2"]["speed"])
+NODES["PERLIN"] = Nodes::Generators::Perlin.new(lights: num_lights, speed: n_cfg["perlin"]["speed"])
 last            = NODES["PERLIN"]
 
 # Transform nodes (act as a chain of modifiers):

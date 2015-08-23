@@ -1,11 +1,11 @@
 require "perlin_noise"
 
 module Nodes
-  module Simulations
+  module Generators
     # Manage and run a Perlin-noise based simulation.
     #
     # TODO: Play with octaves / persistence, etc.
-    class Perlin < Simulation
+    class Perlin < Generator
       def initialize(lights:, initial_state: nil, speed:)
         super(lights: lights, initial_state: initial_state)
         @speed  = speed
