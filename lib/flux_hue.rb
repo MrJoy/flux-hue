@@ -1,9 +1,11 @@
 lib = File.expand_path("../", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
-require "rubygems"
-require "bundler/setup"
-Bundler.setup
+# We shave 1/6th of a sec off launch time by not doing the following, but it
+# presumes the user is using RVM properly to isolate the gem env, and that
+# there are no git/path-based gems in the Gemfile:
+# require "rubygems"
+# require "bundler/setup"
 
 require "logger-better"
 
