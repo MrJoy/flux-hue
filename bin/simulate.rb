@@ -137,6 +137,9 @@ if defined?(Launchpad)
   sat_grps    = sat_cfg["groups"]
   sat_widget  = Kernel.const_get(sat_cfg["widget"])
   sat_cfg["positions"].each_with_index do |(xx, yy), idx|
+    sat_grp_info  = sat_grps[idx]
+    sat_bridge    = CONFIG["bridges"][sat_grp_info[0]]
+    sat_group     = sat_grp_info[1]
     SAT_STATES << sat_widget.new(launchpad: INTERACTION,
                                  x:         xx,
                                  y:         yy,
@@ -147,7 +150,11 @@ if defined?(Launchpad)
                                  on_change: proc do |val|
                                    ival = sat_vals[val]
                                    FluxHue.logger.info { "Saturation[#{idx},#{val}]: #{ival}" }
-                                   # TODO: Implement me!
+                                   data = with_transition_time({ "sat" => ival }, 0.1)
+                                   req  = { method:   :put,
+                                            url:      hue_group_endpoint(sat_bridge, sat_group),
+                                            put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
+                                   PENDING_COMMANDS << req
                                  end)
   end
 end
