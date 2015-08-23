@@ -294,20 +294,22 @@ def main
   global_results = Results.new
 
   if defined?(Launchpad)
-    input_thread = Thread.new do
-      guard_call("Input Handler Setup") do
-        SKIP_STATE_PERSISTENCE[0] = true
-        INT_STATES.each_with_index do |ctrl, idx|
-          ctrl.update(CURRENT_STATE.fetch("SHIFTED_#{idx}", 0))
-        end
-        SAT_STATES.each_with_index do |ctrl, idx|
-          ctrl.update(CURRENT_STATE.fetch("SAT_STATES[#{idx}]", ctrl.max_v))
-        end
-        SL_STATE.update(CURRENT_STATE.fetch("SPOTLIT", nil))
-        EXIT_BUTTON.update(false)
-        SKIP_STATE_PERSISTENCE[0] = false
-        PENDING_COMMANDS.clear if HAVE_STATE_FILE # Don't send updates from our attempts at setting things up...
+    SKIP_STATE_PERSISTENCE[0] = true
+    INT_STATES.each_with_index do |ctrl, idx|
+      ctrl.update(CURRENT_STATE.fetch("SHIFTED_#{idx}", 0))
+    end
+    SAT_STATES.each_with_index do |ctrl, idx|
+      ctrl.update(CURRENT_STATE.fetch("SAT_STATES[#{idx}]", ctrl.max_v))
+    end
+    SL_STATE.update(CURRENT_STATE.fetch("SPOTLIT", nil))
+    EXIT_BUTTON.update(false)
+    SKIP_STATE_PERSISTENCE[0] = false
+    # Don't send updates from our attempts at setting things up when we're
+    # picking up where we left of...
+    PENDING_COMMANDS.clear if HAVE_STATE_FILE
 
+    input_thread = Thread.new do
+      guard_call("Input Handler") do
         Thread.stop
 
         INTERACTION.start
