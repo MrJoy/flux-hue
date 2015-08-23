@@ -482,7 +482,6 @@ def pre_init!
     puts
   end
   Thread.abort_on_exception = false
-
 end
 
 def nodes_under_debug
