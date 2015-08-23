@@ -25,6 +25,7 @@ module FluxHue
   def self.use_hue!(discovery: false, api: false)
     if api
       require "flux_hue/results"
+      require "flux_hue/lazy_request_config"
     end
 
     if discovery
