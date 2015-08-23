@@ -356,6 +356,7 @@ def main
           requests = lights
                      .map do |(idx, lid)|
                        url = hue_light_endpoint(config, lid)
+                       # TODO: Recycle this hash...
                        LazyRequestConfig.new(LOGGER, config, url, results) do
                          data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
                          with_transition_time(data, transition)
@@ -405,11 +406,11 @@ def main
       index = 0
       NODES.each do |name, node|
         next unless DEBUG_FLAGS[name]
-        node.snapshot_to!("%02d_%s.png" % [index, name.downcase])
+        node.snapshot_to!("tmp/%02d_%s.png" % [index, name.downcase])
         index += 1
       end
       if DEBUG_FLAGS["OUTPUT"]
-        File.open("output.raw", "w") do |fh|
+        File.open("tmp/output.raw", "w") do |fh|
           fh.write(LazyRequestConfig::GLOBAL_HISTORY.join("\n"))
           fh.write("\n")
         end
