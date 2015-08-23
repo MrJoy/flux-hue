@@ -14,10 +14,13 @@ FluxHue.use_hue!
 # TODO: Also mark accent lights!
 in_groups(CONFIG["main_lights"]).map do |(bridge_name, lights)|
   config    = CONFIG["bridges"][bridge_name]
+  lights    = lights.first.map(&:last)
+  counter   = 0
   requests  = lights
-              .map do |(idx, lid)|
-                LazyRequestConfig.new(LOGGER, config, hue_light_endpoint(config, lid)) do
-                  target      = (254 * ((idx + 1) / lights.length.to_f)).round
+              .map do |lid|
+                LazyRequestConfig.new(FluxHue.logger, config, hue_light_endpoint(config, lid)) do
+                  counter    += 1
+                  target      = (254 * (counter / lights.length.to_f)).round
                   data        = {}
                   data["on"]  = true
                   data["hue"] = config["debug_hue"]
