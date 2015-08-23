@@ -1,4 +1,3 @@
-require "oily_png"
 
 # Base class representing the state of an ordered set of lights, with an ability to debug
 # things via PNG dump.
@@ -56,6 +55,7 @@ class Node
 protected
 
   def new_image
+    require "oily_png" unless defined?(::ChunkyPNG)
     ChunkyPNG::Image.new((@lights * DEBUG_SCALE.x).to_i,
                          history.map { |sn| sn[:y] }.inject(0) { |x, y| (x || 0) + y },
                          ChunkyPNG::Color::TRANSPARENT)
