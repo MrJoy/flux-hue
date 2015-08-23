@@ -411,7 +411,7 @@ def launch_light_threads!(cfg, global_results)
   threads    += LIGHTS_FOR_THREADS.map do |(bridge_name, (lights, _mask))|
     guarded_thread(bridge_name) do
       config    = CONFIG["bridges"][bridge_name]
-      results   = Results.new
+      results   = defined?(Results) ? Results.new : nil
       iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
       FluxHue.logger.unknown do
@@ -435,8 +435,8 @@ def launch_light_threads!(cfg, global_results)
         Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
         end
 
-        global_results.add_from(results)
-        results.clear!
+        global_results.add_from(results) if global_results
+        results.clear! if results
       end
     end
   end
