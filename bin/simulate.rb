@@ -147,8 +147,6 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
                                              mask:        mask)
   NODES["SHIFTED_#{idx}"] = last
 
-  next unless defined?(Launchpad)
-
   int_colors      = intensity_cfg["colors"]
   pos             = intensity_cfg["positions"][idx]
   int_widget      = Kernel.const_get(intensity_cfg["widget"])
@@ -169,36 +167,34 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
 end
 
 SAT_STATES = []
-if defined?(Launchpad)
-  sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
-  sat_len     = sat_cfg["transition"]
-  sat_colors  = sat_cfg["colors"]
-  sat_vals    = sat_cfg["values"]
-  sat_grps    = sat_cfg["groups"]
-  sat_widget  = Kernel.const_get(sat_cfg["widget"])
-  sat_cfg["positions"].each_with_index do |(xx, yy), idx|
-    sat_grp_info  = sat_grps[idx]
-    sat_bridge    = CONFIG["bridges"][sat_grp_info[0]]
-    sat_group     = sat_grp_info[1]
-    sat_key       = "SAT_STATES[#{idx}]"
-    SAT_STATES << sat_widget.new(launchpad: INTERACTION,
-                                 x:         xx,
-                                 y:         yy,
-                                 size:      sat_cfg["size"],
-                                 on:        sat_colors["on"],
-                                 off:       sat_colors["off"],
-                                 down:      sat_colors["down"],
-                                 on_change: proc do |val|
-                                   ival = sat_vals[val]
-                                   FluxHue.logger.info { "Saturation[#{idx},#{val}]: #{ival}" }
-                                   data = with_transition_time({ "sat" => ival }, sat_len)
-                                   req  = { method:   :put,
-                                            url:      hue_group_endpoint(sat_bridge, sat_group),
-                                            put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
-                                   PENDING_COMMANDS << req
-                                   update_state!(sat_key, val)
-                                 end)
-  end
+sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
+sat_len     = sat_cfg["transition"]
+sat_colors  = sat_cfg["colors"]
+sat_vals    = sat_cfg["values"]
+sat_grps    = sat_cfg["groups"]
+sat_widget  = Kernel.const_get(sat_cfg["widget"])
+sat_cfg["positions"].each_with_index do |(xx, yy), idx|
+  sat_grp_info  = sat_grps[idx]
+  sat_bridge    = CONFIG["bridges"][sat_grp_info[0]]
+  sat_group     = sat_grp_info[1]
+  sat_key       = "SAT_STATES[#{idx}]"
+  SAT_STATES << sat_widget.new(launchpad: INTERACTION,
+                               x:         xx,
+                               y:         yy,
+                               size:      sat_cfg["size"],
+                               on:        sat_colors["on"],
+                               off:       sat_colors["off"],
+                               down:      sat_colors["down"],
+                               on_change: proc do |val|
+                                 ival = sat_vals[val]
+                                 FluxHue.logger.info { "Saturation[#{idx},#{val}]: #{ival}" }
+                                 data = with_transition_time({ "sat" => ival }, sat_len)
+                                 req  = { method:   :put,
+                                          url:      hue_group_endpoint(sat_bridge, sat_group),
+                                          put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
+                                 PENDING_COMMANDS << req
+                                 update_state!(sat_key, val)
+                               end)
 end
 
 last = NODES["SPOTLIT"] = Nodes::Transforms::Spotlight.new(source: last)

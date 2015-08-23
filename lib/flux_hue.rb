@@ -25,7 +25,6 @@ module FluxHue
   def self.use_hue!(discovery: false, api: false)
     if api
       require "flux_hue/results"
-      require "flux_hue/http"
     end
 
     if discovery
@@ -68,3 +67,4 @@ end
 require "flux_hue/utility"
 require "flux_hue/config"
 require "flux_hue/env"
+require "flux_hue/http"
