@@ -12,7 +12,7 @@ module Nodes
         @spotlight = nil
       end
 
-      def spotlight(x)
+      def spotlight!(x)
         @spotlight = x
       end
 

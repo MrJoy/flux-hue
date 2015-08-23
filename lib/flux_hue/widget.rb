@@ -118,7 +118,9 @@ protected
     end
   end
 
+  # rubocop:disable Lint/UnusedMethodArgument
   def on_up(x: nil, y: nil, position: nil); render; end
+  # rubocop:enable Lint/UnusedMethodArgument
 
   # Internal utilities for you to use:
   def change_grid(x:, y:, color:)

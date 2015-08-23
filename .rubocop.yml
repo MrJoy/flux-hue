@@ -11,6 +11,9 @@ AllCops:
 Metrics/LineLength:
   Max: 100
 
+Metrics/ParameterLists:
+  Enabled: false
+
 Style/AccessModifierIndentation:
   EnforcedStyle: outdent
 

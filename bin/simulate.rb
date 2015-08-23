@@ -218,7 +218,7 @@ if defined?(Launchpad)
                                      down:        sl_colors["down"],
                                      on_select:   proc do |x|
                                        FluxHue.logger.info { "Spotlighting ##{sl_pos[x]}" }
-                                       NODES[sl_key].spotlight(sl_pos[x])
+                                       NODES[sl_key].spotlight!(sl_pos[x])
                                        update_state!(sl_key, x)
                                      end,
                                      on_deselect: proc do

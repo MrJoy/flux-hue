@@ -4,7 +4,9 @@ require "rgb"
 def to_hex(on)
   col = on.to_rgb.map { |n| ((n / 255.0) * 63.0).round.to_i }
   # puts "#{on.h.round(1)}, #{on.s.round(3)}, #{on.l.round(3)}"
+  # rubocop:disable Lint/FormatParameterMismatch
   "0x%02X%02X%02X" % col
+  # rubocop:enable Lint/FormatParameterMismatch
 end
 
 # on = RGB::Color.from_rgb((0x27 / 63.0) * 255, (0x00 / 63.0) * 255, (0x3F / 63.0) * 255)
