@@ -47,6 +47,18 @@ lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "flux_hue"
 
+FluxHue.init!
+# Crufty common code:
+require "flux_hue/output"
+require "flux_hue/utility"
+require "flux_hue/results"
+require "flux_hue/http"
+
+FluxHue.use_graph!
+# Code loading configuration:
+FluxHue.use_launchpad! if (env_int("USE_INPUT", true) || 1) != 0
+
+
 ###############################################################################
 # Profiling and Debugging
 ###############################################################################
@@ -58,7 +70,7 @@ DEBUG_FLAGS = Hash[(ENV["DEBUG_NODES"] || "")
                    .map { |nn| [nn, true] }]
 USE_SWEEP   = (env_int("USE_SWEEP", true) || 1) != 0
 USE_LIGHTS  = (env_int("USE_LIGHTS", true) || 1) != 0
-USE_SIM     = (env_int("USE_SIM", true) || 1) != 0
+USE_GRAPH   = (env_int("USE_GRAPH", true) || 1) != 0
 
 ###############################################################################
 # Effect Configuration
@@ -80,7 +92,7 @@ PERLIN_SPEED    = Vector2.new(x: 0.1, y: PERLIN_SCALE_Y)
 # TODO: Run all simulations, and use a mixer to blend between them...
 num_lights          = CONFIG["main_lights"].length
 LIGHTS_FOR_THREADS  = in_groups(CONFIG["main_lights"])
-INTERACTION         = Launchpad::Interaction.new(use_threads: false) if USE_INPUT
+INTERACTION         = Launchpad::Interaction.new(use_threads: false) if defined?(Launchpad)
 INT_STATES          = []
 NODES               = {}
 
@@ -113,7 +125,7 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
                                              mask:        mask)
   NODES["SHIFTED_#{idx}"] = last
 
-  next unless USE_INPUT
+  next unless defined?(Launchpad)
 
   int_colors      = intensity_cfg["colors"]
   pos             = intensity_cfg["positions"][idx]
@@ -136,7 +148,7 @@ end
 SAT_STATES  = []
 sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
 sat_colors  = sat_cfg["colors"]
-if USE_INPUT
+if defined?(Launchpad)
   sat_widget = Kernel.const_get(sat_cfg["widget"])
   sat_cfg["positions"].each do |(xx, yy)|
     SAT_STATES << sat_widget.new(launchpad: INTERACTION,
@@ -155,7 +167,7 @@ sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
 sl_colors               = sl_cfg["colors"]
 sl_map_raw              = sl_cfg["mappings"]
 sl_pos                  = sl_map_raw.flatten
-if USE_INPUT
+if defined?(Launchpad)
   SL_STATE = Widgets::RadioGroup.new(launchpad:   INTERACTION,
                                      x:           sl_cfg["x"],
                                      y:           sl_cfg["y"],
@@ -188,7 +200,7 @@ Thread.abort_on_exception = false
 ###############################################################################
 # Profiling Support
 ###############################################################################
-if USE_INPUT
+if defined?(Launchpad)
   e_cfg = CONFIG["simulation"]["controls"]["exit"]
   EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
                                     position:  e_cfg["position"].to_sym,
@@ -232,7 +244,7 @@ def announce_iteration_config(iters)
 end
 
 def clear_board!
-  return unless USE_INPUT
+  return unless defined?(Launchpad)
 
   INT_STATES.map(&:blank)
   sleep 0.01 # 88 updates/sec input limit!
@@ -243,18 +255,21 @@ def clear_board!
   EXIT_BUTTON.blank
 end
 
+def wait_for(threads, state)
+  threads = Array(threads)
+  sleep 0.01 while threads.find { |th| th.status != state }
+end
+
 def main
   announce_iteration_config(ITERATIONS)
 
   global_results = Results.new
 
-  if USE_INPUT
+  if defined?(Launchpad)
     input_thread = Thread.new do
       guard_call("Input Handler Setup") do
         Thread.stop
-        # TODO: This isn't setting the actual light state properly.  AUGH!  It
-        # TODO: *does* set the LED and the controller state which is handy, but
-        # TODO: still...
+        # TODO: Sync up initial state with the simulation graph.
         INT_STATES.each { |ctrl| ctrl.update(0) }
         SAT_STATES.each { |ctrl| ctrl.update(3) }
         SL_STATE.update(nil)
@@ -267,7 +282,7 @@ def main
     end
   end
 
-  if USE_SIM
+  if USE_GRAPH
     sim_thread = Thread.new do
       guard_call("Base Simulation") do
         Thread.stop
@@ -380,10 +395,10 @@ def main
   end
 
   # Wait for threads to finish initializing...
-  sleep 0.01 while threads.find { |thread| thread.status != "sleep" } if USE_LIGHTS
-  sleep 0.01 while sweep_thread.status != "sleep" if USE_SWEEP
-  sleep 0.01 while sim_thread.status != "sleep" if USE_SIM
-  sleep 0.01 while input_thread.status != "sleep" if USE_INPUT
+  wait_for(threads, "sleep") if USE_LIGHTS
+  wait_for(sweep_thread, "sleep") if USE_SWEEP
+  wait_for(sim_thread, "sleep") if USE_GRAPH
+  wait_for(input_thread, "sleep") if defined?(Launchpad)
   if SKIP_GC
     LOGGER.unknown { "Disabling garbage collection!  BE CAREFUL!" }
     GC.disable
@@ -391,10 +406,10 @@ def main
   LOGGER.debug { "Threads are ready to go, waking them up." }
   global_results.begin!
   start_ruby_prof!
-  sim_thread.run if USE_SIM
+  sim_thread.run if USE_GRAPH
   sweep_thread.run if USE_SWEEP
   threads.each(&:run) if USE_LIGHTS
-  input_thread.run if USE_INPUT
+  input_thread.run if defined?(Launchpad)
 
   trap("EXIT") do
     guard_call("Exit Handler") do
@@ -426,9 +441,9 @@ def main
       sleep 0.1
     end
   end
-  input_thread.terminate if USE_INPUT
+  input_thread.terminate if defined?(Launchpad)
   sweep_thread.terminate if USE_SWEEP
-  sim_thread.terminate if USE_SIM
+  sim_thread.terminate if USE_GRAPH
   sleep 0.1
 end
 
