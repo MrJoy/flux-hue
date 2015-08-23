@@ -85,8 +85,8 @@ PENDING_COMMANDS    = Queue.new
 ###############################################################################
 # Root nodes (don't act as modifiers on other nodes' output):
 n_cfg           = CONFIG["simulation"]["nodes"]
-NODES["CONST"]  = Nodes::Generators::Const.new(lights: num_lights)
-NODES["WAVE2"]  = Nodes::Generators::Wave2.new(lights: num_lights, speed: n_cfg["wave2"]["speed"])
+# NODES["CONST"]  = Nodes::Generators::Const.new(lights: num_lights)
+# NODES["WAVE2"]  = Nodes::Generators::Wave2.new(lights: num_lights, speed: n_cfg["wave2"]["speed"])
 NODES["PERLIN"] = Nodes::Generators::Perlin.new(lights: num_lights, speed: n_cfg["perlin"]["speed"])
 last            = NODES["PERLIN"]
 
