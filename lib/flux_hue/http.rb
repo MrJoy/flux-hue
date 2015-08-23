@@ -111,7 +111,7 @@ protected
       # printf ("%02X" % @index)
     else
       @results.success! if @results
-      debug { "Updated light." }
+      # debug { "Updated light." }
     end
   end
 end
