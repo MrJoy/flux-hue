@@ -71,7 +71,16 @@ CURRENT_STATE           = {}
 STATE_FILENAME          = "tmp/state.tmp"
 SKIP_STATE_PERSISTENCE  = [false]
 HAVE_STATE_FILE         = File.exist?(STATE_FILENAME)
-CURRENT_STATE.merge!(YAML.load(File.read(STATE_FILENAME))) if HAVE_STATE_FILE
+if HAVE_STATE_FILE
+  age = Time.now.to_f - File.stat(STATE_FILENAME).mtime.to_f
+  if age > 3600
+    FluxHue.logger.fatal do
+      "#{STATE_FILENAME} is #{age} seconds old!  Refusing to load it in case you forgot it exists!"
+    end
+    exit 1
+  end
+  CURRENT_STATE.merge!(YAML.load(File.read(STATE_FILENAME)))
+end
 
 def update_state!(key, value)
   old_value = CURRENT_STATE[key]
