@@ -402,9 +402,22 @@ def launch_sweep_thread!(sweep_cfg)
   end
 end
 
+def launch_dummy_light_threads!
+  threads = []
+  threads << guarded_thread("Dummy Thread") do
+    puts "AA"
+    Thread.stop
+    puts "BB"
+    sleep ITERATIONS * 5.0
+    puts "CC"
+    TIME_TO_DIE[0] = true
+  end
+  threads
+end
+
 def launch_light_threads!(cfg, global_results)
   threads = []
-  return threads unless defined?(LazyRequestConfig)
+  return launch_dummy_light_threads! unless defined?(LazyRequestConfig)
 
   transition  = cfg["transition"]
   debug       = DEBUG_FLAGS["OUTPUT"]
@@ -516,10 +529,12 @@ end
 def spin!(threads)
   FluxHue.logger.unknown { "Waiting for the world to end..." }
   loop do
+    # Someone hit the exit button:
     break if TIME_TO_DIE[0]
-    finished_threads = threads.count { |th| th.status == false }
+    # We went through and did `ITERATIONS` update loops over the lights:
     # ... the `- 1` is for the command queue thread!
-    break if defined?(LazyRequestConfig) && finished_threads == threads.length - 1
+    unfinished = (threads.length - threads.count { |th| th.status == false }) - 1
+    break if defined?(LazyRequestConfig) && unfinished > 0
     sleep 0.25
   end
 end
