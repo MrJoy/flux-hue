@@ -503,7 +503,7 @@ def init!(global_results)
     FluxHue.logger.unknown { "Disabling garbage collection!  BE CAREFUL!" }
     GC.disable
   end
-  global_results.begin!
+  global_results.begin! if global_results
   start_ruby_prof!
   FINAL_RESULT.update(Time.now.to_f)
 end
@@ -536,7 +536,7 @@ def main
 
   announce_iteration_config(ITERATIONS)
 
-  global_results  = Results.new
+  global_results  = defined?(Results) ? Results.new : nil
   threads         = launch_all_threads!(CONFIG["simulation"], global_results)
 
   wait_for_threads!(threads[:all])
@@ -546,10 +546,10 @@ def main
   stop!(threads)
 
   FluxHue.logger.unknown { "Doing final shutdown..." }
-  global_results.done!
+  global_results.done! if global_results
   clear_board!
 
-  print_results(global_results)
+  print_results(global_results) if global_results
   dump_debug_data!
 end
 
