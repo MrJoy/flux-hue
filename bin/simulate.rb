@@ -398,7 +398,7 @@ def main
     threads << Thread.new do
       guard_call("Command Queue") do
         loop do
-          sleep 0.1 while PENDING_COMMANDS.empty?
+          sleep 0.05 while PENDING_COMMANDS.empty?
 
           # TODO: Gather stats about success/failure...
           # results     = Results.new
