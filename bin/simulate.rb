@@ -83,6 +83,15 @@ CURRENT_STATE       = {}
 STATE_FILENAME      = "tmp/state.tmp"
 CURRENT_STATE.merge!(YAML.load(File.read(STATE_FILENAME))) if File.exist?(STATE_FILENAME)
 
+def update_state!(key, value)
+  old_value = CURRENT_STATE[key]
+  return if old_value == value
+  CURRENT_STATE[key] = value
+  File.open(STATE_FILENAME, "w") do |fh|
+    fh.write(CURRENT_STATE.to_yaml)
+  end
+end
+
 ###############################################################################
 # Simulation Graph Configuration / Setup
 ###############################################################################
@@ -129,6 +138,7 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
                                      ival = int_vals[val]
                                      FluxHue.logger.info { "Intensity[#{idx},#{val}]: #{ival}" }
                                      NODES[int_key].set_range(ival[0], ival[1])
+                                     update_state!(int_key, val)
                                    end)
 end
 
@@ -144,6 +154,7 @@ if defined?(Launchpad)
     sat_grp_info  = sat_grps[idx]
     sat_bridge    = CONFIG["bridges"][sat_grp_info[0]]
     sat_group     = sat_grp_info[1]
+    sat_key       = "SAT_STATES[#{idx}]"
     SAT_STATES << sat_widget.new(launchpad: INTERACTION,
                                  x:         xx,
                                  y:         yy,
@@ -159,6 +170,7 @@ if defined?(Launchpad)
                                             url:      hue_group_endpoint(sat_bridge, sat_group),
                                             put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
                                    PENDING_COMMANDS << req
+                                   update_state!(sat_key, val)
                                  end)
   end
 end
@@ -182,10 +194,12 @@ if defined?(Launchpad)
                                      on_select:   proc do |x|
                                        FluxHue.logger.info { "Spotlighting ##{sl_pos[x]}" }
                                        NODES[sl_key].spotlight(sl_pos[x])
+                                       update_state!(sl_key, x)
                                      end,
                                      on_deselect: proc do
                                        FluxHue.logger.info { "Spotlighting Off" }
                                        NODES["SPOTLIT"].clear!
+                                       update_state!(sl_key, nil)
                                      end)
 end
 
@@ -278,10 +292,14 @@ def main
     input_thread = Thread.new do
       guard_call("Input Handler Setup") do
         Thread.stop
-        # TODO: Sync up initial state with the simulation graph.
-        INT_STATES.each { |ctrl| ctrl.update(0) }
-        SAT_STATES.each { |ctrl| ctrl.update(ctrl.max_v) }
-        SL_STATE.update(nil)
+
+        INT_STATES.each_with_index do |ctrl, idx|
+          ctrl.update(CURRENT_STATE.fetch("SHIFTED_#{idx}", 0))
+        end
+        SAT_STATES.each_with_index do |ctrl, idx|
+          ctrl.update(CURRENT_STATE.fetch("SAT_STATES[#{idx}]", ctrl.max_v))
+        end
+        SL_STATE.update(CURRENT_STATE.fetch("SPOTLIT", nil))
         EXIT_BUTTON.update(false)
 
         # ... and of course we don't want to sleep on this loop, or `join` the
