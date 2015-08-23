@@ -52,7 +52,7 @@
 ###############################################################################
 # Early Initialization/Helpers
 ###############################################################################
-# bench_init!
+bench_init! if defined?(bench_init!)
 lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "flux_hue"
@@ -573,6 +573,6 @@ end
 # Launcher
 ###############################################################################
 profile! do
-  # bench_end!
+  bench_end! if defined?(bench_end!)
   main
 end
