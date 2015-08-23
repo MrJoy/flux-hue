@@ -1,4 +1,19 @@
 #!/usr/bin/env ruby
+# def bench_init!; @first_time = @last_time = Time.now.to_f; end
+
+# def bench_snap!(depth = 0)
+#   t = Time.now.to_f
+#   elapsed = t - @last_time
+#   @last_time = t
+#   key = caller[depth].split(":")[0..1].join(":").split("/").last
+#   key = "TOTAL" if depth > 0
+#   puts "%s => %f sec (@%f)" % [key, elapsed, t]
+# end
+
+# def bench_end!
+#   @last_time = @first_time
+#   bench_snap!(2)
+# end
 
 # TODO: Run update across nodes from back to front for simulation rather than
 # TODO: relying on a call-chain.  This should make it easy to eliminate the
@@ -37,6 +52,7 @@
 ###############################################################################
 # Early Initialization/Helpers
 ###############################################################################
+# bench_init!
 lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "flux_hue"
@@ -552,5 +568,6 @@ end
 # Launcher
 ###############################################################################
 profile! do
+  # bench_end!
   main
 end
