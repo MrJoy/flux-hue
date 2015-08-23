@@ -43,13 +43,13 @@ def print_results(results)
   print_other_stats(results)
 end
 
-def dump_node_debug_data!
+def dump_node_debug_data!(prefix)
   nodes_under_debug.each_with_index do |(name, node), index|
     node.snapshot_to!("tmp/%s_%02d_%s.png" % [prefix, index, name.downcase])
   end
 end
 
-def dump_output_debug_data!
+def dump_output_debug_data!(prefix)
   return unless DEBUG_FLAGS["OUTPUT"]
   File.open("tmp/#{prefix}_output.raw", "w") do |fh|
     fh.write(LazyRequestConfig::GLOBAL_HISTORY.join("\n"))
@@ -63,6 +63,6 @@ def dump_debug_data!
 
   FluxHue.logger.unknown { "Dumping debug and/or profiling data to `tmp/#{prefix}_*`." }
   stop_ruby_prof!
-  dump_node_debug_data!
-  dump_output_debug_data!
+  dump_node_debug_data!(prefix)
+  dump_output_debug_data!(prefix)
 end
