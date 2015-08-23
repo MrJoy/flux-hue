@@ -54,7 +54,6 @@ DEBUG_FLAGS   = Hash[(ENV["DEBUG_NODES"] || "")
                      .split(/\s*,\s*/)
                      .map(&:upcase)
                      .map { |nn| [nn, true] }]
-DEBUG_PREFIX  = "%010.0f" % Time.now.to_f
 USE_SWEEP     = env_bool("USE_SWEEP")
 USE_GRAPH     = env_bool("USE_GRAPH")
 
@@ -439,20 +438,12 @@ def setup_signal_handlers!
   end
 end
 
-def dump_debug_data!
-  nodes_under_debug = NODES.select { |name, _node| DEBUG_FLAGS[name] }
-  return unless nodes_under_debug.length > 0 || DEBUG_FLAGS["OUTPUT"] || PROFILE_RUN # == "ruby-prof"
-  FluxHue.logger.unknown { "Dumping debug data..." }
-  stop_ruby_prof!
-  nodes_under_debug.each_with_index do |(name, node), index|
-    node.snapshot_to!("tmp/%s_%02d_%s.png" % [DEBUG_PREFIX, index, name.downcase])
-  end
+def nodes_under_debug
+  NODES.select { |name, _node| DEBUG_FLAGS[name] }
+end
 
-  return unless DEBUG_FLAGS["OUTPUT"]
-  File.open("tmp/#{DEBUG_PREFIX}_output.raw", "w") do |fh|
-    fh.write(LazyRequestConfig::GLOBAL_HISTORY.join("\n"))
-    fh.write("\n")
-  end
+def debugging?
+  nodes_under_debug.length > 0 || DEBUG_FLAGS["OUTPUT"] || PROFILE_RUN
 end
 
 def main
