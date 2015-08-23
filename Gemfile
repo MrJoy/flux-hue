@@ -49,7 +49,6 @@ gem "oj",               require: false
 gem "rgb",              require: false
 gem "curb",             require: false
 gem "perlin_noise",     require: false
-gem "activesupport",    require: false
 gem "logger-better",    require: false
 gem "playful",          require: false
 gem "mrjoy-launchpad",  require: false

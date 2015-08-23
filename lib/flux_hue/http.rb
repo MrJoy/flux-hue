@@ -78,7 +78,7 @@ protected
 
   def journal(stage, easy)
     return unless @debug
-    GLOBAL_HISTORY << "#{Time.now.to_f},#{stage},#{@url},#{easy.try(:body_str)}"
+    GLOBAL_HISTORY << "#{Time.now.to_f},#{stage},#{@url},#{easy.body_str rescue nil}"
   end
 
   def failure!(easy)

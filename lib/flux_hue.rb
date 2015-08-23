@@ -6,7 +6,6 @@ require "bundler/setup"
 Bundler.setup
 
 require "logger-better"
-require "active_support/all"
 
 # System for building interesting, dynamic lighting effects for the Philips Hue,
 # using the Novation Launchpad for control.
