@@ -16,6 +16,13 @@
 # TODO: the end of the chain?  Need to consider use-cases more thoroughly.
 # TODO: May be useful for photographer!
 
+# TODO: Rename widgets to clarify that they're LaunchPad-specific, and hoist all
+# TODO: LaunchPad code into one namespace.
+
+# TODO: Hoist all Hue code into one namespace.
+
+# TODO: Possibly break out discovery / user registration into a separate gem?
+
 #   f = Fiber.new do
 #     meth(1) do
 #       Fiber.yield
@@ -214,7 +221,6 @@ end
 ###############################################################################
 ITERATIONS                = env_int("ITERATIONS", true) || 0
 TIME_TO_DIE               = [false]
-Thread.abort_on_exception = false
 
 ###############################################################################
 # Profiling Support
@@ -447,13 +453,15 @@ def launch_all_threads!(sim_cfg, global_results)
   tmp
 end
 
-def setup_signal_handlers!
+def pre_init!
   trap("INT") do
     TIME_TO_DIE[0] = true
     # If we hit ctrl-c, it'll show up on the terminal, mucking with log output right when we're
     # about to produce reports.  This annoys me, so I'm working around it:
     puts
   end
+  Thread.abort_on_exception = false
+
 end
 
 def nodes_under_debug
@@ -502,12 +510,12 @@ def stop!(threads)
 end
 
 def main
+  pre_init!
+
   announce_iteration_config(ITERATIONS)
 
   global_results  = Results.new
   threads         = launch_all_threads!(CONFIG["simulation"], global_results)
-
-  setup_signal_handlers!
 
   wait_for_threads!(threads[:all])
   init!(global_results)
