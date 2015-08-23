@@ -78,6 +78,7 @@ LIGHTS_FOR_THREADS  = in_groups(CONFIG["main_lights"])
 INTERACTION         = Launchpad::Interaction.new(use_threads: false) if defined?(Launchpad)
 INT_STATES          = []
 NODES               = {}
+PENDING_COMMANDS    = Queue.new
 
 ###############################################################################
 # Simulation Graph Configuration / Setup
@@ -300,7 +301,6 @@ def main
       min_hue     = CONFIG["simulation"]["sweep"]["min"]
       sweep_len   = CONFIG["simulation"]["sweep"]["length"]
 
-      results     = Results.new
       hue_target  = max_hue
       guard_call("Sweeper") do
         Thread.stop
@@ -311,37 +311,14 @@ def main
           hue_target  = (hue_target == max_hue) ? min_hue : max_hue
           data        = with_transition_time({ "hue" => hue_target }, sweep_len)
           # TODO: Hoist the hash into something reusable above...
-          requests    = CONFIG["bridges"]
-                        .map do |(_name, config)|
-                          { method:   :put,
-                            url:      hue_group_endpoint(config, 0),
-                            put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
-                        end
-
-          Curl::Multi.http(requests, MULTI_OPTIONS) do # |easy|
-            # Apparently performed for each request?  Or when idle?  Or...
-
-            # dns_cache_timeout head header_size header_str headers
-            # http_connect_code last_effective_url last_result low_speed_limit
-            # low_speed_time num_connects on_header os_errno redirect_count
-            # request_size
-
-            # app_connect_time connect_time name_lookup_time pre_transfer_time
-            # start_transfer_time total_time
-
-            # Bytes/sec, I think:
-            # download_speed upload_speed
-
-            # The following are all Float, and downloaded_content_length can be
-            # -1.0 when a transfer times out(?).
-            # downloaded_bytes downloaded_content_length uploaded_bytes
-            # uploaded_content_length
+          CONFIG["bridges"].each do |(_name, config)|
+            PENDING_COMMANDS << { method:   :put,
+                                  url:      hue_group_endpoint(config, 0),
+                                  put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
           end
 
-          global_results.add_from(results)
-          results.clear!
-
-          sleep 0.05 while (Time.now.to_f - before_time) <= sweep_len
+          elapsed = Time.now.to_f - before_time
+          sleep sweep_len - elapsed if elapsed < sweep_len
         end
       end
     end
@@ -379,7 +356,29 @@ def main
 
             global_results.add_from(results)
             results.clear!
+          end
+        end
+      end
+    end
 
+    threads << Thread.new do
+      guard_call("Command Queue") do
+        loop do
+          sleep 0.1 while PENDING_COMMANDS.empty?
+
+          # TODO: Gather stats about success/failure...
+          # results     = Results.new
+          # global_results.add_from(results)
+          # results.clear!
+
+          requests = []
+          requests << PENDING_COMMANDS.pop until PENDING_COMMANDS.empty?
+          next if requests.length == 0
+          FluxHue.logger.debug { "Processing #{requests.length} pending commands." }
+          Curl::Multi.http(requests, MULTI_OPTIONS) do |easy|
+            FluxHue.logger.debug do
+              "Processed command: #{easy.url} => #{easy.response_code}; #{easy.body}"
+            end
             break if TIME_TO_DIE[0]
           end
         end
