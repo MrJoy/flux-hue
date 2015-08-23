@@ -481,7 +481,7 @@ def spin!(threads)
   loop do
     break if TIME_TO_DIE[0]
     break if defined?(LazyRequestConfig) && !any_in_state(threads, false)
-    sleep 0.1
+    sleep 0.25
   end
 end
 
