@@ -366,7 +366,7 @@ def main
           results   = Results.new
           iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
-          FluxHue.logger.debug do
+          FluxHue.logger.unknown do
             light_list = lights.map(&:first).join(", ")
             "#{bridge_name}: Thread set to handle #{lights.count} lights (#{light_list})."
           end
