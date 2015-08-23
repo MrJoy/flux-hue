@@ -23,10 +23,20 @@ simulation:
   output:
     transition: 0.3
   sweep:
-    transition: 2.0
+    # Don't set this transition much below 1.0!  ZigBee spec only allows 1
+    # group update/sec, but Hue Bridge/lights seem to be OK with about 1 every
+    # 0.75 sec...
+    #
+    # Negative values mean to use a transition time of 0 for the change, but
+    # wait the absolute value between steps.
+    transition: 0.75
     # Ballpark estimation of Jen's palette:
     values:
+    - 49500
+    - 49500
     - 48000
+    - 49500
+    - 49500
     - 51000
   nodes:
     wave2:
