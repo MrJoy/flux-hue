@@ -9,13 +9,13 @@ module FluxHue
   def self.logger; @logger; end
 
   def self.init!
-    require "logger"
+    require "logger-better"
     require "active_support/all"
     require "flux_hue/config"
     require "flux_hue/env"
 
-    @logger         = Logger.new(STDOUT)
-    @logger.level   = Logger.const_get((ENV["FLUX_LOGLEVEL"] || "INFO").upcase)
+    @logger         = Logger::Better.new(STDOUT)
+    @logger.level   = (ENV["FLUX_LOGLEVEL"] || "info").downcase.to_sym
   end
 
   # Load code for talking to Philips Hue lighting system.
