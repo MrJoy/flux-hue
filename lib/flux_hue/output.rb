@@ -1,3 +1,11 @@
+def announce_iteration_config(iters)
+  if iters > 0
+    FluxHue.logger.unknown { "Running for #{iters} iterations." }
+  else
+    FluxHue.logger.unknown { "Running until we're killed.  Send SIGHUP to terminate with stats." }
+  end
+end
+
 def format_float(num); num ? num.round(2) : "-"; end
 
 def format_rate(rate); "#{format_float(rate)}/sec"; end
