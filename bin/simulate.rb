@@ -378,21 +378,26 @@ end
 
 def launch_sweep_thread!(sweep_cfg)
   return nil unless defined?(LazyRequestConfig) && USE_SWEEP
-  hues      = sweep_cfg["values"]
-  sweep_len = sweep_cfg["transition"]
+  hues        = sweep_cfg["values"]
+  sweep_len   = sweep_cfg["transition"]
+  sweep_wait  = sweep_len
+  if sweep_len < 0
+    sweep_wait  = sweep_len.abs
+    sweep_len   = 0.0
+  end
   guarded_thread("Sweeper") do
     Thread.stop
 
     loop do
       before_time = Time.now.to_f
-      idx         = ((before_time / sweep_len) % hues.length).floor
+      idx         = ((before_time / sweep_wait) % hues.length).floor
       data        = with_transition_time({ "hue" => hues[idx] }, sweep_len)
       CONFIG["bridges"].each do |(_name, config)|
         add_group_command!(config, data)
       end
 
       elapsed = Time.now.to_f - before_time
-      sleep sweep_len - elapsed if elapsed < sweep_len
+      sleep sweep_wait - elapsed if elapsed < sweep_wait
     end
   end
 end
