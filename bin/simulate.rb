@@ -82,7 +82,8 @@ PENDING_COMMANDS        = Queue.new
 CURRENT_STATE           = {}
 STATE_FILENAME          = "tmp/state.tmp"
 SKIP_STATE_PERSISTENCE  = [false]
-CURRENT_STATE.merge!(YAML.load(File.read(STATE_FILENAME))) if File.exist?(STATE_FILENAME)
+HAVE_STATE_FILE         = File.exist?(STATE_FILENAME)
+CURRENT_STATE.merge!(YAML.load(File.read(STATE_FILENAME))) if HAVE_STATE_FILE
 
 def update_state!(key, value)
   old_value = CURRENT_STATE[key]
@@ -306,6 +307,7 @@ def main
         SL_STATE.update(CURRENT_STATE.fetch("SPOTLIT", nil))
         EXIT_BUTTON.update(false)
         SKIP_STATE_PERSISTENCE[0] = false
+        PENDING_COMMANDS.clear if HAVE_STATE_FILE # Don't send updates from our attempts at setting things up...
 
         # ... and of course we don't want to sleep on this loop, or `join` the
         # thread for the same reason.
@@ -357,9 +359,11 @@ def main
     end
   end
 
+  threads = []
   if defined?(LazyRequestConfig)
     transition  = CONFIG["simulation"]["transition"]
-    threads     = LIGHTS_FOR_THREADS.map do |(bridge_name, (lights, _mask))|
+    debug       = DEBUG_FLAGS["OUTPUT"]
+    threads    += LIGHTS_FOR_THREADS.map do |(bridge_name, (lights, _mask))|
       Thread.new do
         guard_call(bridge_name) do
           config    = CONFIG["bridges"][bridge_name]
@@ -376,15 +380,14 @@ def main
           requests = lights
                      .map do |(idx, lid)|
                        url = hue_light_endpoint(config, lid)
-                       # TODO: Recycle this hash...
-                       LazyRequestConfig.new(FluxHue.logger, config, url, results, debug: DEBUG_FLAGS["OUTPUT"]) do
+                       LazyRequestConfig.new(FluxHue.logger, config, url, results, debug: debug) do
+                         # TODO: Recycle this hash?
                          data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
                          with_transition_time(data, transition)
                        end
                      end
 
           iterator.each do
-            # TODO: Still need this dup?
             Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
             end
 
@@ -417,55 +420,62 @@ def main
         end
       end
     end
-  else
-    threads = []
   end
 
-  # Wait for threads to finish initializing...
-  FINAL_RESULT.update(Time.now.to_f)
+  trap("INT") do
+    TIME_TO_DIE[0] = true
+    # If we hit ctrl-c, it'll show up on the terminal, mucking with log output right when we're
+    # about to produce reports.  This annoys me, so I'm working around it:
+    puts
+  end
+
+  FluxHue.logger.unknown { "Waiting for threads to finish initializing..." }
   wait_for(input_thread, "sleep") if defined?(Launchpad)
   wait_for(sim_thread, "sleep") if USE_GRAPH
   wait_for(sweep_thread, "sleep") if defined?(LazyRequestConfig) && USE_SWEEP
   wait_for(threads, "sleep") if defined?(LazyRequestConfig)
+
+  FluxHue.logger.unknown { "Threads initialized, doing final setup..." }
   if SKIP_GC
     FluxHue.logger.unknown { "Disabling garbage collection!  BE CAREFUL!" }
     GC.disable
   end
-  FluxHue.logger.debug { "Threads are ready to go, waking them up." }
   global_results.begin!
   start_ruby_prof!
+  FINAL_RESULT.update(Time.now.to_f)
+
+  FluxHue.logger.unknown { "Final setup done, waking threads..." }
   sim_thread.run if USE_GRAPH
   sweep_thread.run if defined?(LazyRequestConfig) && USE_SWEEP
   threads.each(&:run) if defined?(LazyRequestConfig)
   input_thread.run if defined?(Launchpad)
 
-  trap("INT") do
-    TIME_TO_DIE[0] = true
-    puts
-  end
-
+  FluxHue.logger.unknown { "Waiting for the world to end..." }
   loop do
     break if TIME_TO_DIE[0]
     break if defined?(LazyRequestConfig) && !any_in_state(threads, false)
     sleep 0.1
   end
 
+  FluxHue.logger.unknown { "Stopping threads..." }
   threads.each(&:terminate) if defined?(LazyRequestConfig)
   sweep_thread.terminate if defined?(LazyRequestConfig) && USE_SWEEP
   sim_thread.terminate if USE_GRAPH
   input_thread.terminate if defined?(Launchpad)
   sleep 0.1
 
+  FluxHue.logger.unknown { "Doing final shutdown..." }
   global_results.done!
-  print_results(global_results)
   clear_board!
 
+  print_results(global_results)
+
+  nodes_under_debug = NODES.select { |name, _node| DEBUG_FLAGS[name] }
+  return unless nodes_under_debug.length > 0 || DEBUG_FLAGS["OUTPUT"] || PROFILE_RUN == "ruby-prof"
+  FluxHue.logger.unknown { "Dumping debug data..." }
   stop_ruby_prof!
-  index = 0
-  NODES.each do |name, node|
-    next unless DEBUG_FLAGS[name]
+  nodes_under_debug.each_with_index do |(name, node), index|
     node.snapshot_to!("tmp/%02d_%s.png" % [index, name.downcase])
-    index += 1
   end
 
   return unless DEBUG_FLAGS["OUTPUT"]

@@ -32,7 +32,9 @@ export RUBY_PROF_MODE=allocations  # ALLOCATIONS, CPU_TIME, GC_RUNS, GC_TIME, ME
 
 # Dump various PNGs showing the results of given nodes in the DAG over time.
 # This is VERY VERY memory intensize!  Don't try to use it for a long run!
-export DEBUG_NODES= #perlin,stretched,shifted_0,shifted_1,shifted_2,shifted_3,spotlit,output
+# Current nodes: perlin, stretched, shifted_0, shifted_1, shifted_2, shifted_3, spotlit, output
+# ... however you probably don't care about shifted_0..shifted_2.
+export DEBUG_NODES= #perlin,stretched,shifted_3,spotlit,output
 
 
 ###############################################################################
