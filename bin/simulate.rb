@@ -79,6 +79,9 @@ INTERACTION         = Launchpad::Interaction.new(use_threads: false) if defined?
 INT_STATES          = []
 NODES               = {}
 PENDING_COMMANDS    = Queue.new
+CURRENT_STATE       = {}
+STATE_FILENAME      = "tmp/state.tmp"
+CURRENT_STATE.merge!(YAML.load(File.read(STATE_FILENAME))) if File.exist?(STATE_FILENAME)
 
 ###############################################################################
 # Simulation Graph Configuration / Setup
@@ -114,6 +117,7 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
   int_colors      = intensity_cfg["colors"]
   pos             = intensity_cfg["positions"][idx]
   int_widget      = Kernel.const_get(intensity_cfg["widget"])
+  int_key         = "SHIFTED_#{idx}"
   INT_STATES[idx] = int_widget.new(launchpad: INTERACTION,
                                    x:         pos[0],
                                    y:         pos[1],
@@ -124,12 +128,11 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
                                    on_change: proc do |val|
                                      ival = int_vals[val]
                                      FluxHue.logger.info { "Intensity[#{idx},#{val}]: #{ival}" }
-                                     NODES["SHIFTED_#{idx}"]
-                                       .set_range(ival[0], ival[1])
+                                     NODES[int_key].set_range(ival[0], ival[1])
                                    end)
 end
 
-SAT_STATES  = []
+SAT_STATES = []
 if defined?(Launchpad)
   sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
   sat_len     = sat_cfg["transition"]
@@ -166,6 +169,7 @@ sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
 sl_colors               = sl_cfg["colors"]
 sl_map_raw              = sl_cfg["mappings"]
 sl_pos                  = sl_map_raw.flatten
+sl_key                  = "SPOTLIT"
 if defined?(Launchpad)
   SL_STATE = Widgets::RadioGroup.new(launchpad:   INTERACTION,
                                      x:           sl_cfg["x"],
@@ -177,7 +181,7 @@ if defined?(Launchpad)
                                      down:        sl_colors["down"],
                                      on_select:   proc do |x|
                                        FluxHue.logger.info { "Spotlighting ##{sl_pos[x]}" }
-                                       NODES["SPOTLIT"].spotlight(sl_pos[x])
+                                       NODES[sl_key].spotlight(sl_pos[x])
                                      end,
                                      on_deselect: proc do
                                        FluxHue.logger.info { "Spotlighting Off" }
@@ -200,6 +204,7 @@ Thread.abort_on_exception = false
 # Profiling Support
 ###############################################################################
 if defined?(Launchpad)
+  # TODO: Make this optional.
   e_cfg = CONFIG["simulation"]["controls"]["exit"]
   EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
                                     position:  e_cfg["position"].to_sym,
