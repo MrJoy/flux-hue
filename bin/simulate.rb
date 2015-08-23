@@ -463,7 +463,7 @@ def main
   sweep_thread.terminate if defined?(LazyRequestConfig) && USE_SWEEP
   sim_thread.terminate if USE_GRAPH
   input_thread.terminate if defined?(Launchpad)
-  sleep 0.1
+  # sleep 0.1
 
   FluxHue.logger.unknown { "Doing final shutdown..." }
   global_results.done!
