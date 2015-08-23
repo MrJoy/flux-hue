@@ -1,3 +1,4 @@
+# TODO: Namespacing!
 # A 2-component vector, where components go from 0.0..1.0.
 class Vector2
   attr_reader :x, :y

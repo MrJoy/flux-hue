@@ -1,9 +1,11 @@
+# TODO: Namespacing/classes/etc!
+
 # rubocop:disable Lint/RescueException
-def guard_call(bridge_name, &block)
+def guard_call(prefix, &block)
   block.call
 rescue Exception => e
-  FluxHue.logger.error { "#{bridge_name}: Exception for #{bridge_name}: #{e.message}" }
-  FluxHue.logger.error { "#{bridge_name}:\t#{e.backtrace.join("\n#{bridge_name}:\t")}" }
+  FluxHue.logger.error { "#{prefix}: Exception for #{prefix}: #{e.message}" }
+  FluxHue.logger.error { "#{prefix}:\t#{e.backtrace.join("\n#{prefix}:\t")}" }
 end
 # rubocop:enable Lint/RescueException
 

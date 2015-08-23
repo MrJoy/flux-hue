@@ -1,3 +1,5 @@
+# TODO: Namespacing/classes/etc!
+
 # Helper class to hold onto stats about requests made to the bridges.
 #
 # NOTE: Methods ending with `!` are *not* thread-safe, methods without it *are*.

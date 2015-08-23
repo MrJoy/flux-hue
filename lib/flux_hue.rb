@@ -7,6 +7,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 # require "rubygems"
 # require "bundler/setup"
 
+require "yaml"
 require "logger-better"
 
 # System for building interesting, dynamic lighting effects for the Philips Hue,

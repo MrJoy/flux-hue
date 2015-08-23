@@ -1,3 +1,4 @@
+# TODO: Namespacing/classes/etc!
 require "curb"
 require "oj"
 

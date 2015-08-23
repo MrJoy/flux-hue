@@ -1,3 +1,4 @@
+# TODO: Namespacing/classes/etc!
 def announce_iteration_config(iters)
   FluxHue.logger.unknown do
     if iters > 0

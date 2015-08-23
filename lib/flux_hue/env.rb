@@ -1,3 +1,4 @@
+# TODO: Namespacing/classes/etc!
 def env_int(name, allow_zero = false)
   return nil unless ENV.key?(name)
   tmp = ENV[name].to_i

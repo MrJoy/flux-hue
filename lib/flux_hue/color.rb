@@ -1,3 +1,5 @@
+# TODO: Namespacing/etc!
+
 # Helper functionality around colors.
 module Color
   # Color classes for the Novation Launchpad, which supports 4 bits per color

@@ -1,4 +1,4 @@
-require "yaml"
+# TODO: Load this on-demand, not automatically!  Namespace it!  AUGH!
 require "flux_hue/vector2"
 require "flux_hue/color"
 

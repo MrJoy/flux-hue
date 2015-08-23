@@ -1,3 +1,4 @@
+# TODO: Namespacing!
 require "launchpad"
 
 # Base class for Launchpad UI widgets.
