@@ -22,6 +22,7 @@ end
 
 # TODO: Show per-bridge and aggregate stats.
 def print_results(results)
+  FluxHue.logger.unknown { "Results:" }
   print_stats(results)
 
   FluxHue.logger.unknown { "* #{format_float(results.failure_rate)}% failure rate" }
