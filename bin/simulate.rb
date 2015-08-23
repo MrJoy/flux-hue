@@ -121,8 +121,8 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
                                    off:       int_colors["off"],
                                    down:      int_colors["down"],
                                    on_change: proc do |val|
-                                     FluxHue.logger.info { "Intensity[#{idx}]: #{val}" }
                                      ival = int_vals[val]
+                                     FluxHue.logger.info { "Intensity[#{idx},#{val}]: #{ival}" }
                                      NODES["SHIFTED_#{idx}"]
                                        .set_range(ival[0], ival[1])
                                    end)
@@ -144,8 +144,8 @@ if defined?(Launchpad)
                                  off:       sat_colors["off"],
                                  down:      sat_colors["down"],
                                  on_change: proc do |val|
-                                   FluxHue.logger.info { "Saturation[#{idx}]: #{val}" }
                                    ival = sat_vals[val]
+                                   FluxHue.logger.info { "Saturation[#{idx},#{val}]: #{ival}" }
                                    # TODO: Implement me!
                                  end)
   end
