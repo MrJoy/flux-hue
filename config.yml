@@ -29,7 +29,7 @@ simulation:
     #
     # Negative values mean to use a transition time of 0 for the change, but
     # wait the absolute value between steps.
-    transition: 0.75
+    transition: 1.5
     # Ballpark estimation of Jen's palette:
     values:
     - 49500
