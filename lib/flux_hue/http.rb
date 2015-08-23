@@ -13,6 +13,7 @@ EASY_OPTIONS = { "timeout" =>         5,
                  # version:          Curl::HTTP_1_0 }
 #   easy.header_str.grep(/keep-alive/)
 # Force keepalive off to see if that makes any difference...
+# TODO: Use this: `easy.headers["Expect"] = ''` to remove a default header we don't care about!
 
 def hue_server(config); "http://#{config['ip']}"; end
 def hue_base(config); "#{hue_server(config)}/api/#{config['username']}"; end
