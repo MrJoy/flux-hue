@@ -517,7 +517,9 @@ def spin!(threads)
   FluxHue.logger.unknown { "Waiting for the world to end..." }
   loop do
     break if TIME_TO_DIE[0]
-    break if defined?(LazyRequestConfig) && !any_in_state(threads, false)
+    finished_threads = threads.count { |th| th.status == false }
+    # ... the `- 1` is for the command queue thread!
+    break if defined?(LazyRequestConfig) && finished_threads == threads.length - 1
     sleep 0.25
   end
 end
@@ -540,7 +542,7 @@ def main
   wait_for_threads!(threads[:all])
   init!(global_results)
   wake!(threads[:all])
-  spin!(threads[:all])
+  spin!(threads[:lights])
   stop!(threads)
 
   FluxHue.logger.unknown { "Doing final shutdown..." }
