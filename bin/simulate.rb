@@ -273,7 +273,7 @@ def main
         Thread.stop
         # TODO: Sync up initial state with the simulation graph.
         INT_STATES.each { |ctrl| ctrl.update(0) }
-        SAT_STATES.each { |ctrl| ctrl.update(3) }
+        SAT_STATES.each { |ctrl| ctrl.update(ctrl.max_v) }
         SL_STATE.update(nil)
         EXIT_BUTTON.update(false)
 
