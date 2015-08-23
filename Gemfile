@@ -78,7 +78,7 @@ group :development, :test do
   gem "pry"
 end
 
-group :test do
-  gem "rspec", "~> 3.3.0"
-  gem "webmock"
-end
+# group :test do
+#   gem "rspec", "~> 3.3.0"
+#   gem "webmock"
+# end
