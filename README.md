@@ -12,7 +12,7 @@ brew install portmidi
 bundle install
 bin/discover.rb # Find all available bridges using SSDP.
 # Edit `config.yml`, and register the username(s) in it with the relevant bridges.
-bin/mark_lights_by_hub.rb # Ensure your lights are physically arranged properly.
+bin/mark_lights.rb # Ensure your lights are physically arranged properly.
 bin/on.rb # Switch all the lights on, and set saturation/etc to expected state.
 bin/launch_all.sh # Run the simulation.
 ```
@@ -24,7 +24,7 @@ __TODO: Document how to register user with hub(s).__
 
 * `bin/discover.rb`: Discover all Philips Hue bridges on your network.
 * `bin/launch_all.sh`: Runs the effect system with configuration settings for debugging, etc.  See source for details.
-* `bin/mark_lights_by_hub.rb`: Mark the lights to help ensure they're physically ordered properly.
+* `bin/mark_lights.rb`: Mark the lights to help ensure they're physically ordered properly.
 * `bin/off.rb`: Turn all configured lights off.
 * `bin/on.rb`: Turn all configured lights on.
 * `bin/simulate.rb`: Run the effect system.
