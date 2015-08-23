@@ -18,6 +18,3 @@ tmp/*
 !tmp/.gitkeep
 etc/
 *.sublime-*
-/*.png
-/results.html
-/output.*
