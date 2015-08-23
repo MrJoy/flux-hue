@@ -310,8 +310,6 @@ def main
 
         Thread.stop
 
-        # ... and of course we don't want to sleep on this loop, or `join` the
-        # thread for the same reason.
         INTERACTION.start
       end
     end
