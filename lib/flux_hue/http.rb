@@ -29,13 +29,14 @@ end
 class LazyRequestConfig
   GLOBAL_HISTORY = []
   # TODO: Transition should be updated late as well...
-  def initialize(logger, config, url, results = nil, &callback)
+  def initialize(logger, config, url, results = nil, debug: nil, &callback)
     @logger     = logger
     @config     = config
     @url        = url
     @results    = results
     @callback   = callback
     @fixed      = create_fixed(url)
+    @debug      = debug
   end
 
   def each(&block)
@@ -75,13 +76,13 @@ protected
        on_header:    nil }
   end
 
-  def journal(stage, easy: nil, body: nil)
-    return unless DEBUG_FLAGS["OUTPUT"]
-    GLOBAL_HISTORY << "#{Time.now.to_f},#{stage},#{@url},#{easy ? easy.body_str : body}"
+  def journal(stage, easy)
+    return unless @debug
+    GLOBAL_HISTORY << "#{Time.now.to_f},#{stage},#{@url},#{easy.try(:body_str)}"
   end
 
   def failure!(easy)
-    journal("END", easy: easy)
+    journal("END", easy)
     case easy.response_code
     when 404
       # Hit Bridge hardware limit.
@@ -97,7 +98,7 @@ protected
   end
 
   def success!(easy)
-    journal("END", easy: easy)
+    journal("END", easy)
     if easy.body =~ /error/
       # TODO: Check the error type field to be sure, and handle accordingly.
 

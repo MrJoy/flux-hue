@@ -32,7 +32,7 @@ EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
                                   down:      Color::LaunchPad::WHITE.to_h,
                                   on_press:  lambda do |value|
                                     return unless value != 0
-                                    LOGGER.unknown { "Ending simulation." }
+                                    FluxHue.logger.unknown { "Ending simulation." }
                                     INTERACTION.stop
                                   end)
 

@@ -6,8 +6,11 @@ require "bundler/setup"
 Bundler.setup
 
 module FluxHue
+  def self.logger; @logger; end
+
   def self.init!
     require "logger"
+    require "active_support/all"
     require "flux_hue/config"
     require "flux_hue/env"
 
@@ -15,7 +18,15 @@ module FluxHue
     @logger.level   = Logger.const_get((ENV["FLUX_LOGLEVEL"] || "INFO").upcase)
   end
 
-  def use_graph!
+  # Load code for talking to Philips Hue lighting system.
+  def self.use_hue!
+    require "flux_hue/utility"
+    require "flux_hue/results"
+    require "flux_hue/http"
+  end
+
+  # Load code for graph-structured effect generation.
+  def self.use_graph!
     # Base classes:
     require "flux_hue/node"
     require "flux_hue/nodes/simulation"
@@ -33,7 +44,7 @@ module FluxHue
   end
 
   # Load code/widgets for Novation LaunchPad.
-  def use_launchpad!
+  def self.use_launchpad!
     require "flux_hue/widget"
     require "flux_hue/widgets/horizontal_slider"
     require "flux_hue/widgets/vertical_slider"

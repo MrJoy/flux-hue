@@ -6,6 +6,8 @@
 lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "flux_hue"
+FluxHue.init!
+FluxHue.use_hue!
 
 ###############################################################################
 # Helper Functions
@@ -30,7 +32,7 @@ init_reqs = CONFIG["bridges"]
             .map { |config| hue_init(config) }
 Curl::Multi.http(init_reqs, MULTI_OPTIONS) do |easy|
   if easy.response_code != 200
-    LOGGER.error { "Failed to initialize light: #{easy.url}" }
+    FluxHue.logger.error { "Failed to initialize light: #{easy.url}" }
     add(easy)
   end
 end

@@ -3,7 +3,7 @@ def format_float(num); num ? num.round(2) : "-"; end
 def format_rate(rate); "#{format_float(rate)}/sec"; end
 
 def print_stat(name, value, rate)
-  LOGGER.unknown { "* #{value} #{name} (#{format_rate(rate)})" }
+  FluxHue.logger.unknown { "* #{value} #{name} (#{format_rate(rate)})" }
 end
 
 STATS = [
@@ -24,7 +24,7 @@ end
 def print_results(results)
   print_stats(results)
 
-  LOGGER.unknown { "* #{format_float(results.failure_rate)}% failure rate" }
+  FluxHue.logger.unknown { "* #{format_float(results.failure_rate)}% failure rate" }
   suffix = " (#{format_float(results.elapsed / ITERATIONS.to_f)}/iteration)" if ITERATIONS > 0
-  LOGGER.unknown { "* #{format_float(results.elapsed)} seconds elapsed#{suffix}" }
+  FluxHue.logger.unknown { "* #{format_float(results.elapsed)} seconds elapsed#{suffix}" }
 end

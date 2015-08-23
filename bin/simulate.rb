@@ -48,15 +48,12 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "flux_hue"
 
 FluxHue.init!
-# Crufty common code:
-require "flux_hue/output"
-require "flux_hue/utility"
-require "flux_hue/results"
-require "flux_hue/http"
-
+FluxHue.use_hue!
 FluxHue.use_graph!
 # Code loading configuration:
 FluxHue.use_launchpad! if (env_int("USE_INPUT", true) || 1) != 0
+# Crufty common code:
+require "flux_hue/output"
 
 
 ###############################################################################
@@ -138,7 +135,7 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
                                    off:       int_colors["off"],
                                    down:      int_colors["down"],
                                    on_change: proc do |val|
-                                     LOGGER.info { "Intensity[#{idx}]: #{val}" }
+                                     FluxHue.logger.info { "Intensity[#{idx}]: #{val}" }
                                      ival = int_vals[val]
                                      NODES["SHIFTED_#{idx}"]
                                        .set_range(ival[0], ival[1])
@@ -177,11 +174,11 @@ if defined?(Launchpad)
                                      off:         sl_colors["off"],
                                      down:        sl_colors["down"],
                                      on_select:   proc do |x|
-                                       LOGGER.info { "Spotlighting ##{sl_pos[x]}" }
+                                       FluxHue.logger.info { "Spotlighting ##{sl_pos[x]}" }
                                        NODES["SPOTLIT"].spotlight(sl_pos[x])
                                      end,
                                      on_deselect: proc do
-                                       LOGGER.info { "Spotlighting Off" }
+                                       FluxHue.logger.info { "Spotlighting Off" }
                                        NODES["SPOTLIT"].clear!
                                      end)
 end
@@ -208,7 +205,7 @@ if defined?(Launchpad)
                                     down:      e_cfg["colors"]["down"],
                                     on_press:  lambda do |value|
                                       return unless value != 0
-                                      LOGGER.unknown { "Ending simulation." }
+                                      FluxHue.logger.unknown { "Ending simulation." }
                                       TIME_TO_DIE[0] = true
                                     end)
 end
@@ -216,7 +213,7 @@ end
 def start_ruby_prof!
   return unless PROFILE_RUN == "ruby-prof"
 
-  LOGGER.unknown { "Enabling ruby-prof, be careful!" }
+  FluxHue.logger.unknown { "Enabling ruby-prof, be careful!" }
   require "ruby-prof"
   RubyProf.measure_mode = RubyProf.const_get(ENV.fetch("RUBY_PROF_MODE").upcase)
   RubyProf.start
@@ -237,9 +234,9 @@ end
 ###############################################################################
 def announce_iteration_config(iters)
   if iters > 0
-    LOGGER.debug { "Running for #{iters} iterations." }
+    FluxHue.logger.debug { "Running for #{iters} iterations." }
   else
-    LOGGER.debug { "Running until we're killed.  Send SIGHUP to terminate with stats." }
+    FluxHue.logger.debug { "Running until we're killed.  Send SIGHUP to terminate with stats." }
   end
 end
 
@@ -361,7 +358,7 @@ def main
           results   = Results.new
           iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
-          LOGGER.debug do
+          FluxHue.logger.debug do
             light_list = lights.map(&:first).join(", ")
             "#{bridge_name}: Thread set to handle #{lights.count} lights (#{light_list})."
           end
@@ -372,7 +369,7 @@ def main
                      .map do |(idx, lid)|
                        url = hue_light_endpoint(config, lid)
                        # TODO: Recycle this hash...
-                       LazyRequestConfig.new(LOGGER, config, url, results) do
+                       LazyRequestConfig.new(FluxHue.logger, config, url, results, debug: DEBUG_FLAGS["OUTPUT"]) do
                          data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
                          with_transition_time(data, transition)
                        end
@@ -400,10 +397,10 @@ def main
   wait_for(sim_thread, "sleep") if USE_GRAPH
   wait_for(input_thread, "sleep") if defined?(Launchpad)
   if SKIP_GC
-    LOGGER.unknown { "Disabling garbage collection!  BE CAREFUL!" }
+    FluxHue.logger.unknown { "Disabling garbage collection!  BE CAREFUL!" }
     GC.disable
   end
-  LOGGER.debug { "Threads are ready to go, waking them up." }
+  FluxHue.logger.debug { "Threads are ready to go, waking them up." }
   global_results.begin!
   start_ruby_prof!
   sim_thread.run if USE_GRAPH
@@ -450,13 +447,13 @@ end
 # Launcher
 ###############################################################################
 if PROFILE_RUN == "memory_profiler"
-  LOGGER.unknown { "Enabling memory_profiler, be careful!" }
+  FluxHue.logger.unknown { "Enabling memory_profiler, be careful!" }
   require "memory_profiler"
   report = MemoryProfiler.report do
     main
-    LOGGER.unknown { "Preparing MemoryProfiler report." }
+    FluxHue.logger.unknown { "Preparing MemoryProfiler report." }
   end
-  LOGGER.unknown { "Dumping MemoryProfiler report." }
+  FluxHue.logger.unknown { "Dumping MemoryProfiler report." }
   # TODO: Dump this to a file...
   report.pretty_print
 else
