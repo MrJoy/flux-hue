@@ -252,9 +252,14 @@ def clear_board!
   EXIT_BUTTON.blank
 end
 
+def any_in_state(threads, state)
+  threads = Array(threads)
+  threads.find { |th| th.status != state }
+end
+
 def wait_for(threads, state)
   threads = Array(threads)
-  sleep 0.01 while threads.find { |th| th.status != state }
+  sleep 0.01 while any_in_state(threads, state)
 end
 
 def main
@@ -415,6 +420,7 @@ def main
 
   loop do
     break if TIME_TO_DIE[0]
+    break if defined?(LazyRequestConfig) && !any_in_state(threads, false)
     sleep 0.1
   end
 
