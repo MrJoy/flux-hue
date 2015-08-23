@@ -79,6 +79,7 @@ def update_state!(key, value)
   CURRENT_STATE[key] = value
   return if SKIP_STATE_PERSISTENCE[0]
   FluxHue.logger.debug { "Persisting control state." }
+  # TODO: Maybe keep the file open, and rewind?
   File.open(STATE_FILENAME, "w") do |fh|
     fh.write(CURRENT_STATE.to_yaml)
   end
@@ -247,6 +248,11 @@ end
 ###############################################################################
 def clear_board!
   return unless defined?(Launchpad)
+
+  # TODO: Generalize this to deal with the entire board.
+
+  # TODO: Hoist setup / teardown of the board into separate binaries and
+  # TODO: don't do it from here to avoid startup overhead!
 
   INT_STATES.map(&:blank)
   sleep 0.01 # 88 updates/sec input limit!
@@ -489,19 +495,26 @@ def main
   dump_debug_data!
 end
 
-###############################################################################
-# Launcher
-###############################################################################
-if PROFILE_RUN == "memory_profiler"
+def profile!(&block)
+  unless PROFILE_RUN == "memory_profiler"
+    block.call
+    return
+  end
+
   FluxHue.logger.unknown { "Enabling memory_profiler, be careful!" }
   require "memory_profiler"
   report = MemoryProfiler.report do
-    main
+    block.call
     FluxHue.logger.unknown { "Preparing MemoryProfiler report." }
   end
   FluxHue.logger.unknown { "Dumping MemoryProfiler report." }
   # TODO: Dump this to a file...
   report.pretty_print
-else
+end
+
+###############################################################################
+# Launcher
+###############################################################################
+profile! do
   main
 end
