@@ -58,20 +58,8 @@ simulation:
       - [0.30, 0.60]
       - [0.50, 1.00]
       colors:
-        "on":
-        - 0x080010
-        - 0x0D0019
-        - 0x130023
-        - 0x17002C
-        - 0x1C0036
-        - 0x22003F
-        "off":
-        - 0x020004
-        - 0x020004
-        - 0x020004
-        - 0x020004
-        - 0x020004
-        - 0x020004
+        "on": 0x22003F
+        "off": 0x05000A
         "down": 0x27103F
     saturation:
       widget: Widgets::HorizontalSlider
@@ -84,16 +72,12 @@ simulation:
       - [4, 7]
       size: 4
       colors:
-        "on":
-        - 0x35303F
-        - 0x28203F
-        - 0x1C103F
-        - 0x10003F
-        "off":
-        - 0x010104
-        - 0x020208
-        - 0x03030C
-        - 0x040410
+        "on": 0x1C103F
+        "off": 0x03030C
+        # - 0x010104
+        # - 0x020208
+        # - 0x03030C
+        # - 0x040410
         "down": 0x10103F
     spotlighting:
       x: 0
