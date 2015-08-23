@@ -61,13 +61,13 @@ require "flux_hue/output"
 # Profiling and Debugging
 ###############################################################################
 PROFILE_RUN = ENV["PROFILE_RUN"]
-SKIP_GC     = !!env_int("SKIP_GC")
+SKIP_GC     = env_bool("SKIP_GC")
 DEBUG_FLAGS = Hash[(ENV["DEBUG_NODES"] || "")
                    .split(/\s*,\s*/)
                    .map(&:upcase)
                    .map { |nn| [nn, true] }]
-USE_SWEEP   = (env_int("USE_SWEEP", true) || 1) != 0
-USE_GRAPH   = (env_int("USE_GRAPH", true) || 1) != 0
+USE_SWEEP   = env_bool("USE_SWEEP")
+USE_GRAPH   = env_bool("USE_GRAPH")
 
 ###############################################################################
 # Effect Configuration

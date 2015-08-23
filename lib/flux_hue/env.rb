@@ -9,3 +9,5 @@ def env_float(name)
   return nil unless ENV.key?(name)
   ENV[name].to_f
 end
+
+def env_bool(name); (env_int(name, true) || 1) != 0; end
