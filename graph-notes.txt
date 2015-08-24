@@ -1,1 +1,7 @@
 http://www.redblobgames.com/maps/terrain-from-noise/
+http://www.shadedrelief.com/hypso/hypso.html
+http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/
+http://www.redblobgames.com/articles/noise/2d/
+http://www.redblobgames.com/x/1446-svg-filters/
+
+http://dev.paperlesspost.com/blog/2015/02/19/different-methods-of-merging-ruby-hashes/
