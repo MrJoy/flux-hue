@@ -1,0 +1,8 @@
+WAT:
+
+Seeing this occasionally for both group and individual updates:
+
+2015-08-23T06:45:01Z [simulate#60135]  WARN: Problem processing command: http://192.168.2.7/api/1234567890/groups/0/action => 200; [{"error":{"type":5,"address":"/groups/0","description":"invalid/missing parameters in body"}}]
+2015-08-23T06:46:32Z [simulate#60265]  WARN: Problem processing command: http://192.168.2.7/api/1234567890/groups/0/action => 200; [{"error":{"type":5,"address":"/groups/0","description":"invalid/missing parameters in body"}}]
+2015-08-23T06:47:16Z [simulate#60265]  WARN: Problem processing command: http://192.168.2.7/api/1234567890/groups/0/action => 200; [{"error":{"type":5,"address":"/groups/0","description":"invalid/missing parameters in body"}}]
+2015-08-23T06:47:36Z [simulate#60265]  WARN: Problem processing command: http://192.168.2.7/api/1234567890/groups/0/action => 200; [{"error":{"type":5,"address":"/groups/0","description":"invalid/missing parameters in body"}}]
