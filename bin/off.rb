@@ -5,7 +5,7 @@
 ###############################################################################
 lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "flux_hue"
+require "sparkle_motion"
 FluxHue.init!("off")
 FluxHue.use_hue!(api: true)
 

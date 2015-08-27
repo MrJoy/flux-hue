@@ -55,7 +55,7 @@
 bench_init! if defined?(bench_init!)
 lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "flux_hue"
+require "sparkle_motion"
 
 FluxHue.init!("simulate")
 FluxHue.use_graph!
@@ -66,7 +66,7 @@ FluxHue.use_widgets!
 FluxHue.use_launchpad! if env_bool("USE_INPUT")
 
 # Crufty common code:
-require "flux_hue/output"
+require "sparkle_motion/output"
 
 ###############################################################################
 # Profiling and Debugging

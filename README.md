@@ -1,6 +1,6 @@
-# Flux Hue
+# Sparkle Motion
 
-Dynamic effects system using multiple Philips Hue bridges and Novation Launchpad for control.
+Generative event lighting system using Philips Hue and Novation Launchpad.
 
 
 ## Installation
@@ -37,7 +37,7 @@ __TODO: Document how to register user with hub(s).__
 
 ## Debugging
 
-* `bin/tools/watch_memory.sh`: External monitor to keep an eye on the process size of `flux_hue.rb`.
+* `bin/tools/watch_memory.sh`: External monitor to keep an eye on the process size of `simulate.rb`.
 
 
 ## Configuration

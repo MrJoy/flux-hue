@@ -24,39 +24,39 @@ module FluxHue
   # Load code for talking to Philips Hue lighting system.
   def self.use_hue!(discovery: false, api: false)
     if api
-      require "flux_hue/results"
-      require "flux_hue/lazy_request_config"
+      require "sparkle_motion/results"
+      require "sparkle_motion/lazy_request_config"
     end
 
     if discovery
-      require "flux_hue/hue/ssdp"
+      require "sparkle_motion/hue/ssdp"
     end
   end
 
   # Load code for graph-structured effect generation.
   def self.use_graph!
     # Base classes:
-    require "flux_hue/node"
-    require "flux_hue/nodes/generator"
-    require "flux_hue/nodes/transform"
+    require "sparkle_motion/node"
+    require "sparkle_motion/nodes/generator"
+    require "sparkle_motion/nodes/transform"
 
     # Simulation root nodes:
-    require "flux_hue/nodes/generators/const"
-    require "flux_hue/nodes/generators/perlin"
-    require "flux_hue/nodes/generators/wave2"
+    require "sparkle_motion/nodes/generators/const"
+    require "sparkle_motion/nodes/generators/perlin"
+    require "sparkle_motion/nodes/generators/wave2"
 
     # Simulation transform nodes:
-    require "flux_hue/nodes/transforms/contrast"
-    require "flux_hue/nodes/transforms/range"
-    require "flux_hue/nodes/transforms/spotlight"
+    require "sparkle_motion/nodes/transforms/contrast"
+    require "sparkle_motion/nodes/transforms/range"
+    require "sparkle_motion/nodes/transforms/spotlight"
   end
 
   def self.use_widgets!
-    require "flux_hue/widget"
-    require "flux_hue/widgets/horizontal_slider"
-    require "flux_hue/widgets/vertical_slider"
-    require "flux_hue/widgets/radio_group"
-    require "flux_hue/widgets/button"
+    require "sparkle_motion/widget"
+    require "sparkle_motion/widgets/horizontal_slider"
+    require "sparkle_motion/widgets/vertical_slider"
+    require "sparkle_motion/widgets/radio_group"
+    require "sparkle_motion/widgets/button"
   end
 
   # Load code/widgets for Novation LaunchPad.
@@ -65,7 +65,7 @@ module FluxHue
   end
 end
 
-require "flux_hue/utility"
-require "flux_hue/config"
-require "flux_hue/env"
-require "flux_hue/http"
+require "sparkle_motion/utility"
+require "sparkle_motion/config"
+require "sparkle_motion/env"
+require "sparkle_motion/http"

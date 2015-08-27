@@ -1,6 +1,6 @@
 # TODO: Load this on-demand, not automatically!  Namespace it!  AUGH!
-require "flux_hue/vector2"
-require "flux_hue/color"
+require "sparkle_motion/vector2"
+require "sparkle_motion/color"
 
 def unpack_color(col)
   if col.is_a?(String)

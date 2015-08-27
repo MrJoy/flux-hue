@@ -1,7 +1,7 @@
 require "playful/ssdp"
 Playful.log = false # Playful is super verbose
 
-module FluxHue
+module SparkleMotion
   module Hue
     # Helpers for SSDP discovery of bridges.
     class SSDP
