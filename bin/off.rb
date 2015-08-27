@@ -6,8 +6,8 @@
 lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "sparkle_motion"
-FluxHue.init!("off")
-FluxHue.use_hue!(api: true)
+SparkleMotion.init!("off")
+SparkleMotion.use_hue!(api: true)
 
 ###############################################################################
 # Helper Functions
@@ -32,7 +32,7 @@ init_reqs = CONFIG["bridges"]
             .map { |config| hue_init(config) }
 Curl::Multi.http(init_reqs, MULTI_OPTIONS) do |easy|
   if easy.response_code != 200
-    FluxHue.logger.error { "Failed to initialize light: #{easy.url}" }
+    SparkleMotion.logger.error { "Failed to initialize light: #{easy.url}" }
     add(easy)
   end
 end

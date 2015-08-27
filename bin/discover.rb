@@ -6,12 +6,12 @@
 lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "sparkle_motion"
-FluxHue.init!("off")
-FluxHue.use_hue!(discovery: true)
+SparkleMotion.init!("off")
+SparkleMotion.use_hue!(discovery: true)
 
 def ip_atob(ip)
   ip.split(/\./).map(&:to_i).pack("C4")
 end
 
-results = FluxHue::Hue::SSDP.new.scan
+results = SparkleMotion::Hue::SSDP.new.scan
 puts results.values.sort { |a, b| ip_atob(a) <=> ip_atob(b) }.join("\n")

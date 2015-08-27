@@ -12,12 +12,12 @@ require "logger-better"
 
 # System for building interesting, dynamic lighting effects for the Philips Hue,
 # using the Novation Launchpad for control.
-module FluxHue
+module SparkleMotion
   def self.logger; @logger; end
 
   def self.init!(name)
     @logger         = Logger::Better.new(STDOUT)
-    @logger.level   = (ENV["FLUX_LOGLEVEL"] || "info").downcase.to_sym
+    @logger.level   = (ENV["SPARKLEMOTION_LOGLEVEL"] || "info").downcase.to_sym
     @logger.progname = name
   end
 

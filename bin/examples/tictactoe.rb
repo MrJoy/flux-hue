@@ -3,9 +3,9 @@
 lib = File.expand_path("../../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "sparkle_motion"
-FluxHue.init!("tictactoe")
-FluxHue.use_widgets!
-FluxHue.use_launchpad!
+SparkleMotion.init!("tictactoe")
+SparkleMotion.use_widgets!
+SparkleMotion.use_launchpad!
 
 INTERACTION     = Launchpad::Interaction.new(use_threads: false)
 BOARD           = []
@@ -35,7 +35,7 @@ EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTI
                                                             down:      SparkleMotion::LaunchPad::Color::WHITE.to_h,
                                                             on_press:  lambda do |value|
                                                               return unless value != 0
-                                                              FluxHue.logger.unknown { "Ending simulation." }
+                                                              SparkleMotion.logger.unknown { "Ending simulation." }
                                                               INTERACTION.stop
                                                             end)
 

@@ -57,13 +57,13 @@ lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "sparkle_motion"
 
-FluxHue.init!("simulate")
-FluxHue.use_graph!
+SparkleMotion.init!("simulate")
+SparkleMotion.use_graph!
 
 # Code loading configuration:
-FluxHue.use_hue!(api: true) if env_bool("USE_LIGHTS")
-FluxHue.use_widgets!
-FluxHue.use_launchpad! if env_bool("USE_INPUT")
+SparkleMotion.use_hue!(api: true) if env_bool("USE_LIGHTS")
+SparkleMotion.use_widgets!
+SparkleMotion.use_launchpad! if env_bool("USE_INPUT")
 
 # Crufty common code:
 require "sparkle_motion/output"
@@ -98,7 +98,7 @@ HAVE_STATE_FILE         = File.exist?(STATE_FILENAME)
 if HAVE_STATE_FILE
   age = Time.now.to_f - File.stat(STATE_FILENAME).mtime.to_f
   if age > 3600
-    FluxHue.logger.fatal do
+    SparkleMotion.logger.fatal do
       "#{STATE_FILENAME} is #{age} seconds old!  Refusing to load it in case you forgot it exists!"
     end
     exit 1
@@ -111,7 +111,7 @@ def update_state!(key, value)
   return if old_value == value
   CURRENT_STATE[key] = value
   return if SKIP_STATE_PERSISTENCE[0]
-  FluxHue.logger.debug { "Persisting control state." }
+  SparkleMotion.logger.debug { "Persisting control state." }
   # TODO: Maybe keep the file open, and rewind?
   File.open(STATE_FILENAME, "w") do |fh|
     fh.write(CURRENT_STATE.to_yaml)
@@ -160,7 +160,7 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
                                    down:      int_colors["down"],
                                    on_change: proc do |val|
                                      ival = int_vals[val]
-                                     FluxHue.logger.info { "Intensity[#{idx},#{val}]: #{ival}" }
+                                     SparkleMotion.logger.info { "Intensity[#{idx},#{val}]: #{ival}" }
                                      NODES[int_key].set_range(ival[0], ival[1])
                                      update_state!(int_key, val)
                                    end)
@@ -187,7 +187,7 @@ sat_cfg["positions"].each_with_index do |(xx, yy), idx|
                                down:      sat_colors["down"],
                                on_change: proc do |val|
                                  ival = sat_vals[val]
-                                 FluxHue.logger.info { "Saturation[#{idx},#{val}]: #{ival}" }
+                                 SparkleMotion.logger.info { "Saturation[#{idx},#{val}]: #{ival}" }
                                  data = with_transition_time({ "sat" => ival }, sat_len)
                                  req  = { method:   :put,
                                           url:      hue_group_endpoint(sat_bridge, sat_group),
@@ -213,12 +213,12 @@ SL_STATE = SparkleMotion::LaunchPad::Widgets::RadioGroup.new(launchpad:   INTERA
                                                              off:         sl_colors["off"],
                                                              down:        sl_colors["down"],
                                                              on_select:   proc do |x|
-                                                               FluxHue.logger.info { "Spotlighting ##{sl_pos[x]}" }
+                                                               SparkleMotion.logger.info { "Spotlighting ##{sl_pos[x]}" }
                                                                NODES[sl_key].spotlight!(sl_pos[x])
                                                                update_state!(sl_key, x)
                                                              end,
                                                              on_deselect: proc do
-                                                               FluxHue.logger.info { "Spotlighting Off" }
+                                                               SparkleMotion.logger.info { "Spotlighting Off" }
                                                                NODES["SPOTLIT"].clear!
                                                                update_state!(sl_key, nil)
                                                              end)
@@ -244,14 +244,14 @@ EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTI
                                                             down:      e_cfg["colors"]["down"],
                                                             on_press:  lambda do |value|
                                                               return unless value != 0
-                                                              FluxHue.logger.unknown { "Ending simulation." }
+                                                              SparkleMotion.logger.unknown { "Ending simulation." }
                                                               TIME_TO_DIE[0] = true
                                                             end)
 
 def start_ruby_prof!
   return unless PROFILE_RUN == "ruby-prof"
 
-  FluxHue.logger.unknown { "Enabling ruby-prof, be careful!" }
+  SparkleMotion.logger.unknown { "Enabling ruby-prof, be careful!" }
   require "ruby-prof"
   RubyProf.measure_mode = RubyProf.const_get(ENV.fetch("RUBY_PROF_MODE").upcase)
   RubyProf.start
@@ -417,7 +417,7 @@ def launch_light_threads!(cfg, global_results)
       results   = defined?(Results) ? Results.new : nil
       iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
-      FluxHue.logger.unknown do
+      SparkleMotion.logger.unknown do
         light_list = lights.map(&:first).join(", ")
         "#{bridge_name}: Thread set to handle #{lights.count} lights (#{light_list})."
       end
@@ -427,7 +427,7 @@ def launch_light_threads!(cfg, global_results)
       requests = lights
                  .map do |(idx, lid)|
                    url = hue_light_endpoint(config, lid)
-                   LazyRequestConfig.new(FluxHue.logger, config, url, results, debug: debug) do
+                   LazyRequestConfig.new(SparkleMotion.logger, config, url, results, debug: debug) do
                      # TODO: Recycle this hash?
                      data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
                      with_transition_time(data, transition)
@@ -457,12 +457,12 @@ def launch_light_threads!(cfg, global_results)
       requests = []
       requests << PENDING_COMMANDS.pop until PENDING_COMMANDS.empty?
       next if requests.length == 0
-      FluxHue.logger.debug { "Processing #{requests.length} pending commands." }
+      SparkleMotion.logger.debug { "Processing #{requests.length} pending commands." }
       Curl::Multi.http(requests, MULTI_OPTIONS) do |easy|
         rc    = easy.response_code
         body  = easy.body
         next if rc >= 200 && rc < 400 && body !~ /error/
-        FluxHue.logger.warn { "Problem processing command: #{easy.url} => #{rc}; #{body}" }
+        SparkleMotion.logger.warn { "Problem processing command: #{easy.url} => #{rc}; #{body}" }
       end
     end
   end
@@ -496,14 +496,14 @@ def debugging?
 end
 
 def wait_for_threads!(threads)
-  FluxHue.logger.unknown { "Waiting for threads to finish initializing..." }
+  SparkleMotion.logger.unknown { "Waiting for threads to finish initializing..." }
   wait_for(threads, "sleep")
 end
 
 def init!(global_results)
-  FluxHue.logger.unknown { "Initializing system..." }
+  SparkleMotion.logger.unknown { "Initializing system..." }
   if SKIP_GC
-    FluxHue.logger.unknown { "Disabling garbage collection!  BE CAREFUL!" }
+    SparkleMotion.logger.unknown { "Disabling garbage collection!  BE CAREFUL!" }
     GC.disable
   end
   global_results.begin! if global_results
@@ -512,12 +512,12 @@ def init!(global_results)
 end
 
 def wake!(threads)
-  FluxHue.logger.unknown { "Final setup done, waking threads..." }
+  SparkleMotion.logger.unknown { "Final setup done, waking threads..." }
   threads.each(&:run)
 end
 
 def spin!(threads)
-  FluxHue.logger.unknown { "Waiting for the world to end..." }
+  SparkleMotion.logger.unknown { "Waiting for the world to end..." }
   loop do
     # Someone hit the exit button:
     break if TIME_TO_DIE[0]
@@ -530,7 +530,7 @@ def spin!(threads)
 end
 
 def stop!(threads)
-  FluxHue.logger.unknown { "Stopping threads..." }
+  SparkleMotion.logger.unknown { "Stopping threads..." }
   %i(lights sweep graph input).each do |thread_group|
     threads[thread_group].each(&:terminate)
   end
@@ -550,7 +550,7 @@ def main
   spin!(threads[:lights])
   stop!(threads)
 
-  FluxHue.logger.unknown { "Doing final shutdown..." }
+  SparkleMotion.logger.unknown { "Doing final shutdown..." }
   global_results.done! if global_results
   clear_board!
 
@@ -564,13 +564,13 @@ def profile!(&block)
     return
   end
 
-  FluxHue.logger.unknown { "Enabling memory_profiler, be careful!" }
+  SparkleMotion.logger.unknown { "Enabling memory_profiler, be careful!" }
   require "memory_profiler"
   report = MemoryProfiler.report do
     block.call
-    FluxHue.logger.unknown { "Preparing MemoryProfiler report." }
+    SparkleMotion.logger.unknown { "Preparing MemoryProfiler report." }
   end
-  FluxHue.logger.unknown { "Dumping MemoryProfiler report." }
+  SparkleMotion.logger.unknown { "Dumping MemoryProfiler report." }
   # TODO: Dump this to a file...
   report.pretty_print
 end

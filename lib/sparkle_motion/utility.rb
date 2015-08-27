@@ -4,8 +4,8 @@
 def guard_call(prefix, &block)
   block.call
 rescue Exception => e
-  FluxHue.logger.error { "#{prefix}: Exception for #{prefix}: #{e.message}" }
-  FluxHue.logger.error { "#{prefix}:\t#{e.backtrace.join("\n#{prefix}:\t")}" }
+  SparkleMotion.logger.error { "#{prefix}: Exception for #{prefix}: #{e.message}" }
+  SparkleMotion.logger.error { "#{prefix}:\t#{e.backtrace.join("\n#{prefix}:\t")}" }
 end
 # rubocop:enable Lint/RescueException
 

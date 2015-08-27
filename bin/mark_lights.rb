@@ -5,8 +5,8 @@
 lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "sparkle_motion"
-FluxHue.init!("mark_lights")
-FluxHue.use_hue!(api: true)
+SparkleMotion.init!("mark_lights")
+SparkleMotion.use_hue!(api: true)
 
 ###############################################################################
 # Main Logic
@@ -18,7 +18,7 @@ in_groups(CONFIG["main_lights"]).map do |(bridge_name, lights)|
   counter   = 0
   requests  = lights
               .map do |lid|
-                LazyRequestConfig.new(FluxHue.logger, config, hue_light_endpoint(config, lid)) do
+                LazyRequestConfig.new(SparkleMotion.logger, config, hue_light_endpoint(config, lid)) do
                   counter    += 1
                   target      = (254 * (counter / lights.length.to_f)).round
                   data        = {}

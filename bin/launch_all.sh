@@ -22,7 +22,7 @@ export ITERATIONS=0
 export SKIP_GC=0
 
 # Logging verbosity.  Valid values: DEBUG, INFO, WARN, ERROR.  Default is INFO.
-export FLUX_LOGLEVEL=INFO
+export SPARKLEMOTION_LOGLEVEL=INFO
 
 # Whether to run a profiler:
 export PROFILE_RUN= # ruby-prof|memory_profiler
