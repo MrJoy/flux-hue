@@ -9,44 +9,44 @@ FluxHue.use_launchpad!
 
 INTERACTION     = Launchpad::Interaction.new(use_threads: false)
 BOARD           = []
-PLAYER_COLORS   = [Color::LaunchPad::RED, Color::LaunchPad::BLUE].map(&:to_h)
+PLAYER_COLORS   = [SparkleMotion::LaunchPad::Color::RED, SparkleMotion::LaunchPad::Color::BLUE].map(&:to_h)
 current_player  = 0
 (0..2).each do |x|
   BOARD[x] ||= []
   (0..2).each do |y|
-    BOARD[x][y] = Widgets::OnOnly.new(launchpad: INTERACTION,
-                                      x:    x,
-                                      y:    y,
-                                      off:  Color::LaunchPad::DARK_GRAY.to_h,
-                                      on:   Color::LaunchPad::LIGHT_GRAY.to_h,
-                                      down: Color::LaunchPad::WHITE.to_h,
-                                      on_press: proc do |_val|
-                                        BOARD[x][y].on = PLAYER_COLORS[current_player]
-                                        current_player += 1
-                                        current_player = 0 if current_player > 1
-                                        BOARD[x][y].render
-                                      end)
+    BOARD[x][y] = SparkleMotion::LaunchPad::Widgets::OnOnly.new(launchpad: INTERACTION,
+                                                                x:         x,
+                                                                y:         y,
+                                                                off:       SparkleMotion::LaunchPad::Color::DARK_GRAY.to_h,
+                                                                on:        SparkleMotion::LaunchPad::Color::LIGHT_GRAY.to_h,
+                                                                down:      SparkleMotion::LaunchPad::Color::WHITE.to_h,
+                                                                on_press:  proc do |_val|
+                                                                  BOARD[x][y].on = PLAYER_COLORS[current_player]
+                                                                  current_player += 1
+                                                                  current_player = 0 if current_player > 1
+                                                                  BOARD[x][y].render
+                                                                end)
   end
 end
 
-EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
-                                  position:  :mixer,
-                                  color:     Color::LaunchPad::DARK_GRAY.to_h,
-                                  down:      Color::LaunchPad::WHITE.to_h,
-                                  on_press:  lambda do |value|
-                                    return unless value != 0
-                                    FluxHue.logger.unknown { "Ending simulation." }
-                                    INTERACTION.stop
-                                  end)
+EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTION,
+                                                            position:  :mixer,
+                                                            color:     SparkleMotion::LaunchPad::Color::DARK_GRAY.to_h,
+                                                            down:      SparkleMotion::LaunchPad::Color::WHITE.to_h,
+                                                            on_press:  lambda do |value|
+                                                              return unless value != 0
+                                                              FluxHue.logger.unknown { "Ending simulation." }
+                                                              INTERACTION.stop
+                                                            end)
 
-RESET_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
-                                   position:  :session,
-                                   color:     Color::LaunchPad::DARK_GREEN.to_h,
-                                   down:      Color::LaunchPad::WHITE.to_h,
-                                   on_press:  lambda do |value|
-                                     return unless value != 0
-                                     init_board!
-                                   end)
+RESET_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTION,
+                                                             position:  :session,
+                                                             color:     SparkleMotion::LaunchPad::Color::DARK_GREEN.to_h,
+                                                             down:      SparkleMotion::LaunchPad::Color::WHITE.to_h,
+                                                             on_press:  lambda do |value|
+                                                               return unless value != 0
+                                                               init_board!
+                                                             end)
 
 def init_board!
   BOARD.flatten.map { |b| b.update(false) }

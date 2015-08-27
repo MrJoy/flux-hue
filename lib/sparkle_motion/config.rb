@@ -1,10 +1,10 @@
 # TODO: Load this on-demand, not automatically!  Namespace it!  AUGH!
 require "sparkle_motion/vector2"
-require "sparkle_motion/color"
+require "sparkle_motion/launch_pad/color"
 
 def unpack_color(col)
   if col.is_a?(String)
-    Color::LaunchPad.const_get(col.upcase).to_h
+    SparkleMotion::LaunchPad::Color.const_get(col.upcase).to_h
   else
     { r: ((col >> 16) & 0xFF),
       g: ((col >> 8) & 0xFF),

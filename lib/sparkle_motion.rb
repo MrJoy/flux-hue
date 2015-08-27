@@ -52,11 +52,11 @@ module FluxHue
   end
 
   def self.use_widgets!
-    require "sparkle_motion/widget"
-    require "sparkle_motion/widgets/horizontal_slider"
-    require "sparkle_motion/widgets/vertical_slider"
-    require "sparkle_motion/widgets/radio_group"
-    require "sparkle_motion/widgets/button"
+    require "sparkle_motion/launch_pad/widget"
+    require "sparkle_motion/launch_pad/widgets/horizontal_slider"
+    require "sparkle_motion/launch_pad/widgets/vertical_slider"
+    require "sparkle_motion/launch_pad/widgets/radio_group"
+    require "sparkle_motion/launch_pad/widgets/button"
   end
 
   # Load code/widgets for Novation LaunchPad.

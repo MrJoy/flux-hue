@@ -55,7 +55,7 @@ simulation:
         "color": dark_gray
         "down":  white
     intensity:
-      widget: Widgets::VerticalSlider
+      widget: SparkleMotion::LaunchPad::Widgets::VerticalSlider
       positions:
       - [0, 4]
       - [1, 4]
@@ -72,7 +72,7 @@ simulation:
         "off":  0x05000A
         "down": 0x27103F
     saturation:
-      widget: Widgets::VerticalSlider
+      widget: SparkleMotion::LaunchPad::Widgets::VerticalSlider
       transition: 0.3
       positions:
       - [4, 4]

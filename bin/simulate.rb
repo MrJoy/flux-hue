@@ -204,24 +204,24 @@ sl_colors               = sl_cfg["colors"]
 sl_map_raw              = sl_cfg["mappings"]
 sl_pos                  = sl_map_raw.flatten
 sl_key                  = "SPOTLIT"
-SL_STATE = Widgets::RadioGroup.new(launchpad:   INTERACTION,
-                                   x:           sl_cfg["x"],
-                                   y:           sl_cfg["y"],
-                                   size:        [sl_map_raw.map(&:length).sort[-1],
-                                                 sl_map_raw.length],
-                                   on:          sl_colors["on"],
-                                   off:         sl_colors["off"],
-                                   down:        sl_colors["down"],
-                                   on_select:   proc do |x|
-                                     FluxHue.logger.info { "Spotlighting ##{sl_pos[x]}" }
-                                     NODES[sl_key].spotlight!(sl_pos[x])
-                                     update_state!(sl_key, x)
-                                   end,
-                                   on_deselect: proc do
-                                     FluxHue.logger.info { "Spotlighting Off" }
-                                     NODES["SPOTLIT"].clear!
-                                     update_state!(sl_key, nil)
-                                   end)
+SL_STATE = SparkleMotion::LaunchPad::Widgets::RadioGroup.new(launchpad:   INTERACTION,
+                                                             x:           sl_cfg["x"],
+                                                             y:           sl_cfg["y"],
+                                                             size:        [sl_map_raw.map(&:length).sort[-1],
+                                                                           sl_map_raw.length],
+                                                             on:          sl_colors["on"],
+                                                             off:         sl_colors["off"],
+                                                             down:        sl_colors["down"],
+                                                             on_select:   proc do |x|
+                                                               FluxHue.logger.info { "Spotlighting ##{sl_pos[x]}" }
+                                                               NODES[sl_key].spotlight!(sl_pos[x])
+                                                               update_state!(sl_key, x)
+                                                             end,
+                                                             on_deselect: proc do
+                                                               FluxHue.logger.info { "Spotlighting Off" }
+                                                               NODES["SPOTLIT"].clear!
+                                                               update_state!(sl_key, nil)
+                                                             end)
 
 NODES.each do |name, node|
   node.debug = DEBUG_FLAGS[name]
@@ -238,15 +238,15 @@ TIME_TO_DIE               = [false]
 ###############################################################################
 # TODO: Make this optional.
 e_cfg = CONFIG["simulation"]["controls"]["exit"]
-EXIT_BUTTON = Widgets::Button.new(launchpad: INTERACTION,
-                                  position:  e_cfg["position"].to_sym,
-                                  color:     e_cfg["colors"]["color"],
-                                  down:      e_cfg["colors"]["down"],
-                                  on_press:  lambda do |value|
-                                    return unless value != 0
-                                    FluxHue.logger.unknown { "Ending simulation." }
-                                    TIME_TO_DIE[0] = true
-                                  end)
+EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTION,
+                                                            position:  e_cfg["position"].to_sym,
+                                                            color:     e_cfg["colors"]["color"],
+                                                            down:      e_cfg["colors"]["down"],
+                                                            on_press:  lambda do |value|
+                                                              return unless value != 0
+                                                              FluxHue.logger.unknown { "Ending simulation." }
+                                                              TIME_TO_DIE[0] = true
+                                                            end)
 
 def start_ruby_prof!
   return unless PROFILE_RUN == "ruby-prof"
