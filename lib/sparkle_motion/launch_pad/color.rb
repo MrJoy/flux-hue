@@ -16,6 +16,16 @@ module SparkleMotion
           b: b }
       end
 
+    protected
+
+      def clamp_elem(elem)
+        return 0 if elem < 0
+        return 63 if elem > 63
+        elem
+      end
+
+    public
+
       BLACK       = new(0x00, 0x00, 0x00).freeze
       DARK_GRAY   = new(0x07, 0x07, 0x07).freeze
       LIGHT_GRAY  = new(0x27, 0x27, 0x27).freeze
@@ -25,14 +35,6 @@ module SparkleMotion
       GREEN       = new(0x00, 0x3F, 0x00).freeze
       LIGHT_GREEN = new(0x10, 0x4F, 0x10).freeze
       BLUE        = new(0x00, 0x00, 0x3F).freeze
-
-    protected
-
-      def clamp_elem(elem)
-        return 0 if elem < 0
-        return 63 if elem > 63
-        elem
-      end
     end
   end
 end

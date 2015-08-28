@@ -6,6 +6,7 @@ require "sparkle_motion"
 SparkleMotion.init!("tictactoe")
 SparkleMotion.use_widgets!
 SparkleMotion.use_launchpad!
+require "sparkle_motion/launch_pad/widgets/on_only"
 
 INTERACTION     = Launchpad::Interaction.new(use_threads: false)
 BOARD           = []
