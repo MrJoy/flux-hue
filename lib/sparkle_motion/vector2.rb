@@ -6,4 +6,6 @@ class Vector2
     @x = x
     @y = y
   end
+
+  def to_s; "<<#{@x}, #{@y}>>"; end
 end
