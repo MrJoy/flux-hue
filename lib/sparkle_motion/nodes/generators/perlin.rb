@@ -6,8 +6,8 @@ module Nodes
     #
     # TODO: Play with octaves / persistence, etc.
     class Perlin < Generator
-      def initialize(lights:, initial_state: nil, speed:)
-        super(lights: lights, initial_state: initial_state)
+      def initialize(lights:, speed:)
+        super(lights: lights)
         @speed  = speed
         # TODO: See if we need/want to tinker with the `interval` option...
         @perlin = ::Perlin::Noise.new(2, seed: 0)

@@ -2,8 +2,8 @@ module Nodes
   module Generators
     # Manage and run a simulation of just `sin(x + y)`.
     class Wave2 < Generator
-      def initialize(lights:, initial_state: nil, speed:)
-        super(lights: lights, initial_state: initial_state)
+      def initialize(lights:, speed:)
+        super(lights: lights)
         @speed = speed
       end
 
