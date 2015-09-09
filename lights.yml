@@ -1,0 +1,150 @@
+---
+common_username: &common_username "1234567890"
+# Determine HTTP request concurrency for updating lights.  Per-bridge.
+bridges:
+  bridge_01:
+    ip: "192.168.2.10"
+    username: *common_username
+    debug_hue: 0
+    max_connects: 3
+  bridge_02:
+    ip: "192.168.2.6"
+    username: *common_username
+    debug_hue: 25000
+    max_connects: 3
+  bridge_03:
+    ip: "192.168.2.7"
+    username: *common_username
+    debug_hue: 45000
+    max_connects: 3
+  bridge_04:
+    ip: "192.168.2.9"
+    username: *common_username
+    debug_hue: 12000
+    max_connects: 3
+lights:
+  # Main lights:
+  b01_01: [bridge_01, 37]
+  b01_02: [bridge_01, 36]
+  b01_03: [bridge_01, 38]
+  b01_04: [bridge_01, 39]
+  b01_05: [bridge_01, 40]
+  b01_06: [bridge_01, 35]
+  b02_01: [bridge_02, 12]
+  b02_02: [bridge_02, 21]
+  b02_03: [bridge_02, 20]
+  b02_04: [bridge_02, 19]
+  b02_05: [bridge_02, 15]
+  b02_06: [bridge_02, 18]
+  b03_01: [bridge_03,  2]
+  b03_02: [bridge_03,  3]
+  b03_03: [bridge_03,  8]
+  b03_04: [bridge_03, 10]
+  b03_05: [bridge_03,  9]
+  b03_06: [bridge_03,  6]
+  b04_01: [bridge_04,  7]
+  b04_02: [bridge_04, 11]
+  b04_03: [bridge_04, 12]
+  b04_04: [bridge_04,  1]
+  b04_05: [bridge_04,  9]
+  b04_06: [bridge_04,  8]
+  # Dance-Floor lights:
+  b01_07: [bridge_01, 26]
+  b02_07: [bridge_02, 11]
+  b03_07: [bridge_03,  7]
+  b04_07: [bridge_04,  5]
+  # Accent lights:
+  # TODO: Spread these more evenly across controllers!
+  b01_08: [bridge_01,  9]
+  b01_09: [bridge_01, 10]
+  b01_10: [bridge_01, 11]
+  b01_11: [bridge_01, 12]
+  b01_12: [bridge_01, 13]
+  b01_13: [bridge_01, 33]
+  b01_14: [bridge_01, 34]
+  b02_08: [bridge_02,  7]
+  b02_09: [bridge_02,  8]
+groups:
+  # Main Lights is the group for which the main simulation will be applied.
+  # It can be any number of lights from any number of bridges but you'll need to
+  # plan groups out for saturation controls.
+  strip1_left: &strip1_left
+  - b01_01
+  - b01_02
+  - b01_03
+  - b01_04
+  - b01_05
+  - b01_06
+  strip1_right: &strip1_right
+  - b02_01
+  - b02_02
+  - b02_03
+  - b02_04
+  - b02_05
+  - b02_06
+  strip2_left: &strip2_left
+  - b03_01
+  - b03_02
+  - b03_03
+  - b03_04
+  - b03_05
+  - b03_06
+  strip2_right: &strip2_right
+  - b04_01
+  - b04_02
+  - b04_03
+  - b04_04
+  - b04_05
+  - b04_06
+  strip1:
+  - *strip1_left
+  - *strip1_right
+  strip2:
+  - *strip2_left
+  - *strip2_right
+  spotlighting1:
+  - b01_03
+  - b01_04
+  - b01_05
+  - b01_06
+  - b02_01
+  - b02_02
+  - b02_03
+  - b02_04
+  spotlighting2:
+  - b03_03
+  - b03_04
+  - b03_05
+  - b03_06
+  - b04_01
+  - b04_02
+  - b04_03
+  - b04_04
+  # TODO: Come up with appropriate behaviors/extensions of behavior for dance
+  # TODO: floor:
+  # TODO: * Spotighting.
+  # TODO: * Saturation.
+  # TODO: * Intensity.
+  #
+  # Dance Lights is the group of lights above the dance floor, which will get
+  # their own simulation, although updates will be interleaved with the main
+  # lights per-bridge.  It should be a positional map affording spatial
+  # coherence.
+  #
+  # For spotlighting/saturation/intensity purposes, it will be treated as one
+  # group.
+  dance_floor:
+  - b01_07
+  - b02_07
+  - b03_07
+  - b04_07
+  accents:
+  - b01_08
+  - b01_09
+  - b01_10
+  - b01_11
+  - b01_12
+  - b01_13
+  - b01_14
+  - b02_08
+  - b02_09

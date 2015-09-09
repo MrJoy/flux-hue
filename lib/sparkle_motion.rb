@@ -9,6 +9,8 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 require "yaml"
 require "logger-better"
+require "set"
+require "ostruct"
 
 # System for building interesting, dynamic lighting effects for the Philips Hue,
 # using the Novation Launchpad for control.

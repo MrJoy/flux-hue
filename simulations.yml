@@ -1,0 +1,73 @@
+---
+intensity_values: &intensity_values
+- [0.25, 0.45]
+- [0.40, 0.60]
+- [0.55, 0.80]
+- [0.75, 1.00]
+color_bender_values: &color_bender_values
+- 49500
+- 49500
+- 48000
+- 49500
+- 49500
+- 51000
+simulations:
+  strand1:
+    color_bender:
+      # Don't set this transition much below 1.0!  ZigBee spec only allows 1
+      # group update/sec, but Hue Bridge/lights seem to be OK with about 1 every
+      # 0.75 sec...
+      #
+      # Negative values mean to use a transition time of 0 for the change, but
+      # wait the absolute value between steps.
+      transition: 1.5
+      # Ballpark estimation of Jen's palette:
+      values: *color_bender_values
+    nodes:
+      # wave2:
+      #   speed: [0.1, 1.0]
+      perlin:
+        class:      Generators::Perlin
+        speed:      [0.1, 4.0]
+      contrast:
+        class:      Transforms::Contrast
+        from:       perlin
+        # Function: LINEAR, CUBIC, QUINTIC -- don't bother using iterations > 1
+        # with LINEAR, as LINEAR is a no-op.
+        function:   cubic
+        iterations: 3
+      intensity:
+        class:      Transforms::Range
+        from:       contrast
+        values:     *intensity_values
+      spotlighting:
+        class:      Transforms::Spotlight
+        from:       intensity
+    output:
+      transition: 0.3
+      group:      strip1
+      from:       spotlighting
+  strand2:
+    color_bender:
+      transition: 1.5
+      values: *color_bender_values
+    nodes:
+      perlin:
+        class:      Generators::Perlin
+        speed:      [0.1, 4.0]
+      contrast:
+        class:      Transforms::Contrast
+        from:       perlin
+        function:   cubic
+        iterations: 3
+      intensity:
+        class:      Transforms::Range
+        from:       contrast
+        values:     *intensity_values
+      spotlighting:
+        class:      Transforms::Spotlight
+        from:       intensity
+    output:
+      transition: 0.3
+      group:      strip2
+      from:       spotlighting
