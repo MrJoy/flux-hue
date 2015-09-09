@@ -123,16 +123,16 @@ end
 ###############################################################################
 # Root nodes (don't act as modifiers on other nodes' output):
 n_cfg           = CONFIG["simulation"]["nodes"]
-# NODES["CONST"]  = Nodes::Generators::Const.new(lights: num_lights)
-# NODES["WAVE2"]  = Nodes::Generators::Wave2.new(lights: num_lights, speed: n_cfg["wave2"]["speed"])
-NODES["PERLIN"] = Nodes::Generators::Perlin.new(lights: num_lights, speed: n_cfg["perlin"]["speed"])
+# NODES["CONST"]  = SparkleMotion::Nodes::Generators::Const.new(lights: num_lights)
+# NODES["WAVE2"]  = SparkleMotion::Nodes::Generators::Wave2.new(lights: num_lights, speed: n_cfg["wave2"]["speed"])
+NODES["PERLIN"] = SparkleMotion::Nodes::Generators::Perlin.new(lights: num_lights, speed: n_cfg["perlin"]["speed"])
 last            = NODES["PERLIN"]
 
 # Transform nodes (act as a chain of modifiers):
 c_cfg              = n_cfg["contrast"]
-NODES["STRETCHED"] = last = Nodes::Transforms::Contrast.new(function:   c_cfg["function"],
-                                                            iterations: c_cfg["iterations"],
-                                                            source:     last)
+NODES["STRETCHED"] = last = SparkleMotion::Nodes::Transforms::Contrast.new(function:   c_cfg["function"],
+                                                                           iterations: c_cfg["iterations"],
+                                                                           source:     last)
 # Create one control group here per "quadrant"...
 intensity_cfg = CONFIG["simulation"]["controls"]["intensity"]
 LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
@@ -140,10 +140,10 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
   lights.map(&:first).each { |ii| mask[ii] = true }
 
   int_vals    = intensity_cfg["values"]
-  last        = Nodes::Transforms::Range.new(initial_min: int_vals[0][0],
-                                             initial_max: int_vals[0][1],
-                                             source:      last,
-                                             mask:        mask)
+  last        = SparkleMotion::Nodes::Transforms::Range.new(initial_min: int_vals[0][0],
+                                                            initial_max: int_vals[0][1],
+                                                            source:      last,
+                                                            mask:        mask)
   NODES["SHIFTED_#{idx}"] = last
 
   int_colors      = intensity_cfg["colors"]
@@ -196,7 +196,7 @@ sat_cfg["positions"].each_with_index do |(xx, yy), idx|
                                end)
 end
 
-last = NODES["SPOTLIT"] = Nodes::Transforms::Spotlight.new(source: last)
+last = NODES["SPOTLIT"] = SparkleMotion::Nodes::Transforms::Spotlight.new(source: last)
 FINAL_RESULT            = last # The end node that will be rendered to the lights.
 sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
 sl_colors               = sl_cfg["colors"]
@@ -354,9 +354,9 @@ def launch_graph_thread!
     loop do
       t = Time.now.to_f
       FINAL_RESULT.update(t)
-      elapsed = Time.now.to_f - t
+      el = Time.now.to_f - t
       # Try to adhere to a specific update frequency...
-      sleep Node::FRAME_PERIOD - elapsed if elapsed < Node::FRAME_PERIOD
+      sleep SparkleMotion::Node::FRAME_PERIOD - el if el < SparkleMotion::Node::FRAME_PERIOD
     end
   end
 end
