@@ -130,8 +130,7 @@ last            = NODES["PERLIN"]
 
 # Transform nodes (act as a chain of modifiers):
 c_cfg              = n_cfg["contrast"]
-c_func             = Perlin::Curve.const_get(c_cfg["function"].upcase)
-NODES["STRETCHED"] = last = Nodes::Transforms::Contrast.new(function:   c_func,
+NODES["STRETCHED"] = last = Nodes::Transforms::Contrast.new(function:   c_cfg["function"],
                                                             iterations: c_cfg["iterations"],
                                                             source:     last)
 # Create one control group here per "quadrant"...
