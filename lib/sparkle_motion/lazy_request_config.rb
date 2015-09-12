@@ -42,8 +42,7 @@ module SparkleMotion
       {  url:          url,
          method:       :put,
          headers:      nil,
-         # TODO: Maybe skip per-event callbacks and go for single
-         # TODO: callback?
+         # TODO: Maybe skip per-event callbacks and go for single handler?
          on_failure:   proc { |easy, _| failure!(easy) },
          on_success:   proc { |easy| success!(easy) },
          on_progress:  nil,
@@ -54,9 +53,7 @@ module SparkleMotion
 
     def journal(stage, easy)
       return unless @debug
-      # rubocop:disable Style/RescueModifier
-      GLOBAL_HISTORY << "#{Time.now.to_f},#{stage},#{@url},#{easy.body_str rescue nil}"
-      # rubocop:enable Style/RescueModifier
+      GLOBAL_HISTORY << "#{Time.now.to_f},#{stage},#{@url},#{easy.try(:body_str)}"
     end
 
     def failure!(easy)
@@ -84,12 +81,8 @@ module SparkleMotion
         # limit?.
         @results.soft_timeout! if @results
         error { "Failed updating light: #{easy.body}" }
-        # TODO: Colorized output for all feedback types, or running counters, or
-        # TODO: something...
-        # printf ("%02X" % @index)
       else
         @results.success! if @results
-        # debug { "Updated light." }
       end
     end
   end
