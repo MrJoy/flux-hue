@@ -11,10 +11,6 @@ raw_task_files
     load fname
   end
 
-require "rspec/core/rake_task"
-RSpec::Core::RakeTask.new(:spec)
-task default: :spec
-
 # Define a task named `name` that runs all tasks under an identically
 # named `namespace`.
 def parent_task(name)
