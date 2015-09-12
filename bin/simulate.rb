@@ -60,7 +60,7 @@ require "sparkle_motion"
 SparkleMotion.init!("simulate")
 SparkleMotion.use_graph!
 
-# Code loading configuration:
+# Code loading / modular behavior configuration:
 SparkleMotion.use_hue!(api: true) if env_bool("USE_LIGHTS")
 SparkleMotion.use_widgets!
 SparkleMotion.use_launchpad! if env_bool("USE_INPUT")

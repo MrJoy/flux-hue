@@ -11,7 +11,9 @@ SparkleMotion.use_hue!(api: true)
 ###############################################################################
 # Main Logic
 ###############################################################################
-# TODO: Also mark accent lights!
+# TODO: Also mark accent lights, dance lights, etc.
+#
+# TODO: Use Novation Launchpad to be able to toggle lights.
 in_groups(CONFIG["main_lights"]).map do |(bridge_name, lights)|
   config    = CONFIG["bridges"][bridge_name]
   lights    = lights.first.map(&:last)
