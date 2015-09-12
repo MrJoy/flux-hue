@@ -460,7 +460,7 @@ def launch_light_threads!(cfg, global_results)
       sleep 0.05 while PENDING_COMMANDS.empty?
 
       # TODO: Gather stats about success/failure...
-      # results     = Results.new
+      # results     = Results.new(logger: LOGGER)
       # global_results.add_from(results)
       # results.clear!
 
