@@ -61,9 +61,13 @@ SparkleMotion.init!("simulate")
 SparkleMotion.use_graph!
 
 # Code loading / modular behavior configuration:
-SparkleMotion.use_hue!(api: true) if env_bool("USE_LIGHTS")
+USE_LIGHTS  = env_bool("USE_LIGHTS")
+USE_INPUT   = env_bool("USE_INPUT")
+USE_SWEEP   = env_bool("USE_SWEEP")
+USE_GRAPH   = env_bool("USE_GRAPH")
+SparkleMotion.use_hue!(api: true) if USE_LIGHTS
 SparkleMotion.use_widgets!
-SparkleMotion.use_launchpad! if env_bool("USE_INPUT")
+SparkleMotion.use_launchpad! if USE_INPUT
 
 # Crufty common code:
 require "sparkle_motion/output"
@@ -71,6 +75,7 @@ require "sparkle_motion/output"
 ###############################################################################
 # Profiling and Debugging
 ###############################################################################
+LOGGER        = SparkleMotion.logger
 profile_run   = ENV["PROFILE_RUN"]
 PROFILE_RUN   = (profile_run != "") ? profile_run : nil
 SKIP_GC       = env_bool("SKIP_GC")
@@ -78,8 +83,6 @@ DEBUG_FLAGS   = Hash[(ENV["DEBUG_NODES"] || "")
                      .split(/\s*,\s*/)
                      .map(&:upcase)
                      .map { |nn| [nn, true] }]
-USE_SWEEP     = env_bool("USE_SWEEP")
-USE_GRAPH     = env_bool("USE_GRAPH")
 
 ###############################################################################
 # Shared State Setup
@@ -87,7 +90,7 @@ USE_GRAPH     = env_bool("USE_GRAPH")
 # TODO: Run all simulations, and use a mixer to blend between them...
 num_lights              = CONFIG["main_lights"].length
 LIGHTS_FOR_THREADS      = in_groups(CONFIG["main_lights"])
-INTERACTION             = defined?(Launchpad) ? Launchpad::Interaction.new(use_threads: false) : nil
+INTERACTION             = USE_INPUT ? Launchpad::Interaction.new(use_threads: false) : nil
 INT_STATES              = []
 NODES                   = {}
 PENDING_COMMANDS        = Queue.new
@@ -98,8 +101,9 @@ HAVE_STATE_FILE         = File.exist?(STATE_FILENAME)
 if HAVE_STATE_FILE
   age = Time.now.to_f - File.stat(STATE_FILENAME).mtime.to_f
   if age > 3600
-    SparkleMotion.logger.fatal do
-      "#{STATE_FILENAME} is #{age} seconds old!  Refusing to load it in case you forgot it exists!"
+    LOGGER.warn do
+      "#{STATE_FILENAME} is #{age} seconds old!"\
+        "  This is probably not what you want, but you're the boss..."
     end
     exit 1
   end
@@ -111,7 +115,7 @@ def update_state!(key, value)
   return if old_value == value
   CURRENT_STATE[key] = value
   return if SKIP_STATE_PERSISTENCE[0]
-  SparkleMotion.logger.debug { "Persisting control state." }
+  LOGGER.debug { "Persisting control state." }
   # TODO: Maybe keep the file open, and rewind?
   File.open(STATE_FILENAME, "w") do |fh|
     fh.write(CURRENT_STATE.to_yaml)
@@ -123,16 +127,17 @@ end
 ###############################################################################
 # Root nodes (don't act as modifiers on other nodes' output):
 n_cfg           = CONFIG["simulation"]["nodes"]
-# NODES["CONST"]  = SparkleMotion::Nodes::Generators::Const.new(lights: num_lights)
-# NODES["WAVE2"]  = SparkleMotion::Nodes::Generators::Wave2.new(lights: num_lights, speed: n_cfg["wave2"]["speed"])
-NODES["PERLIN"] = SparkleMotion::Nodes::Generators::Perlin.new(lights: num_lights, speed: n_cfg["perlin"]["speed"])
+p_speed         = n_cfg["perlin"]["speed"]
+NODES["PERLIN"] = SparkleMotion::Nodes::Generators::Perlin.new(lights: num_lights, speed: p_speed)
 last            = NODES["PERLIN"]
 
 # Transform nodes (act as a chain of modifiers):
-c_cfg              = n_cfg["contrast"]
-NODES["STRETCHED"] = last = SparkleMotion::Nodes::Transforms::Contrast.new(function:   c_cfg["function"],
-                                                                           iterations: c_cfg["iterations"],
-                                                                           source:     last)
+c_cfg               = n_cfg["contrast"]
+c_fun               = c_cfg["function"]
+c_iter              = c_cfg["iterations"]
+NODES["STRETCHED"]  = last = SparkleMotion::Nodes::Transforms::Contrast.new(function:   c_fun,
+                                                                            iterations: c_iter,
+                                                                            source:     last)
 # Create one control group here per "quadrant"...
 intensity_cfg = CONFIG["simulation"]["controls"]["intensity"]
 LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
@@ -159,7 +164,7 @@ LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
                                    down:      int_colors["down"],
                                    on_change: proc do |val|
                                      ival = int_vals[val]
-                                     SparkleMotion.logger.info { "Intensity[#{idx},#{val}]: #{ival}" }
+                                     LOGGER.info { "Intensity[#{idx},#{val}]: #{ival}" }
                                      NODES[int_key].set_range(ival[0], ival[1])
                                      update_state!(int_key, val)
                                    end)
@@ -186,7 +191,7 @@ sat_cfg["positions"].each_with_index do |(xx, yy), idx|
                                down:      sat_colors["down"],
                                on_change: proc do |val|
                                  ival = sat_vals[val]
-                                 SparkleMotion.logger.info { "Saturation[#{idx},#{val}]: #{ival}" }
+                                 LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
                                  data = with_transition_time({ "sat" => ival }, sat_len)
                                  req  = { method:   :put,
                                           url:      hue_group_endpoint(sat_bridge, sat_group),
@@ -203,21 +208,21 @@ sl_colors               = sl_cfg["colors"]
 sl_map_raw              = sl_cfg["mappings"]
 sl_pos                  = sl_map_raw.flatten
 sl_key                  = "SPOTLIT"
+sl_size                 = [sl_map_raw.map(&:length).sort[-1], sl_map_raw.length]
 SL_STATE = SparkleMotion::LaunchPad::Widgets::RadioGroup.new(launchpad:   INTERACTION,
                                                              x:           sl_cfg["x"],
                                                              y:           sl_cfg["y"],
-                                                             size:        [sl_map_raw.map(&:length).sort[-1],
-                                                                           sl_map_raw.length],
+                                                             size:        sl_size,
                                                              on:          sl_colors["on"],
                                                              off:         sl_colors["off"],
                                                              down:        sl_colors["down"],
                                                              on_select:   proc do |x|
-                                                               SparkleMotion.logger.info { "Spotlighting ##{sl_pos[x]}" }
+                                                               LOGGER.info { "Spot ##{sl_pos[x]}" }
                                                                NODES[sl_key].spotlight!(sl_pos[x])
                                                                update_state!(sl_key, x)
                                                              end,
                                                              on_deselect: proc do
-                                                               SparkleMotion.logger.info { "Spotlighting Off" }
+                                                               LOGGER.info { "Spot Off" }
                                                                NODES["SPOTLIT"].clear!
                                                                update_state!(sl_key, nil)
                                                              end)
@@ -243,7 +248,7 @@ EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTI
                                                             down:      e_cfg["colors"]["down"],
                                                             on_press:  lambda do |value|
                                                               return unless value != 0
-                                                              SparkleMotion.logger.unknown { "Ending simulation." }
+                                                              LOGGER.unknown { "Kick!" }
                                                               TIME_TO_DIE[0] = true
                                                             end)
 
@@ -369,7 +374,7 @@ def add_group_command!(config, data)
 end
 
 def launch_sweep_thread!(sweep_cfg)
-  return nil unless defined?(LazyRequestConfig) && USE_SWEEP
+  return nil unless USE_LIGHTS && USE_SWEEP
   hues        = sweep_cfg["values"]
   sweep_len   = sweep_cfg["transition"]
   sweep_wait  = sweep_len
@@ -406,7 +411,7 @@ end
 
 def launch_light_threads!(cfg, global_results)
   threads = []
-  return launch_dummy_light_threads! unless defined?(LazyRequestConfig)
+  return launch_dummy_light_threads! unless USE_LIGHTS
 
   transition  = cfg["transition"]
   debug       = DEBUG_FLAGS["OUTPUT"]
@@ -416,7 +421,7 @@ def launch_light_threads!(cfg, global_results)
       results   = defined?(Results) ? Results.new : nil
       iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
-      SparkleMotion.logger.unknown do
+      LOGGER.unknown do
         light_list = lights.map(&:first).join(", ")
         "#{bridge_name}: Thread set to handle #{lights.count} lights (#{light_list})."
       end
@@ -426,7 +431,7 @@ def launch_light_threads!(cfg, global_results)
       requests = lights
                  .map do |(idx, lid)|
                    url = hue_light_endpoint(config, lid)
-                   LazyRequestConfig.new(SparkleMotion.logger, config, url, results, debug: debug) do
+                   LazyRequestConfig.new(LOGGER, config, url, results, debug: debug) do
                      # TODO: Recycle this hash?
                      data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
                      with_transition_time(data, transition)
@@ -457,12 +462,12 @@ def launch_light_threads!(cfg, global_results)
       requests = []
       requests << PENDING_COMMANDS.pop until PENDING_COMMANDS.empty?
       next if requests.length == 0
-      SparkleMotion.logger.debug { "Processing #{requests.length} pending commands." }
+      LOGGER.debug { "Processing #{requests.length} pending commands." }
       Curl::Multi.http(requests, MULTI_OPTIONS) do |easy|
         rc    = easy.response_code
         body  = easy.body
         next if rc >= 200 && rc < 400 && body !~ /error/
-        SparkleMotion.logger.warn { "Problem processing command: #{easy.url} => #{rc}; #{body}" }
+        LOGGER.warn { "Problem processing command: #{easy.url} => #{rc}; #{body}" }
       end
     end
   end
@@ -496,14 +501,14 @@ def debugging?
 end
 
 def wait_for_threads!(threads)
-  SparkleMotion.logger.unknown { "Waiting for threads to finish initializing..." }
+  LOGGER.unknown { "Waiting for threads to finish initializing..." }
   wait_for(threads, "sleep")
 end
 
 def init!(global_results)
-  SparkleMotion.logger.unknown { "Initializing system..." }
+  LOGGER.unknown { "Initializing system..." }
   if SKIP_GC
-    SparkleMotion.logger.unknown { "Disabling garbage collection!  BE CAREFUL!" }
+    LOGGER.unknown { "Disabling garbage collection!  BE CAREFUL!" }
     GC.disable
   end
   global_results.begin! if global_results
@@ -512,12 +517,12 @@ def init!(global_results)
 end
 
 def wake!(threads)
-  SparkleMotion.logger.unknown { "Final setup done, waking threads..." }
+  LOGGER.unknown { "Final setup done, waking threads..." }
   threads.each(&:run)
 end
 
 def spin!(threads)
-  SparkleMotion.logger.unknown { "Waiting for the world to end..." }
+  LOGGER.unknown { "Waiting for the world to end..." }
   loop do
     # Someone hit the exit button:
     break if TIME_TO_DIE[0]
@@ -530,7 +535,7 @@ def spin!(threads)
 end
 
 def stop!(threads)
-  SparkleMotion.logger.unknown { "Stopping threads..." }
+  LOGGER.unknown { "Stopping threads..." }
   %i(lights sweep graph input).each do |thread_group|
     threads[thread_group].each(&:terminate)
   end
@@ -550,7 +555,7 @@ def main
   spin!(threads[:lights])
   stop!(threads)
 
-  SparkleMotion.logger.unknown { "Doing final shutdown..." }
+  LOGGER.unknown { "Doing final shutdown..." }
   global_results.done! if global_results
   clear_board!
 
@@ -564,13 +569,13 @@ def profile!(&block)
     return
   end
 
-  SparkleMotion.logger.unknown { "Enabling memory_profiler, be careful!" }
+  LOGGER.unknown { "Enabling memory_profiler, be careful!" }
   require "memory_profiler"
   report = MemoryProfiler.report do
     block.call
-    SparkleMotion.logger.unknown { "Preparing MemoryProfiler report." }
+    LOGGER.unknown { "Preparing MemoryProfiler report." }
   end
-  SparkleMotion.logger.unknown { "Dumping MemoryProfiler report." }
+  LOGGER.unknown { "Dumping MemoryProfiler report." }
   # TODO: Dump this to a file...
   report.pretty_print
 end

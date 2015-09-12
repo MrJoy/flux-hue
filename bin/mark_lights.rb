@@ -18,9 +18,11 @@ in_groups(CONFIG["main_lights"]).map do |(bridge_name, lights)|
   config    = CONFIG["bridges"][bridge_name]
   lights    = lights.first.map(&:last)
   counter   = 0
+  logger    = SparkleMotion.logger
   requests  = lights
               .map do |lid|
-                LazyRequestConfig.new(SparkleMotion.logger, config, hue_light_endpoint(config, lid)) do
+                url = hue_light_endpoint(config, lid)
+                SparkleMotion::LazyRequestConfig.new(logger, config, url) do
                   counter    += 1
                   target      = (254 * (counter / lights.length.to_f)).round
                   data        = {}
