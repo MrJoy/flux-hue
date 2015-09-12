@@ -53,7 +53,7 @@ end
 def dump_output_debug_data!(prefix)
   return unless DEBUG_FLAGS["OUTPUT"] && USE_LIGHTS
   File.open("tmp/#{prefix}_output.raw", "w") do |fh|
-    fh.write(LazyRequestConfig::GLOBAL_HISTORY.join("\n"))
+    fh.write(SparkleMotion::LazyRequestConfig::GLOBAL_HISTORY.join("\n"))
     fh.write("\n")
   end
 end
