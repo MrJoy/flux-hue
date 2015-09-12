@@ -38,4 +38,9 @@ export DEBUG_NODES= #perlin,stretched,shifted_3,spotlit,output
 
 
 ###############################################################################
-./bin/simulate.rb
+EXIT_FLAG=127
+while [ $EXIT_FLAG != 0 ]; do
+  ./bin/simulate.rb
+  EXIT_FLAG=$?
+  echo "Got: $EXIT_FLAG"
+done

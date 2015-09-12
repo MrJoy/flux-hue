@@ -238,7 +238,7 @@ end
 # Operational Configuration
 ###############################################################################
 ITERATIONS                = env_int("ITERATIONS", true) || 0
-TIME_TO_DIE               = [false]
+TIME_TO_DIE               = [false, :terminate]
 
 ###############################################################################
 # Profiling Support
@@ -252,6 +252,7 @@ EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTI
                                                             on_press:  lambda do |value|
                                                               return unless value != 0
                                                               LOGGER.unknown { "Kick!" }
+                                                              TIME_TO_DIE[1] = :restart
                                                               TIME_TO_DIE[0] = true
                                                             end)
 
@@ -409,6 +410,7 @@ def launch_dummy_light_threads!
     iters = ITERATIONS
     iters = 20 if iters == 0
     sleep iters * 5.0
+    TIME_TO_DIE[1] = :terminate
     TIME_TO_DIE[0] = true
   end
   threads
@@ -566,6 +568,7 @@ def main
 
   print_results(global_results) if global_results
   dump_debug_data!
+  exit 127 if TIME_TO_DIE[1] == :restart
 end
 
 def profile!(&block)
