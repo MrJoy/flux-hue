@@ -534,7 +534,7 @@ def spin!(threads)
     # We went through and did `ITERATIONS` update loops over the lights:
     # ... the `- 1` is for the command queue thread!
     unfinished = (threads.length - threads.count { |th| th.status == false }) - 1
-    break if defined?(LazyRequestConfig) && unfinished == 0
+    break if USE_LIGHTS && unfinished == 0
     sleep 0.25
   end
 end
