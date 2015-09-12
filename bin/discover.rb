@@ -6,7 +6,7 @@
 lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "sparkle_motion"
-SparkleMotion.init!("off")
+SparkleMotion.init!("discover")
 SparkleMotion.use_hue!(discovery: true)
 
 def ip_atob(ip)
