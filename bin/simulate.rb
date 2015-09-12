@@ -92,7 +92,7 @@ DEBUG_FLAGS   = Hash[(ENV["DEBUG_NODES"] || "")
 ###############################################################################
 # TODO: Run all simulations, and use a mixer to blend between them...
 num_lights              = CONFIG["main_lights"].length
-LIGHTS_FOR_THREADS      = in_groups(CONFIG["main_lights"])
+LIGHTS_FOR_THREADS      = SparkleMotion::LightConfig.new(config: CONFIG, group: "main_lights")
 INTERACTION             = USE_INPUT ? Launchpad::Interaction.new(use_threads: false) : nil
 INT_STATES              = []
 NODES                   = {}
@@ -143,10 +143,8 @@ NODES["STRETCHED"]  = last = SparkleMotion::Nodes::Transforms::Contrast.new(func
                                                                             source:     last)
 # Create one control group here per "quadrant"...
 intensity_cfg = CONFIG["simulation"]["controls"]["intensity"]
-LIGHTS_FOR_THREADS.each_with_index do |(_bridge_name, (lights, mask)), idx|
-  mask = [false] * num_lights
-  lights.map(&:first).each { |ii| mask[ii] = true }
-
+LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), idx|
+  mask        = LIGHTS_FOR_THREADS.masks[bridge_name]
   int_vals    = intensity_cfg["values"]
   last        = SparkleMotion::Nodes::Transforms::Range.new(initial_min: int_vals[0][0],
                                                             initial_max: int_vals[0][1],
@@ -422,10 +420,10 @@ def launch_light_threads!(cfg, global_results)
 
   transition  = cfg["transition"]
   debug       = DEBUG_FLAGS["OUTPUT"]
-  threads    += LIGHTS_FOR_THREADS.map do |(bridge_name, (lights, _mask))|
+  threads    += LIGHTS_FOR_THREADS.bridges.map do |(bridge_name, config)|
     guarded_thread(bridge_name) do
-      config    = CONFIG["bridges"][bridge_name]
-      results   = defined?(Results) ? Results.new(logger: LOGGER) : nil
+      lights    = LIGHTS_FOR_THREADS.lights[bridge_name]
+      stats     = defined?(Results) ? Results.new(logger: LOGGER) : nil
       iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
       LOGGER.unknown do
@@ -438,7 +436,7 @@ def launch_light_threads!(cfg, global_results)
       requests = lights
                  .map do |(idx, lid)|
                    url = hue_light_endpoint(config, lid)
-                   SparkleMotion::LazyRequestConfig.new(LOGGER, config, url, results, debug: debug) do
+                   SparkleMotion::LazyRequestConfig.new(LOGGER, config, url, stats, debug: debug) do
                      # TODO: Recycle this hash?
                      data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
                      with_transition_time(data, transition)
@@ -449,8 +447,8 @@ def launch_light_threads!(cfg, global_results)
         Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
         end
 
-        global_results.add_from(results) if global_results
-        results.clear! if results
+        global_results.add_from(stats) if global_results
+        stats.clear! if stats
         sleep 0.1
       end
     end
