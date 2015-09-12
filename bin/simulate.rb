@@ -439,6 +439,7 @@ def launch_light_threads!(cfg, global_results)
 
         global_results.add_from(results) if global_results
         results.clear! if results
+        sleep 0.1
       end
     end
   end
