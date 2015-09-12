@@ -425,7 +425,7 @@ def launch_light_threads!(cfg, global_results)
   threads    += LIGHTS_FOR_THREADS.map do |(bridge_name, (lights, _mask))|
     guarded_thread(bridge_name) do
       config    = CONFIG["bridges"][bridge_name]
-      results   = defined?(Results) ? Results.new : nil
+      results   = defined?(Results) ? Results.new(logger: LOGGER) : nil
       iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
       LOGGER.unknown do
@@ -553,7 +553,7 @@ def main
 
   announce_iteration_config(ITERATIONS)
 
-  global_results  = defined?(Results) ? Results.new : nil
+  global_results  = defined?(Results) ? Results.new(logger: LOGGER) : nil
   threads         = launch_all_threads!(CONFIG["simulation"], global_results)
 
   wait_for_threads!(threads[:all])

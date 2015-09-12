@@ -29,14 +29,17 @@ module SparkleMotion
         return tmp
       end
 
-      error "Request for unknown field: `#{field}`!  Has Curb been updated in a breaking way?"
+      @logger.error { "Request for unknown field: `#{field}`!  Has Curb changed internally?" }
       nil
     end
 
   protected
 
-    def error(&msg); @logger.error { "#{@config['name']}; #{@url}: #{msg.call}" }; end
-    def debug(&msg); @logger.debug { "#{@config['name']}; #{@url}: #{msg.call}" }; end
+    def error(msg); "#{@config['name']}; #{@url}: #{msg}"; end
+    def overloaded(easy); error("Bridge overloaded: #{easy.body}"); end
+    def unknown_error(easy); error("Unknown error: #{easy.response_code}, #{easy.body}"); end
+    def hard_timeout(_easy); error("Request timed out."); end
+    def soft_timeout(easy); error("Failed updating light: #{easy.body}"); end
 
     def create_fixed(url)
       {  url:          url,
@@ -59,16 +62,12 @@ module SparkleMotion
     def failure!(easy)
       journal("END", easy)
       case easy.response_code
-      when 404
-        # Hit Bridge hardware limit.
-        @results.failed! if @results
-        error { "Failed updating light, bridge overloaded: #{easy.body}" }
-      when 0
-        # Hit timeout.
-        @results.hard_timeout! if @results
-        error { "Failed updating light, request timed out." }
+      when 404  # Hit Bridge hardware limit.
+        @results.failure!(overloaded(easy)) if @results
+      when 0    # Hit timeout.
+        @results.hard_timeout!(hard_timeout(easy)) if @results
       else
-        error { "Failed updating light, unknown error: #{easy.response_code}, #{easy.body}" }
+        @results.failure!(unknown_error(easy))
       end
     end
 
@@ -79,8 +78,7 @@ module SparkleMotion
 
         # Hit bridge rate limit / possibly ZigBee
         # limit?.
-        @results.soft_timeout! if @results
-        error { "Failed updating light: #{easy.body}" }
+        @results.soft_timeout!(soft_timeout(easy)) if @results
       else
         @results.success! if @results
       end
