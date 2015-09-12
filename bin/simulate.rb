@@ -406,7 +406,9 @@ def launch_dummy_light_threads!
   threads = []
   threads << guarded_thread("Dummy Thread") do
     Thread.stop
-    sleep ITERATIONS * 5.0
+    iters = ITERATIONS
+    iters = 20 if iters == 0
+    sleep iters * 5.0
     TIME_TO_DIE[0] = true
   end
   threads
