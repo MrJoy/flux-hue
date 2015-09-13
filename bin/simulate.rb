@@ -108,7 +108,6 @@ if HAVE_STATE_FILE
       "#{STATE_FILENAME} is #{age} seconds old!"\
         "  This is probably not what you want, but you're the boss..."
     end
-    exit 1
   end
   CURRENT_STATE.merge!(YAML.load(File.read(STATE_FILENAME)))
 end
@@ -149,7 +148,8 @@ LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), id
   last        = SparkleMotion::Nodes::Transforms::Range.new(mid_point:  int_vals[0][0],
                                                             delta:      int_vals[0][1],
                                                             source:     last,
-                                                            mask:       mask)
+                                                            mask:       mask,
+                                                            logger:     LOGGER)
   NODES["SHIFTED_#{idx}"] = last
 
   int_colors      = intensity_cfg["colors"]
