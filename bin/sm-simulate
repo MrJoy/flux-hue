@@ -70,7 +70,7 @@ USE_SWEEP   = env_bool("USE_SWEEP")
 USE_GRAPH   = env_bool("USE_GRAPH")
 SparkleMotion.use_hue!(api: true) if USE_LIGHTS
 SparkleMotion.use_widgets!
-SparkleMotion.use_launchpad! if USE_INPUT
+SparkleMotion.use_input! if USE_INPUT
 
 # Crufty common code:
 require "sparkle_motion/simulation/output"

@@ -61,8 +61,8 @@ module SparkleMotion
   end
 
   # Load code/widgets for Novation LaunchPad.
-  def self.use_launchpad!
-    require "launchpad"
+  def self.use_input!
+    require "surface_master"
   end
 end
 

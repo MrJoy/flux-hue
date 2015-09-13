@@ -5,7 +5,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "sparkle_motion"
 SparkleMotion.init!("tictactoe")
 SparkleMotion.use_widgets!
-SparkleMotion.use_launchpad!
+SparkleMotion.use_input!
 require_relative "lib/sparkle_motion/launch_pad/widgets/on_only"
 
 INTERACTION     = SurfaceMaster::Launchpad::Interaction.new
