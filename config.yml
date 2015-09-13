@@ -24,31 +24,22 @@ initial_state:
   sat: 255
   bri: 127
 simulation:
-  # TODO: Have day/night configurations and a way to LERP between them.
-  #
-  # TODO: Tool for testing bulb positioning.
-  #
-  # TODO: Use mid-point/range notation for intensity to make tweaking easier.
-  #
-  # TODO: Duck intensity when tweaking saturation.
-  #
-  # TODO: Finish simulation visualization tool.
-  #
-  # TODO: Re-parameterize sleep option, and maybe add a way to tweak it on the fly.
-  #
-  # TODO: Add outer-loop script, and use exit codes to differentiate between restart and terminate.
-  #
-  # TODO: Way to tweak output transition time on the fly?
-  #
-  # TODO: Separate color-sweeps per bridge.
-  #
-  # TODO: Way to tweak sweep transition time on the fly?
-  #
-  # TODO: Play with X multiplier for Perlin component to see if that makes the lighting more visually interesting.
-  #
-  # TODO: Group all writes to a bridge into a single thread.
-  #
   # TODO: Either self-tune delays, or avoid sending refreshes to each light/group too fast?
+  # TODO: Finish simulation visualization tool.
+  # TODO: Re-parameterize sleep option, and maybe add a way to tweak it on the fly.
+  # TODO: Way to tweak output transition time on the fly?
+  # TODO: Play with X multiplier for Perlin component to see if that makes the lighting more visually interesting.
+  # TODO: Separate color-sweeps per bridge.
+  # TODO: Way to tweak sweep transition time on the fly?
+  # TODO: Have day/night configurations and a way to LERP between them.
+  # TODO: Interactive tool for testing bulb positioning.
+  # TODO: Group all writes to a bridge into a single thread.
+  # TODO: Either self-tune delays, or avoid sending refreshes to each light/group too fast?
+  #     TODO: Perhaps when we group things per-bridge we can keep track of when we last updated a given light and plan around that?
+  # TODO: Dance-floor simulation / controls / behaviors?
+  #     TODO: Perhaps just put everything into an X/Y grid structure and traverse Z as time?
+  # TODO: Controls for accent lights?
+  # TODO: Does Hue Bridge raw interface have any value here?
   output:
     transition: 0.3
   sweep:
