@@ -121,10 +121,10 @@ simulation:
       - ["Bridge-03", 0]
       - ["Bridge-04", 0]
       values:
-      - 102
-      - 152
-      - 203
-      - 254
+      - 0.4
+      - 0.6
+      - 0.8
+      - 1.0
       colors:
         "on":   0x1C103F
         "off":  0x03030C

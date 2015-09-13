@@ -180,7 +180,7 @@ LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), id
 end
 
 def sat_req(ival, sat_len, sat_bridge, sat_group)
-  data = with_transition_time({ "sat" => ival }, sat_len)
+  data = with_transition_time({ "sat" => (255*ival).round }, sat_len)
   { method:   :put,
     url:      hue_group_endpoint(sat_bridge, sat_group),
     put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
