@@ -42,5 +42,5 @@ EXIT_FLAG=127
 while [ $EXIT_FLAG != 0 ]; do
   ./bin/simulate.rb
   EXIT_FLAG=$?
-  echo "Got: $EXIT_FLAG"
+  echo "Process terminated with exit code: $EXIT_FLAG"
 done
