@@ -5,10 +5,11 @@ module SparkleMotion
       #
       # TODO: Allow change to range to apply over time?
       class Range < Transform
-        def initialize(mid_point:, delta:, source:, mask: nil, logger:)
+        def initialize(source:, mask: nil, logger:)
           super(source: source, mask: mask)
-          @logger = logger
-          set_range(mid_point, delta)
+          @logger   = logger
+          @min      = 0.0
+          @max      = 1.1
         end
 
         def update(t)
