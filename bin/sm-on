@@ -41,14 +41,16 @@ end
 # Main
 ###############################################################################
 # TODO: Hoist common code from sm-on, sm-off, sm-mark-lights...
+bridges   = CONFIG["bridges"].keys.length
 requests  = CONFIG["bridges"]
             .values
             .map { |config| hue_init(config) }
 reqs      = Hash[requests.map { |req| [req[:url], req.dup] }]
 retries   = 0
+opts      = SparkleMotion::Hue::HTTP::MULTI_OPTIONS.merge(max_connects: bridges)
 while requests.length > 0
   retry_queue = []
-  Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|
+  Curl::Multi.http(requests, opts) do |easy|
     puts easy.url
     if easy.response_code != 200 || easy.body =~ /error/
       url = easy.url

@@ -8,6 +8,7 @@
 * Allow per-bridge color sweeps.
 * Parameterize spotlighting math.
 * Simplify configuration syntax in a few places.
+* Make `sm-on`/`sm-off` a bit faster when there are numerous Hue Bridges in use.
 
 ### Fixes
 
