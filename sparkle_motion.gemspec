@@ -35,11 +35,10 @@ Gem::Specification.new do |s|
   s.require_paths         = ["lib"]
   s.required_ruby_version = Gem::Requirement.new(">= 2.2.0")
 
-  s.add_dependency "oj"
-  s.add_dependency "rgb"
-  s.add_dependency "curb"
-  s.add_dependency "perlin_noise"
-  s.add_dependency "logger-better"
+  s.add_dependency "oj",            "~> 2.12.13"
+  s.add_dependency "curb",          "~> 0.8.8"
+  s.add_dependency "perlin_noise",  "~> 0.1.2"
+  s.add_dependency "logger-better", "~> 0.2.1"
   s.add_dependency "frisky"
   s.add_dependency "mrjoy-launchpad"
 end

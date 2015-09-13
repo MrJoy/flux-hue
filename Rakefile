@@ -1,5 +1,6 @@
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require "bundler/gem_tasks"
 
 task_dir        = File.expand_path("../tasks", __FILE__)
 raw_task_files  = FileList["#{task_dir}/**/*.rake"] +

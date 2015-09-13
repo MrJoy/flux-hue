@@ -45,25 +45,23 @@ ruby "2.2.3"
 #   https://github.com/typhoeus/typhoeus#readme
 #   https://github.com/igrigorik/em-http-request
 
-gem "oj",               require: false
-gem "rgb",              require: false
-gem "curb",             require: false
-gem "perlin_noise",     require: false
-gem "logger-better",    require: false
-gem "frisky",           require: false
-gem "mrjoy-launchpad",  require: false
+gemspec
 # gem "os",               require: false # https://github.com/rdp/os -- rss_bytes returns KiB, not B
 
 group :development do
   gem "rake",             require: false
   gem "rubocop",          require: false
   gem "bundler-audit",    require: false
-  gem "ruby-prof",        require: false # https://github.com/ruby-prof/ruby-prof
-  gem "chunky_png",       require: false
-  gem "oily_png",         require: false
-  gem "memory_profiler",  require: false
   gem "todo_lint",        require: false
   gem "ruby-graphviz",    require: false # for `bundle viz`.
+
+  gem "rgb",              require: false
+
+  gem "ruby-prof",        require: false # https://github.com/ruby-prof/ruby-prof
+  gem "memory_profiler",  require: false
+
+  gem "chunky_png",       require: false
+  gem "oily_png",         require: false
 end
 
 # Measure memory usage thusly:
