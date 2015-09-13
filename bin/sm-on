@@ -16,9 +16,9 @@ extend SparkleMotion::Hue::HTTP
 #
 # Tweak this to change the visual effect.
 ###############################################################################
-INIT_HUE      = env_int("INIT_HUE", true) || 49_500
-INIT_SAT      = env_int("INIT_SAT", true) || 254
-INIT_BRI      = env_int("INIT_BRI", true) || 127
+INIT_HUE = CONFIG["initial_state"]["hue"]
+INIT_SAT = CONFIG["initial_state"]["sat"]
+INIT_BRI = CONFIG["initial_state"]["bri"]
 # TODO: Override concurrency settings to ensure we have one conn per bridge.
 
 ###############################################################################

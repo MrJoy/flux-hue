@@ -19,6 +19,10 @@ bridges:
     ip: "192.168.2.9"
     username: *common_username
     debug_hue: 12000
+initial_state:
+  hue: 49500
+  sat: 255
+  bri: 127
 simulation:
   # TODO: Have day/night configurations and a way to LERP between them.
   #
