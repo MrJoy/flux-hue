@@ -9,14 +9,24 @@ AllCops:
   - 'etc/**/*'
   - 'tmp/**/*'
 
+Lint/FormatParameterMismatch:
+  Enabled: true
+
 Metrics/LineLength:
   Max: 100
 
 Metrics/ParameterLists:
   Enabled: false
 
+Performance/StringReplacement:
+  Enabled: true
+
 Style/AccessModifierIndentation:
   EnforcedStyle: outdent
+
+Style/AlignHash:
+  EnforcedColonStyle: table
+  EnforcedLastArgumentHashStyle: ignore_implicit
 
 Style/CollectionMethods:
   PreferredMethods:
@@ -39,6 +49,8 @@ Style/DoubleNegation:
 Style/EmptyLineBetweenDefs:
   AllowAdjacentOneLineDefs: true
 
+Style/ExtraSpacing:
+  AllowForAlignment: true
 
 Style/FormatString:
   EnforcedStyle: String#%
@@ -53,12 +65,14 @@ Style/IfUnlessModifier:
 Style/LineEndConcatenation:
   Enabled: false
 
-# TODO: *sigh*  See: https://github.com/bbatsov/rubocop/issues/1020
-# Style/RegexpLiteral:
-#   MaxSlashes: 0
+Style/RegexpLiteral:
+  AllowInnerSlashes: false
 
 # Style/RescueModifier:
 #   Enabled: false
+
+Style/RescueEnsureAlignment:
+  Enabled: true
 
 # We like terse methods.
 Style/SingleLineMethods:
