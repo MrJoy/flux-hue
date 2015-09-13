@@ -208,6 +208,7 @@ sat_cfg["positions"].each_with_index do |(xx, yy), idx|
                                on_change: proc do |val|
                                  ival = sat_vals[val]
                                  req  = sat_req(ival, sat_len, sat_bridge, sat_group)
+                                 LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
                                  PENDING_COMMANDS << req
                                  update_state!(sat_key, val)
                                end)
