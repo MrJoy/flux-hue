@@ -40,6 +40,7 @@ simulation:
   #     TODO: Perhaps just put everything into an X/Y grid structure and traverse Z as time?
   # TODO: Controls for accent lights?
   # TODO: Does Hue Bridge raw interface have any value here?
+  # TODO: For color sweep, separate transition and wait time parameters.
   output:
     transition: 0.3
   sweep:
