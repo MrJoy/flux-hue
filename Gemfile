@@ -62,6 +62,8 @@ group :development do
   gem "chunky_png",       require: false
   gem "oily_png",         require: false
   gem "memory_profiler",  require: false
+  gem "todo_lint",        require: false
+  gem "ruby-graphviz",    require: false # for `bundle viz`.
 end
 
 # Measure memory usage thusly:
