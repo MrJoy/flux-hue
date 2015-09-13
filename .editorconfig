@@ -1,0 +1,19 @@
+# EditorConfig - http://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+[{*.{rb,sh,rake,yml,md,gemspec,sublime-project,csv},bin/*,.editorconfig,.*,Gemfile}]
+charset = utf-8
+
+[*]
+indent_style = space
+indent_size = 2
+
+[sparkle_motion.sublime-project]
+indent_style = tab
