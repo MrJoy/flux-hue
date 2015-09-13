@@ -106,8 +106,8 @@ simulation:
     # Don't set wait much below 1.0!  ZigBee spec only allows 1 group
     # update/sec, but Hue Bridge/lights seem to be *mostly* OK with about 1
     # every 0.75 sec...
-    shared_sweep_transition: &shared_sweep_transition 1.5
-    shared_sweep_wait: &shared_sweep_wait 1.5
+    shared_sweep_transition: &shared_sweep_transition 0.5
+    shared_sweep_wait: &shared_sweep_wait 1.0
 
     Bridge-01:
       transition: *shared_sweep_transition
