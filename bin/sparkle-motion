@@ -41,7 +41,7 @@ export DEBUG_NODES= #perlin,stretched,shifted_3,spotlit,output
 echo "Beginning simulation.  Press ctrl-c to end."
 touch /tmp/sparkle-motion.state
 EXIT_FLAG=127
-while [ $EXIT_FLAG != 0 ]; do
+while [ $EXIT_FLAG == 127 ]; do
   ./bin/sm-simulate
   EXIT_FLAG=$?
   echo "Process terminated with exit code: $EXIT_FLAG"
