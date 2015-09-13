@@ -237,7 +237,7 @@ SL_STATE = SparkleMotion::LaunchPad::Widgets::RadioGroup.new(launchpad:   INTERA
                                                              end,
                                                              on_deselect: proc do
                                                                LOGGER.info { "Spot Off" }
-                                                               NODES["SPOTLIT"].clear!
+                                                               NODES[sl_key].clear!
                                                                update_state!(sl_key, nil)
                                                              end)
 
