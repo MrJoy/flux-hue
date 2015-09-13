@@ -1,12 +1,12 @@
-require "Frisky/ssdp"
-Frisky.log = false # Playful is super verbose
+require "frisky/ssdp"
+Frisky.logging_enabled = false # Frisky is super verbose
 
 module SparkleMotion
   module Hue
     # Helpers for SSDP discovery of bridges.
     class SSDP
       def scan
-        raw = Playful::SSDP
+        raw = Frisky::SSDP
               .search("IpBridge")
               .select { |resp| ssdp_response?(resp) }
               .map { |resp| ssdp_extract(resp) }
