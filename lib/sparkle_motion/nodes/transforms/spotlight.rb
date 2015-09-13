@@ -7,6 +7,8 @@ module SparkleMotion
       # TODO: to ensure a bright-enough spotlight over the destination.  Maybe a LERP?
       #
       # TODO: Allow effect to come in / go out over time.
+      #
+      # TODO: Parameterize the falloff
       class Spotlight < Transform
         def initialize(source:, mask: nil)
           super(source: source, mask: mask)
@@ -16,8 +18,6 @@ module SparkleMotion
         def spotlight!(x)
           @spotlight = x
         end
-
-        def clear!; @spotlight = nil; end
 
         def update(t)
           super(t) do |x|

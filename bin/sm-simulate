@@ -220,27 +220,26 @@ last = NODES["SPOTLIT"] = SparkleMotion::Nodes::Transforms::Spotlight.new(source
 FINAL_RESULT            = last # The end node that will be rendered to the lights.
 sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
 sl_colors               = sl_cfg["colors"]
-sl_map_raw              = sl_cfg["mappings"]
-sl_pos                  = sl_map_raw.flatten
+sl_map                  = sl_cfg["mappings"]
 sl_key                  = "SPOTLIT"
-sl_size                 = [sl_map_raw.map(&:length).sort[-1], sl_map_raw.length]
-SL_STATE = SparkleMotion::LaunchPad::Widgets::RadioGroup.new(launchpad:   INTERACTION,
-                                                             x:           sl_cfg["x"],
-                                                             y:           sl_cfg["y"],
-                                                             size:        sl_size,
-                                                             on:          sl_colors["on"],
-                                                             off:         sl_colors["off"],
-                                                             down:        sl_colors["down"],
-                                                             on_select:   proc do |x|
-                                                               LOGGER.info { "Spot ##{sl_pos[x]}" }
-                                                               NODES[sl_key].spotlight!(sl_pos[x])
-                                                               update_state!(sl_key, x)
-                                                             end,
-                                                             on_deselect: proc do
-                                                               LOGGER.info { "Spot Off" }
-                                                               NODES[sl_key].clear!
-                                                               update_state!(sl_key, nil)
-                                                             end)
+sl_pos                  = SparkleMotion::Vector2.new(sl_cfg["position"])
+sl_size                 = SparkleMotion::Vector2.new(sl_map.map(&:length).sort[-1], sl_map.length)
+SL_STATE                = sl_cfg["class"].new(launchpad:   INTERACTION,
+                                              position:    sl_pos,
+                                              size:        sl_size,
+                                              on:          sl_colors["on"],
+                                              off:         sl_colors["off"],
+                                              down:        sl_colors["down"],
+                                              on_select:   proc do |x|
+                                                LOGGER.info { "Spot ##{sl_pos[x]}" }
+                                                NODES[sl_key].spotlight!(sl_pos[x])
+                                                update_state!(sl_key, x)
+                                              end,
+                                              on_deselect: proc do
+                                                LOGGER.info { "Spot Off" }
+                                                NODES[sl_key].spotlight!(nil)
+                                                update_state!(sl_key, nil)
+                                              end)
 
 NODES.each do |name, node|
   node.debug = DEBUG_FLAGS[name]
