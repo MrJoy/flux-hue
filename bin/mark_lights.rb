@@ -12,8 +12,6 @@ LOGGER = SparkleMotion.logger
 ###############################################################################
 # Main Logic
 ###############################################################################
-# TODO: Also mark accent lights, dance lights, etc.
-#
 # TODO: Use Novation Launchpad to be able to toggle lights.
 def light_state(hue, index, num_lights)
   target      = (254 * (index / num_lights.to_f)).round
