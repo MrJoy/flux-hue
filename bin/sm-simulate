@@ -429,7 +429,7 @@ def light_req(idx, lid, transition, config, stats, debug)
   url = hue_light_endpoint(config, lid)
   SparkleMotion::Hue::LazyRequestConfig.new(LOGGER, config, url, stats, debug: debug) do
     # TODO: Recycle this hash?
-    data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
+    data = { "bri" => (FINAL_RESULT[idx] * 255).round }
     with_transition_time(data, transition)
   end
 end
