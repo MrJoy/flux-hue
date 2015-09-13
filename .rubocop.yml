@@ -1,12 +1,12 @@
 AllCops:
   Include:
-    - '**/Gemfile'
-    - '**/Rakefile'
-    - '**/*.rake'
-    - '**/*.gemspec'
+  - '**/Gemfile'
+  - '**/Rakefile'
+  - '**/*.rake'
+  - '**/*.gemspec'
   Exclude:
-    - 'reference/**/*'
-    - 'etc/**/*'
+  - 'reference/**/*'
+  - 'etc/**/*'
 
 Metrics/LineLength:
   Max: 100
@@ -38,9 +38,10 @@ Style/DoubleNegation:
 Style/EmptyLineBetweenDefs:
   AllowAdjacentOneLineDefs: true
 
+
 Style/FormatString:
-  EnforcedStyle: 'String#%'
-  SupportedStyles: 'String#%'
+  EnforcedStyle: String#%
+  SupportedStyles: String#%
 
 # Style/GuardClause:
 #   Enabled: false
@@ -64,13 +65,13 @@ Style/SingleLineMethods:
 
 Style/SpaceAroundOperators:
   MultiSpaceAllowedForOperators:
-    - '='
-    - '=>'
-    - '||='
-    - '+='
-    - '-='
-    - '*='
-    - '/='
+  - "="
+  - "=>"
+  - "||="
+  - "+="
+  - "-="
+  - "*="
+  - "/="
 
 Style/StringLiterals:
   EnforcedStyle: double_quotes
