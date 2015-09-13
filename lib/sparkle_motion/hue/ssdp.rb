@@ -25,11 +25,9 @@ module SparkleMotion
       end
 
       def ssdp_extract(resp)
-        {
-          "id"        => usn_to_id(resp[:usn]),
+        { "id"        => usn_to_id(resp[:usn]),
           "name"      => resp[:st],
-          "ipaddress" => URI.parse(resp[:location]).host,
-        }
+          "ipaddress" => URI.parse(resp[:location]).host }
       end
 
       # TODO: With all the hassle around ID and the fact that I'm essentially
