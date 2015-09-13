@@ -20,6 +20,8 @@ Control of the system is currently done with a Novation Launchpad Mark 2.  (The 
 
 ### Ok...  But What does it DO?
 
+It [does this](https://youtu.be/uHnz6tYhiWE).
+
 1. It swirls the hue of the lighting through a predefined sequence of colors.
 1. It generates a Perlin noise pattern to control the brightness.
     * ... and lets you modulate that for different regions of the room using controls on the Novation Launchpad.
