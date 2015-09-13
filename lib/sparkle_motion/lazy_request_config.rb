@@ -4,7 +4,6 @@ module SparkleMotion
   # then spending a bunch of time feeding updates to lights.
   class LazyRequestConfig
     GLOBAL_HISTORY = []
-    # TODO: Transition should be updated late as well...
     def initialize(logger, config, url, results = nil, debug: nil, &callback)
       @logger     = logger
       @config     = config

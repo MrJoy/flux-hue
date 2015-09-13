@@ -30,9 +30,6 @@ module SparkleMotion
           "ipaddress" => URI.parse(resp[:location]).host }
       end
 
-      # TODO: With all the hassle around ID and the fact that I'm essentially
-      # TODO: coercing it down to just MAC address....  Just use the damned IP
-      # TODO: or MAC!
       def usn_to_id(usn); usn.split(/:/, 3)[1].split(/-/).last; end
     end
   end

@@ -1,5 +1,3 @@
-# TODO: Namespacing/classes/etc!
-
 module SparkleMotion
   # Base class representing the state of an ordered set of lights, with an ability to debug
   # things via PNG dump.
