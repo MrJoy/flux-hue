@@ -1,9 +1,9 @@
 AllCops:
   Include:
+  - '**/*.gemspec'
+  - '**/*.rake'
   - '**/Gemfile'
   - '**/Rakefile'
-  - '**/*.rake'
-  - '**/*.gemspec'
   - 'bin/*'
   Exclude:
   - 'bin/bash-watch-memory'
