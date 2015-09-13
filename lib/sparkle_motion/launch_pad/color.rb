@@ -19,8 +19,8 @@ module SparkleMotion
     protected
 
       def clamp_elem(elem)
-        return 0 if elem < 0
-        return 63 if elem > 63
+        return 0x00 if elem < 0x00
+        return 0x3F if elem > 0x3F # 63
         elem
       end
     end
