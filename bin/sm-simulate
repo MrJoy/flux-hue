@@ -286,7 +286,7 @@ end
 # Main Simulation
 ###############################################################################
 def clear_board!
-  return unless defined?(Launchpad)
+  return unless USE_INPUT
 
   # TODO: Generalize this to deal with the entire board.
 
@@ -354,7 +354,7 @@ def launch_input_thread!
   # picking up where we left of...
   PENDING_COMMANDS.clear if HAVE_STATE_FILE
 
-  return nil unless defined?(Launchpad)
+  return nil unless USE_INPUT
 
   guarded_thread("Input Handler") do
     Thread.stop
