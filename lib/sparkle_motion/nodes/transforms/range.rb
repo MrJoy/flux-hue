@@ -7,23 +7,40 @@ module SparkleMotion
       class Range < Transform
         def initialize(source:, mask: nil, logger:)
           super(source: source, mask: mask)
-          @logger   = logger
-          @min      = 0.0
-          @max      = 1.1
+          @logger       = logger
+          @clamp_to     = nil
+          @clamp_target = nil
+          @min          = 0.0
+          @max          = 1.1
         end
 
         def update(t)
+          eff_min = @clamp_target || @min
+          eff_max = @clamp_target || @max
           super(t) do |x|
-            (@source[x] * (@max - @min)) + @min
+            (@source[x] * (eff_max - eff_min)) + eff_min
           end
+        end
+
+        def clamp_to(val)
+          @clamp_to = val
+          recompute_clamp_target!
         end
 
         def set_range(mid_point, delta)
           @min = clamp("min", mid_point, delta, mid_point - delta)
           @max = clamp("max", mid_point, delta, mid_point + delta)
+          recompute_clamp_target!
         end
 
       protected
+
+        def recompute_clamp_target!
+          @clamp_target = nil
+          return unless @clamp_to
+
+          @clamp_target = [@min, @max, @clamp_to].compact.sort.first
+        end
 
         def clamp(name, mid_point, delta, val)
           if val < 0

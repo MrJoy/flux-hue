@@ -195,6 +195,7 @@ sat_cfg["positions"].each_with_index do |(xx, yy), idx|
   sat_bridge    = CONFIG["bridges"][sat_grp_info[0]]
   sat_group     = sat_grp_info[1]
   sat_key       = "SAT_STATES[#{idx}]"
+  int_key       = "SHIFTED_#{idx}"
   SAT_STATES << sat_widget.new(launchpad: INTERACTION,
                                x:         xx,
                                y:         yy,
@@ -203,9 +204,12 @@ sat_cfg["positions"].each_with_index do |(xx, yy), idx|
                                off:       sat_colors["off"],
                                down:      sat_colors["down"],
                                on_change: proc do |val|
-                                 ival = sat_vals[val]
-                                 req  = sat_req(ival, sat_len, sat_bridge, sat_group)
+                                 ival, bri_max  = sat_vals[val]
+                                 req            = sat_req(ival, sat_len, sat_bridge, sat_group)
                                  LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
+                                 NODES[int_key].clamp_to(bri_max)
+                                 # TODO: Delay the saturation update until the
+                                 # brightness has taken effect.
                                  PENDING_COMMANDS << req
                                  update_state!(sat_key, val)
                                end)
