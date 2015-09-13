@@ -429,7 +429,7 @@ def launch_light_threads!(cfg, global_results)
   threads    += LIGHTS_FOR_THREADS.bridges.map do |(bridge_name, config)|
     guarded_thread(bridge_name) do
       lights    = LIGHTS_FOR_THREADS.lights[bridge_name]
-      stats     = defined?(Results) ? Results.new(logger: LOGGER) : nil
+      stats     = SparkleMotion::Results.new(logger: LOGGER) if defined?(SparkleMotion::Results)
       iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
 
       LOGGER.unknown do
@@ -466,7 +466,7 @@ def launch_light_threads!(cfg, global_results)
       sleep 0.05 while PENDING_COMMANDS.empty?
 
       # TODO: Gather stats about success/failure...
-      # results     = Results.new(logger: LOGGER)
+      # results     = SparkleMotion::Results.new(logger: LOGGER)
       # global_results.add_from(results)
       # results.clear!
 
@@ -557,7 +557,7 @@ def main
 
   announce_iteration_config(ITERATIONS)
 
-  global_results  = defined?(Results) ? Results.new(logger: LOGGER) : nil
+  global_results  = SparkleMotion::Results.new(logger: LOGGER) if defined?(SparkleMotion::Results)
   threads         = launch_all_threads!(CONFIG["simulation"], global_results)
 
   wait_for_threads!(threads[:all])
