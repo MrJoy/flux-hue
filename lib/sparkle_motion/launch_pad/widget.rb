@@ -126,12 +126,12 @@ module SparkleMotion
 
       def change_command(position:, color:)
         return unless launchpad
-        launchpad.device.change_command(position, color[:r], color[:g], color[:b])
+        launchpad.device.change(cc: position, red: color[:r], green: color[:g], blue: color[:b])
       end
 
       def grid_apply_color(x, y, color)
         return unless launchpad
-        launchpad.device.change_grid(x + position.x, y + position.y, color[:r], color[:g], color[:b])
+        launchpad.device.change(grid: [x + position.x, y + position.y], red: color[:r], green: color[:g], blue: color[:b])
       end
 
       def max_y; @max_y ||= @size.y - 1; end
