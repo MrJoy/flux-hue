@@ -26,7 +26,8 @@ end
 
 # TODO: Speed this up by setting on/hue via group message per bridge...
 %w(main_lights dance_lights accent_lights).each do |group_name|
-  config = SparkleMotion::LightConfig.new(config: CONFIG, group: group_name)
+  config      = SparkleMotion::LightConfig.new(config: CONFIG, group: group_name)
+  url_req_map = {}
   config.bridges.each do |bridge_name, bridge|
     light_ids   = config.lights[bridge_name].map(&:last)
     hue         = bridge["debug_hue"]
@@ -34,17 +35,26 @@ end
     num_lights  = light_ids.length
     requests    = light_ids
                   .map do |lid|
-                    url     = hue_light_endpoint(bridge, lid)
-                    color   = light_state(hue, index, num_lights)
-                    index  += 1
-                    SparkleMotion::LazyRequestConfig.new(LOGGER, bridge, url) do
+                    url               = hue_light_endpoint(bridge, lid)
+                    color             = light_state(hue, index, num_lights)
+                    index            += 1
+                    url_req_map[url]  = SparkleMotion::LazyRequestConfig.new(LOGGER, bridge, url) do
                       color
                     end
                   end
 
     next unless requests.length > 0
-    Curl::Multi.http(requests, MULTI_OPTIONS) do
-      # TODO: Show errors here.
+    while requests.length > 0
+      retry_queue = []
+      Curl::Multi.http(requests, MULTI_OPTIONS) do |easy|
+        if easy.response_code != 200 ||
+           easy.body =~ /error/
+          url = easy.url
+          LOGGER.error { "#{url} => #{easy.response_code} / #{easy.body}" }
+          retry_queue << url
+        end
+      end
+      requests = retry_queue.map { |url| url_req_map[url] }
     end
   end
 end
