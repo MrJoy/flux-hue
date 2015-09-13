@@ -226,7 +226,7 @@ simulation:
       # loop -- and you probably don't want to blind everyone during the
       # transition time.
       widget: SparkleMotion::LaunchPad::Widgets::VerticalSlider
-      transition: 0.2
+      transition: 0.5
       positions:
       - [4, 4]
       - [5, 4]
