@@ -212,9 +212,11 @@ sat_cfg["positions"].each_with_index do |pos, idx|
                                end)
 end
 
-last = NODES["SPOTLIT"] = SparkleMotion::Nodes::Transforms::Spotlight.new(source: last)
-FINAL_RESULT            = last # The end node that will be rendered to the lights.
 sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
+last = NODES["SPOTLIT"] = SparkleMotion::Nodes::Transforms::Spotlight.new(source:   last,
+                                                                          base:     sl_cfg["base"],
+                                                                          exponent: sl_cfg["exponent"])
+FINAL_RESULT            = last # The end node that will be rendered to the lights.
 sl_colors               = sl_cfg["colors"]
 sl_map                  = sl_cfg["mappings"]
 sl_key                  = "SPOTLIT"
@@ -225,11 +227,9 @@ SL_STATE                = sl_widget.new(launchpad:   INTERACTION,
                                         position:    sl_pos,
                                         size:        sl_size,
                                         colors:      sl_colors,
-                                        base:        sl_cfg["base"],
-                                        exponent:    sl_cfg["exponent"],
                                         on_select:   proc do |x|
-                                          LOGGER.info { "Spot ##{sl_pos.x}" }
-                                          NODES[sl_key].spotlight!(sl_pos.x)
+                                          LOGGER.info { "Spot ##{x}" }
+                                          NODES[sl_key].spotlight!(x)
                                           update_state!(sl_key, x)
                                         end,
                                         on_deselect: proc do
