@@ -6,6 +6,8 @@ AllCops:
   - '**/*.gemspec'
   - 'bin/*'
   Exclude:
+  - 'bin/bash-watch-memory'
+  - 'bin/sparkle-motion'
   - 'data/**/*'
   - 'etc/**/*'
   - 'notes/**/*'
