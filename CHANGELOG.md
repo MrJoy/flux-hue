@@ -10,6 +10,7 @@
 * Make base color used by `sm-on` configurable.  D'oh.
 * Fix flooring of final brightness value.
 * Fix error where the `Range` node treated its parameters as if they were ranged from 0..255, rather than 0..1.
+* Clamp brightness when clamping saturation, as white light will necessarily be brighter than colored light.
 
 ## 0.1.0 - 2015-09-12
 
