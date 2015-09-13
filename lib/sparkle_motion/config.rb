@@ -25,7 +25,7 @@ end
 def unpack_vector_in_place!(cfg)
   cfg.each do |key, val|
     next unless val.is_a?(Array) && val.length == 2
-    cfg[key] = SparkleMotion::Vector2.new(x: val[0], y: val[1])
+    cfg[key] = SparkleMotion::Vector2.new(val)
   end
 end
 

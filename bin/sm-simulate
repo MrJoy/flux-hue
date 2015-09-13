@@ -224,22 +224,23 @@ sl_map                  = sl_cfg["mappings"]
 sl_key                  = "SPOTLIT"
 sl_pos                  = SparkleMotion::Vector2.new(sl_cfg["position"])
 sl_size                 = SparkleMotion::Vector2.new(sl_map.map(&:length).sort[-1], sl_map.length)
-SL_STATE                = sl_cfg["class"].new(launchpad:   INTERACTION,
-                                              position:    sl_pos,
-                                              size:        sl_size,
-                                              on:          sl_colors["on"],
-                                              off:         sl_colors["off"],
-                                              down:        sl_colors["down"],
-                                              on_select:   proc do |x|
-                                                LOGGER.info { "Spot ##{sl_pos[x]}" }
-                                                NODES[sl_key].spotlight!(sl_pos[x])
-                                                update_state!(sl_key, x)
-                                              end,
-                                              on_deselect: proc do
-                                                LOGGER.info { "Spot Off" }
-                                                NODES[sl_key].spotlight!(nil)
-                                                update_state!(sl_key, nil)
-                                              end)
+sl_widget               = Kernel.const_get(sl_cfg["class"])
+SL_STATE                = sl_widget.new(launchpad:   INTERACTION,
+                                        position:    sl_pos,
+                                        size:        sl_size,
+                                        on:          sl_colors["on"],
+                                        off:         sl_colors["off"],
+                                        down:        sl_colors["down"],
+                                        on_select:   proc do |x|
+                                          LOGGER.info { "Spot ##{sl_pos[x]}" }
+                                          NODES[sl_key].spotlight!(sl_pos[x])
+                                          update_state!(sl_key, x)
+                                        end,
+                                        on_deselect: proc do
+                                          LOGGER.info { "Spot Off" }
+                                          NODES[sl_key].spotlight!(nil)
+                                          update_state!(sl_key, nil)
+                                        end)
 
 NODES.each do |name, node|
   node.debug = DEBUG_FLAGS[name]

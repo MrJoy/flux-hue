@@ -8,8 +8,10 @@ module SparkleMotion
         def initialize(launchpad:, position:, size:, on:, off:, down:, on_select: nil, on_deselect:,
                        value: nil)
           super(launchpad: launchpad,
-                position:  position,
-                size:      size,
+                x:         position.x,
+                y:         position.y,
+                width:     size.x,
+                height:    size.y,
                 on:        on,
                 off:       off,
                 down:      down,
