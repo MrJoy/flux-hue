@@ -8,6 +8,8 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "sparkle_motion"
 SparkleMotion.init!("off")
 SparkleMotion.use_hue!(api: true)
+LOGGER = SparkleMotion.logger
+extend SparkleMotion::Hue::HTTP
 
 ###############################################################################
 # Helper Functions
@@ -15,7 +17,7 @@ SparkleMotion.use_hue!(api: true)
 def make_req_struct(url, data)
   { method:   :put,
     url:      url,
-    put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
+    put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
 end
 
 def hue_init(config)
@@ -27,12 +29,22 @@ end
 ###############################################################################
 # TODO: Hoist this into a separate script.
 # debug "Initializing lights..."
-init_reqs = CONFIG["bridges"]
+requests  = CONFIG["bridges"]
             .values
             .map { |config| hue_init(config) }
-Curl::Multi.http(init_reqs, MULTI_OPTIONS) do |easy|
-  if easy.response_code != 200
-    SparkleMotion.logger.error { "Failed to initialize light: #{easy.url}" }
-    add(easy)
+reqs      = Hash[requests.map { |req| [req[:url], req.dup] }]
+retries   = 0
+while requests.length > 0
+  retry_queue = []
+  Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|
+    puts easy.url
+    if easy.response_code != 200 || easy.body =~ /error/
+      url = easy.url
+      LOGGER.error { "#{url} => #{easy.response_code} / #{easy.body}" }
+      retry_queue << url
+    end
   end
+  requests = retry_queue.map { |url| reqs[url] }
+  retries += 1
+  sleep 0.5 * (2**retries) if requests.length > 0
 end

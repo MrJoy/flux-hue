@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+
 ###############################################################################
 # Early Initialization/Helpers
 ###############################################################################
@@ -8,6 +9,7 @@ require "sparkle_motion"
 SparkleMotion.init!("mark_lights")
 SparkleMotion.use_hue!(api: true)
 LOGGER = SparkleMotion.logger
+extend SparkleMotion::Hue::HTTP
 
 ###############################################################################
 # Main Logic
@@ -44,9 +46,8 @@ end
     next unless requests.length > 0
     while requests.length > 0
       retry_queue = []
-      Curl::Multi.http(requests, MULTI_OPTIONS) do |easy|
-        if easy.response_code != 200 ||
-           easy.body =~ /error/
+      Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|
+        if easy.response_code != 200 || easy.body =~ /error/
           url = easy.url
           LOGGER.error { "#{url} => #{easy.response_code} / #{easy.body}" }
           retry_queue << url

@@ -75,6 +75,7 @@ SparkleMotion.use_launchpad! if USE_INPUT
 # Crufty common code:
 require "sparkle_motion/simulation/output"
 extend SparkleMotion::Simulation::Output
+extend SparkleMotion::Hue::HTTP
 
 ###############################################################################
 # Profiling and Debugging

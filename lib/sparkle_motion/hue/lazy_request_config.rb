@@ -16,7 +16,7 @@ module SparkleMotion
       end
 
       def each(&block)
-        EASY_OPTIONS.each do |kv|
+        SparkleMotion::Hue::HTTP::EASY_OPTIONS.each do |kv|
           block.call(kv)
         end
       end
