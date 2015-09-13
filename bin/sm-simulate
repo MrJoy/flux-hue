@@ -389,28 +389,30 @@ def add_group_command!(config, data)
                         put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
 end
 
-def launch_sweep_thread!(sweep_cfg)
-  return nil unless USE_LIGHTS && USE_SWEEP
-  hues        = sweep_cfg["values"]
-  sweep_len   = sweep_cfg["transition"]
-  sweep_wait  = sweep_len
-  if sweep_len < 0
-    sweep_wait  = sweep_len.abs
-    sweep_len   = 0.0
-  end
-  guarded_thread("Sweeper") do
-    Thread.stop
+def launch_sweep_threads!(sweep_cfg)
+  return [] unless USE_LIGHTS && USE_SWEEP
+  CONFIG["bridges"].map do |(name, config)|
+    hues        = sweep_cfg[name]["values"]
+    sweep_len   = sweep_cfg[name]["transition"]
+    sweep_wait  = sweep_cfg[name]["wait"]
+    if sweep_wait < sweep_len
+      LOGGER.warn { "Sweep[#{name}]: Wait should be at least as long as transition!" }
+    end
+    if sweep_wait < 1.0
+      LOGGER.warn { "Sweep[#{name}]: Wait should be at least 1 second!" }
+    end
+    guarded_thread("Sweeper") do
+      Thread.stop
 
-    loop do
-      before_time = Time.now.to_f
-      idx         = ((before_time / sweep_wait) % hues.length).floor
-      data        = with_transition_time({ "hue" => hues[idx] }, sweep_len)
-      CONFIG["bridges"].each do |(_name, config)|
+      loop do
+        before_time = Time.now.to_f
+        idx         = ((before_time / sweep_wait) % hues.length).floor
+        data        = with_transition_time({ "hue" => hues[idx] }, sweep_len)
         add_group_command!(config, data)
-      end
 
-      elapsed = Time.now.to_f - before_time
-      sleep sweep_wait - elapsed if elapsed < sweep_wait
+        elapsed = Time.now.to_f - before_time
+        sleep sweep_wait - elapsed if elapsed < sweep_wait
+      end
     end
   end
 end
@@ -496,7 +498,7 @@ end
 def launch_all_threads!(sim_cfg, global_results)
   tmp = { input:  [launch_input_thread!].compact,
           graph:  [launch_graph_thread!].compact,
-          sweep:  [launch_sweep_thread!(sim_cfg["sweep"])].compact,
+          sweep:  launch_sweep_threads!(sim_cfg["sweep"]).compact,
           lights: launch_light_threads!(sim_cfg["output"], global_results) }
   tmp[:all] = tmp.values.flatten.compact
   tmp

@@ -99,25 +99,48 @@ simulation:
     # transition time.
     transition: 0.3
   sweep:
-    # This defines the color-swirl effect.  It's a list of steps, and the time
-    # take (in seconds) LERPing from color to color.  It will run through these
-    # in a loop.
+    # This defines the color-swirl effect, per Hue Bridge.  It's a list of
+    # steps, the time take (in seconds) LERPing from color to color, and the
+    # time to wait between steps.
     #
-    # Don't set this transition much below 1.0!  ZigBee spec only allows 1
-    # group update/sec, but Hue Bridge/lights seem to be *mostly* OK with about
-    # 1 every 0.75 sec...
-    #
-    # Negative values mean to use a transition time of 0 for the change, but
-    # wait the absolute value between steps.  I.E. just switch the color
-    # instantly.
-    transition: 1.5
-    values:
-    - 49500
-    - 49500
-    - 48000
-    - 49500
-    - 49500
-    - 51000
+    # Don't set wait much below 1.0!  ZigBee spec only allows 1 group
+    # update/sec, but Hue Bridge/lights seem to be *mostly* OK with about 1
+    # every 0.75 sec...
+    shared_sweep_transition: &shared_sweep_transition 1.5
+    shared_sweep_wait: &shared_sweep_wait 1.5
+
+    Bridge-01:
+      transition: *shared_sweep_transition
+      wait:       *shared_sweep_wait
+      values:
+      - 49500
+      - 48000
+      - 49500
+      - 51000
+    Bridge-02:
+      transition: *shared_sweep_transition
+      wait:       *shared_sweep_wait
+      values:
+      - 48000
+      - 49500
+      - 51000
+      - 49500
+    Bridge-03:
+      transition: *shared_sweep_transition
+      wait:       *shared_sweep_wait
+      values:
+      - 49500
+      - 51000
+      - 49500
+      - 48000
+    Bridge-04:
+      transition: *shared_sweep_transition
+      wait:       *shared_sweep_wait
+      values:
+      - 51000
+      - 49500
+      - 48000
+      - 49500
   nodes:
     perlin:
       # The speed parameter as a multiplier on `(x, time)` to map the Perlin
@@ -258,7 +281,6 @@ simulation:
 # TODO: Re-parameterize sleep option, and maybe add a way to tweak it on the fly.
 # TODO: Way to tweak output transition time on the fly?
 # TODO: Play with X multiplier for Perlin component to see if that makes the lighting more visually interesting.
-# TODO: Separate color-sweeps per bridge.
 # TODO: Way to tweak sweep transition time on the fly?
 # TODO: Have day/night configurations and a way to LERP between them.
 # TODO: Interactive tool for testing bulb positioning.
