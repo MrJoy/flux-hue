@@ -259,6 +259,8 @@ simulation:
       # widget class is not configurable because at the moment there's only
       # one option that will work.
       position: [0, 0]
+      base:     0.9
+      exponent: 3
       mappings:
       # NOTE: Values are indexes into main_lights array.
       #

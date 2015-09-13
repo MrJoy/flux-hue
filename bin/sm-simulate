@@ -225,6 +225,8 @@ SL_STATE                = sl_widget.new(launchpad:   INTERACTION,
                                         position:    sl_pos,
                                         size:        sl_size,
                                         colors:      sl_colors,
+                                        base:        sl_cfg["base"],
+                                        exponent:    sl_cfg["exponent"],
                                         on_select:   proc do |x|
                                           LOGGER.info { "Spot ##{sl_pos.x}" }
                                           NODES[sl_key].spotlight!(sl_pos.x)
