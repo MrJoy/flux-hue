@@ -73,7 +73,8 @@ SparkleMotion.use_widgets!
 SparkleMotion.use_launchpad! if USE_INPUT
 
 # Crufty common code:
-require "sparkle_motion/output"
+require "sparkle_motion/simulation/output"
+extend SparkleMotion::Simulation::Output
 
 ###############################################################################
 # Profiling and Debugging
