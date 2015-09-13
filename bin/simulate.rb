@@ -146,10 +146,10 @@ intensity_cfg = CONFIG["simulation"]["controls"]["intensity"]
 LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), idx|
   mask        = LIGHTS_FOR_THREADS.masks[bridge_name]
   int_vals    = intensity_cfg["values"]
-  last        = SparkleMotion::Nodes::Transforms::Range.new(initial_min: int_vals[0][0],
-                                                            initial_max: int_vals[0][1],
-                                                            source:      last,
-                                                            mask:        mask)
+  last        = SparkleMotion::Nodes::Transforms::Range.new(mid_point:  int_vals[0][0],
+                                                            delta:      int_vals[0][1],
+                                                            source:     last,
+                                                            mask:       mask)
   NODES["SHIFTED_#{idx}"] = last
 
   int_colors      = intensity_cfg["colors"]
