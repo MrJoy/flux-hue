@@ -2,11 +2,12 @@
 
 ## Next
 
-### Features:
+### Features/Improvements:
 
 * Clamp brightness when clamping saturation, as white light will necessarily be brighter than colored light.
 * Allow per-bridge color sweeps.
 * Parameterize spotlighting math.
+* Simplify configuration syntax in a few places.
 
 ### Fixes
 
