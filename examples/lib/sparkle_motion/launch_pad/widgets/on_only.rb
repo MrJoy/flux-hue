@@ -5,27 +5,21 @@ module SparkleMotion
       class OnOnly < Widget
         attr_accessor :on_press
 
-        def initialize(launchpad:, position: nil, x: nil, y: nil, on:, off:, down:, on_press: nil,
-                       value: 0)
+        def initialize(launchpad:, position:, colors:, on_press: nil, value: 0)
           super(launchpad: launchpad,
                 position:  position,
-                x:         x,
-                y:         y,
-                width:     1,
-                height:    1,
-                on:        on,
-                off:       off,
-                down:      down,
+                size:      Vector2::ONE,
+                colors:    colors,
                 value:     value)
           @on_press = on_press
         end
 
         def render
-          val = (value != 0) ? on : off
-          if @x
+          val = (value != 0) ? colors.on : colors.off
+          if on_grid?
             change_grid(x: 0, y: 0, color: val)
           else
-            change_command(position: @position, color: val)
+            change_command(position: position, color: val)
           end
           super
         end

@@ -18,14 +18,15 @@ cp              = 0
 (0..2).each do |x|
   BOARD[x] ||= []
   (0..2).each do |y|
+    pos         = SparkleMotion::Vector2.new(x, y)
+    base_color  = { on:   COLORS::DARK_GRAY.to_h,
+                    off:  COLORS::LIGHT_GRAY.to_h,
+                    down: COLORS::WHITE.to_h }
     BOARD[x][y] = SparkleMotion::LaunchPad::Widgets::OnOnly.new(launchpad: INTERACTION,
-                                                                x:         x,
-                                                                y:         y,
-                                                                off:       COLORS::DARK_GRAY.to_h,
-                                                                on:        COLORS::LIGHT_GRAY.to_h,
-                                                                down:      COLORS::WHITE.to_h,
+                                                                position:  pos,
+                                                                colors:    base_color,
                                                                 on_press:  proc do |_val|
-                                                                  BOARD[x][y].on = PLAYER_COLORS[cp]
+                                                                  BOARD[x][y].colors.on = PLAYER_COLORS[cp]
                                                                   cp            += 1
                                                                   cp             = 0 if cp > 1
                                                                   BOARD[x][y].render
@@ -33,20 +34,22 @@ cp              = 0
   end
 end
 
+base_color  = { color: COLORS::DARK_GRAY.to_h,
+                down:  COLORS::WHITE.to_h }
 EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTION,
                                                             position:  :mixer,
-                                                            color:     COLORS::DARK_GRAY.to_h,
-                                                            down:      COLORS::WHITE.to_h,
+                                                            colors:    base_color,
                                                             on_press:  lambda do |value|
                                                               return unless value != 0
                                                               LOGGER.unknown { "Ending game." }
                                                               INTERACTION.stop
                                                             end)
 
+base_color  = { color: COLORS::DARK_GREEN.to_h,
+                down:  COLORS::WHITE.to_h }
 RESET_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTION,
                                                              position:  :session,
-                                                             color:     COLORS::DARK_GREEN.to_h,
-                                                             down:      COLORS::WHITE.to_h,
+                                                             colors:    base_color,
                                                              on_press:  lambda do |value|
                                                                return unless value != 0
                                                                init_board!
