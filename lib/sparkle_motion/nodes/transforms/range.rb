@@ -18,8 +18,8 @@ module SparkleMotion
         end
 
         def set_range(mid_point, delta)
-          @min = clamp("min", mid_point, delta, (mid_point - delta).round)
-          @max = clamp("max", mid_point, delta, (mid_point + delta).round)
+          @min = clamp("min", mid_point, delta, mid_point - delta)
+          @max = clamp("max", mid_point, delta, mid_point + delta)
         end
 
       protected
@@ -29,9 +29,9 @@ module SparkleMotion
             @logger.warn { "Bad range [#{mid_point} +/- #{delta}] - #{name} was <0! (#{val})" }
             val = 0
           end
-          if val > 255
-            @logger.warn { "Bad range [#{mid_point} +/- #{delta}] - #{name} was >255! (#{val})" }
-            val = 255
+          if val > 1.0
+            @logger.warn { "Bad range [#{mid_point} +/- #{delta}] - #{name} was >1! (#{val})" }
+            val = 1.0
           end
           val
         end
