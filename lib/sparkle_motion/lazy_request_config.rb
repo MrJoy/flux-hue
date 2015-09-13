@@ -42,16 +42,16 @@ module SparkleMotion
     def soft_timeout(easy); error("Failed updating light: #{easy.body}"); end
 
     def create_fixed(url)
-      {  url:          url,
-         method:       :put,
-         headers:      nil,
-         # TODO: Maybe skip per-event callbacks and go for single handler?
-         on_failure:   proc { |easy, _| failure!(easy) },
-         on_success:   proc { |easy| success!(easy) },
-         on_progress:  nil,
-         on_debug:     nil,
-         on_body:      nil,
-         on_header:    nil }
+      # TODO: Maybe skip per-event callbacks and go for single handler?
+      { url:         url,
+        method:      :put,
+        headers:     nil,
+        on_failure:  proc { |easy, _| failure!(easy) },
+        on_success:  proc { |easy| success!(easy) },
+        on_progress: nil,
+        on_debug:    nil,
+        on_body:     nil,
+        on_header:   nil }
     end
 
     def journal(stage, easy)

@@ -5,8 +5,17 @@ module SparkleMotion
       class RadioGroup < Widget
         attr_accessor :on_select, :on_deselect
 
-        def initialize(launchpad:, x:, y:, size:, on:, off:, down:, on_select: nil, on_deselect:, value: nil)
-          super(launchpad: launchpad, x: x, y: y, width: size[0], height: size[1], on: on, off: off, down: down, value: value)
+        def initialize(launchpad:, x:, y:, size:, on:, off:, down:, on_select: nil, on_deselect:,
+                       value: nil)
+          super(launchpad: launchpad,
+                x:         x,
+                y:         y,
+                width:     size[0],
+                height:    size[1],
+                on:        on,
+                off:       off,
+                down:      down,
+                value:     value)
           @on_select    = on_select
           @on_deselect  = on_deselect
         end

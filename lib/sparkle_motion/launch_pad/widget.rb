@@ -6,7 +6,8 @@ module SparkleMotion
       attr_accessor :on, :off, :down
 
       # TODO: Use `Vector2` for position/size...
-      def initialize(launchpad:, x: nil, y: nil, position: nil, width:, height:, on:, off:, down:, value:)
+      def initialize(launchpad:, x: nil, y: nil, position: nil, width:, height:, on:, off:, down:,
+                     value:)
         @x          = x
         @y          = y
         @position   = position

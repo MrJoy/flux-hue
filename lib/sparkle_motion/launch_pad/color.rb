@@ -23,9 +23,10 @@ module SparkleMotion
         return 63 if elem > 63
         elem
       end
+    end
 
-    public
-
+    #
+    class Color
       BLACK       = new(0x00, 0x00, 0x00).freeze
       DARK_GRAY   = new(0x07, 0x07, 0x07).freeze
       LIGHT_GRAY  = new(0x27, 0x27, 0x27).freeze

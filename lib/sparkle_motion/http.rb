@@ -4,8 +4,8 @@ require "oj"
 
 # TODO: Try to figure out how to set Curl::CURLOPT_TCP_NODELAY => true
 # TODO: Disable Curl from sending keepalives by trying HTTP/1.0.
-MULTI_OPTIONS = { pipeline:         false,
-                  max_connects:     (CONFIG["max_connects"] || 3) }
+MULTI_OPTIONS = { pipeline:     false,
+                  max_connects: (CONFIG["max_connects"] || 3) }
 EASY_OPTIONS = { "timeout" =>         5,
                  "connect_timeout" => 5,
                  "follow_location" => false,

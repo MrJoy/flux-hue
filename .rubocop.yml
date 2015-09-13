@@ -39,6 +39,10 @@ Style/CollectionMethods:
 Style/CommentIndentation:
   Enabled: false
 
+Style/Documentation:
+  Exclude:
+  - 'lib/sparkle_motion/version.rb'
+
 # We like the truthiness operator.
 Style/DoubleNegation:
   Enabled: false

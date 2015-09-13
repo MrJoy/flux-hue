@@ -10,21 +10,24 @@ require "sparkle_motion/launch_pad/widgets/on_only"
 
 INTERACTION     = Launchpad::Interaction.new(use_threads: false)
 BOARD           = []
-PLAYER_COLORS   = [SparkleMotion::LaunchPad::Color::RED, SparkleMotion::LaunchPad::Color::BLUE].map(&:to_h)
-current_player  = 0
+PLAYER_COLORS   = [SparkleMotion::LaunchPad::Color::RED, SparkleMotion::LaunchPad::Color::BLUE]
+                  .map(&:to_h)
+COLORS          = SparkleMotion::LaunchPad::Color
+LOGGER          = SparkleMotion.logger
+cp              = 0
 (0..2).each do |x|
   BOARD[x] ||= []
   (0..2).each do |y|
     BOARD[x][y] = SparkleMotion::LaunchPad::Widgets::OnOnly.new(launchpad: INTERACTION,
                                                                 x:         x,
                                                                 y:         y,
-                                                                off:       SparkleMotion::LaunchPad::Color::DARK_GRAY.to_h,
-                                                                on:        SparkleMotion::LaunchPad::Color::LIGHT_GRAY.to_h,
-                                                                down:      SparkleMotion::LaunchPad::Color::WHITE.to_h,
+                                                                off:       COLORS::DARK_GRAY.to_h,
+                                                                on:        COLORS::LIGHT_GRAY.to_h,
+                                                                down:      COLORS::WHITE.to_h,
                                                                 on_press:  proc do |_val|
-                                                                  BOARD[x][y].on = PLAYER_COLORS[current_player]
-                                                                  current_player += 1
-                                                                  current_player = 0 if current_player > 1
+                                                                  BOARD[x][y].on = PLAYER_COLORS[cp]
+                                                                  cp            += 1
+                                                                  cp             = 0 if cp > 1
                                                                   BOARD[x][y].render
                                                                 end)
   end
@@ -32,18 +35,18 @@ end
 
 EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTION,
                                                             position:  :mixer,
-                                                            color:     SparkleMotion::LaunchPad::Color::DARK_GRAY.to_h,
-                                                            down:      SparkleMotion::LaunchPad::Color::WHITE.to_h,
+                                                            color:     COLORS::DARK_GRAY.to_h,
+                                                            down:      COLORS::WHITE.to_h,
                                                             on_press:  lambda do |value|
                                                               return unless value != 0
-                                                              SparkleMotion.logger.unknown { "Ending simulation." }
+                                                              LOGGER.unknown { "Ending game." }
                                                               INTERACTION.stop
                                                             end)
 
 RESET_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTION,
                                                              position:  :session,
-                                                             color:     SparkleMotion::LaunchPad::Color::DARK_GREEN.to_h,
-                                                             down:      SparkleMotion::LaunchPad::Color::WHITE.to_h,
+                                                             color:     COLORS::DARK_GREEN.to_h,
+                                                             down:      COLORS::WHITE.to_h,
                                                              on_press:  lambda do |value|
                                                                return unless value != 0
                                                                init_board!

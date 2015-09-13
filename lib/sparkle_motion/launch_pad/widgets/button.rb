@@ -11,17 +11,17 @@ module SparkleMotion
                        y: nil,
                        color:,
                        down:,
-                       on_press:  nil,
-                       value:     0)
-          super(launchpad:  launchpad,
-                position:   position,
-                x:          x,
-                y:          y,
-                on:         color,
-                off:        color,
-                down:       down,
-                value:      value,
-                on_press:   on_press)
+                       on_press: nil,
+                       value: 0)
+          super(launchpad: launchpad,
+                position:  position,
+                x:         x,
+                y:         y,
+                on:        color,
+                off:       color,
+                down:      down,
+                value:     value,
+                on_press:  on_press)
         end
       end
     end

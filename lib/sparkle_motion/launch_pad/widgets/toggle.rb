@@ -5,8 +5,18 @@ module SparkleMotion
       class Toggle < Widget
         attr_accessor :on_press
 
-        def initialize(launchpad:, position: nil, x: nil, y: nil, on:, off:, down:, on_press: nil, value: 0)
-          super(launchpad: launchpad, position: position, x: x, y: y, width: 1, height: 1, on: on, off: off, down: down, value: value)
+        def initialize(launchpad:, position: nil, x: nil, y: nil, on:, off:, down:,
+                       on_press: nil, value: 0)
+          super(launchpad: launchpad,
+                position:  position,
+                x:         x,
+                y:         y,
+                width:     1,
+                height:    1,
+                on:        on,
+                off:       off,
+                down:      down,
+                value:     value)
           @on_press = on_press
         end
 

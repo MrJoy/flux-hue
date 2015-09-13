@@ -6,15 +6,15 @@ module SparkleMotion
         attr_accessor :on_change
 
         def initialize(launchpad:, x:, y:, size:, on:, off:, down:, on_change: nil, value: 0)
-          super(launchpad:  launchpad,
-                x:          x,
-                y:          y,
-                width:      1,
-                height:     size,
-                on:         on,
-                off:        off,
-                down:       down,
-                value:      value)
+          super(launchpad: launchpad,
+                x:         x,
+                y:         y,
+                width:     1,
+                height:    size,
+                on:        on,
+                off:       off,
+                down:      down,
+                value:     value)
           @on_change = on_change
         end
 
