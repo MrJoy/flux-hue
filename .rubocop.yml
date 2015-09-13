@@ -6,7 +6,7 @@ AllCops:
   - '**/Rakefile'
   - 'bin/*'
   Exclude:
-  - 'bin/bash-watch-memory'
+  - 'bin/sm-watch-memory'
   - 'bin/sparkle-motion'
   - 'data/**/*'
   - 'etc/**/*'
