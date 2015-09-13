@@ -142,7 +142,6 @@ module SparkleMotion
     private
 
       def normalize_colors!(colors)
-        puts colors.inspect
         Hash[colors.map { |key, value| [key, normalize_color!(value)] }]
       end
 
