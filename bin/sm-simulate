@@ -509,7 +509,7 @@ def pre_init!
     # about to produce reports.  This annoys me, so I'm working around it:
     puts
   end
-  Thread.abort_on_exception = false
+  Thread.abort_on_exception = true
 end
 
 def nodes_under_debug
