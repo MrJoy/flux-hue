@@ -11,7 +11,7 @@ module SparkleMotion
               .select { |resp| ssdp_response?(resp) }
               .map { |resp| ssdp_extract(resp) }
               .select { |resp| resp["name"] == "upnp:rootdevice" }
-        Hash[raw.map { |resp| [resp["id"], resp["ipaddress"]] }]
+        Hash[raw.map { |resp| [resp["ipaddress"], resp["id"]] }]
       end
 
       # Ensure we're *only* getting responses from a Philips Hue bridge.  The

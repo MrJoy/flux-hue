@@ -3,19 +3,19 @@ common_username: &common_username "1234567890"
 # Determine HTTP request concurrency for updating lights.  Per-bridge.
 max_connects: 3
 bridges:
-  "Bridge-01":
+  "Bridge-01": # 0017881226f3
     ip: "192.168.2.10"
     username: *common_username
     debug_hue: 0
-  "Bridge-02":
+  "Bridge-02": # 001788105eda
     ip: "192.168.2.6"
     username: *common_username
     debug_hue: 25000
-  "Bridge-03":
+  "Bridge-03": # 0017881853d0
     ip: "192.168.2.7"
     username: *common_username
     debug_hue: 45000
-  "Bridge-04":
+  "Bridge-04": # 0017881a1d5c
     ip: "192.168.2.9"
     username: *common_username
     debug_hue: 12000

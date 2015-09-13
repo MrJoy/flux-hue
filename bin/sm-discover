@@ -13,6 +13,7 @@ def ip_atob(ip)
   ip.split(/\./).map(&:to_i).pack("C4")
 end
 
-# TODO: Show MAC address so we can map the IPs to bridges sanely!
 results = SparkleMotion::Hue::SSDP.new.scan
-puts results.values.sort { |a, b| ip_atob(a) <=> ip_atob(b) }.join("\n")
+results.keys.sort { |a, b| ip_atob(a) <=> ip_atob(b) }.each do |ip|
+  puts "%15s: %s" % [ip, results[ip]]
+end
