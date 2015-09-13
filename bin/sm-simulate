@@ -93,7 +93,7 @@ DEBUG_FLAGS   = Hash[(ENV["DEBUG_NODES"] || "")
 # Shared State Setup
 ###############################################################################
 # TODO: Run all simulations, and use a mixer to blend between them...
-num_lights              = CONFIG["main_lights"].length
+num_lights              = CONFIG["light_groups"]["main_lights"].length
 LIGHTS_FOR_THREADS      = SparkleMotion::LightConfig.new(config: CONFIG, group: "main_lights")
 INTERACTION             = USE_INPUT ? Launchpad::Interaction.new(use_threads: false) : nil
 INT_STATES              = []

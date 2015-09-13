@@ -25,7 +25,7 @@ def light_state(hue, index, num_lights)
 end
 
 # TODO: Speed this up by setting on/hue via group message per bridge...
-%w(main_lights dance_lights accent_lights).each do |group_name|
+CONFIG["light_groups"].keys.each do |group_name|
   config  = SparkleMotion::LightConfig.new(config: CONFIG, group: group_name)
   reqs    = {}
   config.bridges.each do |bridge_name, bridge|

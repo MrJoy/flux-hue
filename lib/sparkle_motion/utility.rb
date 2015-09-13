@@ -15,7 +15,7 @@ module SparkleMotion
     attr_accessor :bridges, :lights, :masks
 
     def initialize(config:, group:)
-      group_config  = config[group]
+      group_config  = config["light_groups"][group]
       num_lights    = group_config.length
 
       lights_by_bridge  = group_lights_by_bridge(group_config)

@@ -25,6 +25,63 @@ bridges:
     ip: "192.168.2.9"
     username: *common_username
     debug_hue: 12000
+light_groups:
+  # Groups of lights for different purposes.
+  #
+  # The numeric portion is the ID as *assigned by the Philips Hue Bridge*.
+  #
+  # Main Lights is the group for which the main simulation will be applied.
+  # It can be any number of lights from any number of bridges but you'll need to
+  # plan groups out for saturation controls.
+  main_lights:
+  - ["Bridge-01", 37]
+  - ["Bridge-01", 36]
+  - ["Bridge-01", 38]
+  - ["Bridge-01", 39]
+  - ["Bridge-01", 40]
+  - ["Bridge-01", 35]
+
+  - ["Bridge-02", 12]
+  - ["Bridge-02", 21]
+  - ["Bridge-02", 20]
+  - ["Bridge-02", 19]
+  - ["Bridge-02", 15]
+  - ["Bridge-02", 18]
+
+  - ["Bridge-03",  2]
+  - ["Bridge-03",  3]
+  - ["Bridge-03",  8]
+  - ["Bridge-03", 10]
+  - ["Bridge-03",  9]
+  - ["Bridge-03",  6]
+
+  - ["Bridge-04",  7]
+  - ["Bridge-04", 11]
+  - ["Bridge-04", 12]
+  - ["Bridge-04",  1]
+  - ["Bridge-04",  9]
+  - ["Bridge-04",  8]
+  # Dance Lights is the group of lights above the dance floor, which will
+  # (ultimately) get their own simulation, although updates will be interleaved
+  # with the main lights per-bridge.  It should be a positional map affording
+  # spatial coherence.
+  dance_lights:
+  - ["Bridge-01", 26]
+  - ["Bridge-02", 11]
+  - ["Bridge-03",  7]
+  - ["Bridge-04",  5]
+  # Accent lights are just... other lights in the system.  Not part of any
+  # simulation, they get their base color and that's it.
+  accent_lights:
+  - ["Bridge-01",  9]
+  - ["Bridge-01", 10]
+  - ["Bridge-01", 11]
+  - ["Bridge-01", 12]
+  - ["Bridge-01", 13]
+  - ["Bridge-01", 33]
+  - ["Bridge-01", 34]
+  - ["Bridge-02",  7]
+  - ["Bridge-02",  8]
 initial_state:
   # This defines what state the lights will be set to when running `sm-on`.
   # It's important you run `sm-on` *before* running `sparkle-motion`, as the
@@ -196,60 +253,6 @@ simulation:
         "on":   0x272700
         "off":  0x020200
         "down": 0x3F3F10
-# Main Lights is the group for which the main simulation will be applied.
-# It can be any number of lights from any number of bridges but you'll need to
-# plan groups out for saturation controls.
-main_lights:
-# Strip 1:
-- ["Bridge-01", 37]
-- ["Bridge-01", 36]
-- ["Bridge-01", 38]
-- ["Bridge-01", 39]
-- ["Bridge-01", 40]
-- ["Bridge-01", 35]
-
-- ["Bridge-02", 12]
-- ["Bridge-02", 21]
-- ["Bridge-02", 20]
-- ["Bridge-02", 19]
-- ["Bridge-02", 15]
-- ["Bridge-02", 18]
-
-# Strip 2:
-- ["Bridge-03", 2]
-- ["Bridge-03", 3]
-- ["Bridge-03", 8]
-- ["Bridge-03", 10]
-- ["Bridge-03", 9]
-- ["Bridge-03", 6]
-
-- ["Bridge-04", 7]
-- ["Bridge-04", 11]
-- ["Bridge-04", 12]
-- ["Bridge-04", 1]
-- ["Bridge-04", 9]
-- ["Bridge-04", 8]
-# Dance Lights is the group of lights above the dance floor, which will
-# (ultimately) get their own simulation, although updates will be interleaved
-# with the main lights per-bridge.  It should be a positional map affording
-# spatial coherence.
-dance_lights:
-- ["Bridge-01", 26]
-- ["Bridge-02", 11]
-- ["Bridge-03", 7]
-- ["Bridge-04", 5]
-# Accent lights are just... other lights in the system.  Not part of any
-# simulation, they get their base color and that's it.
-accent_lights:
-- ["Bridge-01", 9]
-- ["Bridge-01", 10]
-- ["Bridge-01", 11]
-- ["Bridge-01", 12]
-- ["Bridge-01", 13]
-- ["Bridge-01", 33]
-- ["Bridge-01", 34]
-- ["Bridge-02", 7]
-- ["Bridge-02", 8]
 # TODO: Either self-tune delays, or avoid sending refreshes to each light/group too fast?
 # TODO: Finish simulation visualization tool.
 # TODO: Re-parameterize sleep option, and maybe add a way to tweak it on the fly.
