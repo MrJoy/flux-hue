@@ -1,5 +1,5 @@
-require "playful/ssdp"
-Playful.log = false # Playful is super verbose
+require "Frisky/ssdp"
+Frisky.log = false # Playful is super verbose
 
 module SparkleMotion
   module Hue
