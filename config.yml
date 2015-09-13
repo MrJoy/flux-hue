@@ -33,23 +33,6 @@ initial_state:
   sat: 255
   bri: 127
 simulation:
-  # TODO: Either self-tune delays, or avoid sending refreshes to each light/group too fast?
-  # TODO: Finish simulation visualization tool.
-  # TODO: Re-parameterize sleep option, and maybe add a way to tweak it on the fly.
-  # TODO: Way to tweak output transition time on the fly?
-  # TODO: Play with X multiplier for Perlin component to see if that makes the lighting more visually interesting.
-  # TODO: Separate color-sweeps per bridge.
-  # TODO: Way to tweak sweep transition time on the fly?
-  # TODO: Have day/night configurations and a way to LERP between them.
-  # TODO: Interactive tool for testing bulb positioning.
-  # TODO: Group all writes to a bridge into a single thread.
-  # TODO: Either self-tune delays, or avoid sending refreshes to each light/group too fast?
-  #     TODO: Perhaps when we group things per-bridge we can keep track of when we last updated a given light and plan around that?
-  # TODO: Dance-floor simulation / controls / behaviors?
-  #     TODO: Perhaps just put everything into an X/Y grid structure and traverse Z as time?
-  # TODO: Controls for accent lights?
-  # TODO: Does Hue Bridge raw interface have any value here?
-  # TODO: For color sweep, separate transition and wait time parameters.
   output:
     # This controls the amount of time (in seconds, but only to a precision of
     # 1/10th of a second) that it takes for the brightness of the lights to
@@ -220,3 +203,20 @@ accent_lights:
 - ["Bridge-01", 34]
 - ["Bridge-02", 7]
 - ["Bridge-02", 8]
+# TODO: Either self-tune delays, or avoid sending refreshes to each light/group too fast?
+# TODO: Finish simulation visualization tool.
+# TODO: Re-parameterize sleep option, and maybe add a way to tweak it on the fly.
+# TODO: Way to tweak output transition time on the fly?
+# TODO: Play with X multiplier for Perlin component to see if that makes the lighting more visually interesting.
+# TODO: Separate color-sweeps per bridge.
+# TODO: Way to tweak sweep transition time on the fly?
+# TODO: Have day/night configurations and a way to LERP between them.
+# TODO: Interactive tool for testing bulb positioning.
+# TODO: Group all writes to a bridge into a single thread.
+# TODO: Either self-tune delays, or avoid sending refreshes to each light/group too fast?
+#     TODO: Perhaps when we group things per-bridge we can keep track of when we last updated a given light and plan around that?
+# TODO: Dance-floor simulation / controls / behaviors?
+#     TODO: Perhaps just put everything into an X/Y grid structure and traverse Z as time?
+# TODO: Controls for accent lights?
+# TODO: Does Hue Bridge raw interface have any value here?
+# TODO: For color sweep, separate transition and wait time parameters.
