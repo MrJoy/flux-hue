@@ -109,7 +109,13 @@ if HAVE_STATE_FILE
         "  This is probably not what you want, but you're the boss..."
     end
   end
-  CURRENT_STATE.merge!(YAML.load(File.read(STATE_FILENAME)))
+  begin
+    state_temp = YAML.load_file(STATE_FILENAME)
+  rescue Psych::SyntaxError => pse
+    LOGGER.error { "Got error parsing state file: " }
+    LOGGER.error { pse }
+  end
+  CURRENT_STATE.merge!(state_temp) if state_temp
 end
 
 def update_state!(key, value)
