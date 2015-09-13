@@ -67,6 +67,7 @@ module SparkleMotion
 end
 
 require "sparkle_motion/version"
-require "sparkle_motion/utility"
+require "sparkle_motion/flow_control"
 require "sparkle_motion/config"
+require "sparkle_motion/light_config"
 require "sparkle_motion/env"

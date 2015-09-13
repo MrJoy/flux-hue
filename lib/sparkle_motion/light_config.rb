@@ -1,14 +1,3 @@
-# TODO: Namespacing/classes/etc!
-
-# rubocop:disable Lint/RescueException
-def guard_call(prefix, &block)
-  block.call
-rescue Exception => e
-  SparkleMotion.logger.error { "#{prefix}: Exception for #{prefix}: #{e.message}" }
-  SparkleMotion.logger.error { "#{prefix}:\t#{e.backtrace.join("\n#{prefix}:\t")}" }
-end
-# rubocop:enable Lint/RescueException
-
 module SparkleMotion
   # Class to represent configurations and positioning of lights.
   class LightConfig
