@@ -5,22 +5,18 @@ module SparkleMotion
       class HorizontalSlider < Widget
         attr_accessor :on_change
 
-        def initialize(launchpad:, x:, y:, size:, on:, off:, down:, on_change: nil, value: 0)
+        def initialize(launchpad:, position:, size:, colors:, on_change: nil, value: 0)
           super(launchpad: launchpad,
-                x:         x,
-                y:         y,
-                width:     size,
-                height:    1,
-                on:        on,
-                off:       off,
-                down:      down,
+                position:  position,
+                size:      SparkleMotion::Vector2.new(size, 1),
+                colors:    colors,
                 value:     value)
           @on_change = on_change
         end
 
         def render
           (0..max_v).each do |xx|
-            change_grid(x: xx, y: 0, color: (value && value >= xx) ? on : off)
+            change_grid(x: xx, y: 0, color: (value && value >= xx) ? colors.on : colors.off)
           end
           super
         end

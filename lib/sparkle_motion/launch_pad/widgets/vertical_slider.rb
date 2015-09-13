@@ -5,22 +5,18 @@ module SparkleMotion
       class VerticalSlider < Widget
         attr_accessor :on_change
 
-        def initialize(launchpad:, x:, y:, size:, on:, off:, down:, on_change: nil, value: 0)
+        def initialize(launchpad:, position:, size:, colors:, on_change: nil, value: 0)
           super(launchpad: launchpad,
-                x:         x,
-                y:         y,
-                width:     1,
-                height:    size,
-                on:        on,
-                off:       off,
-                down:      down,
+                position:  position,
+                size:      Vector2.new(1, size),
+                colors:    colors,
                 value:     value)
           @on_change = on_change
         end
 
         def render
           (0..max_v).each do |yy|
-            change_grid(x: 0, y: yy, color: (value && value >= yy) ? on : off)
+            change_grid(x: 0, y: yy, color: (value && value >= yy) ? colors.on : colors.off)
           end
           super
         end

@@ -5,16 +5,12 @@ module SparkleMotion
       class RadioGroup < Widget
         attr_accessor :on_select, :on_deselect
 
-        def initialize(launchpad:, position:, size:, on:, off:, down:, on_select: nil, on_deselect:,
+        def initialize(launchpad:, position:, size:, colors:, on_select: nil, on_deselect: nil,
                        value: nil)
           super(launchpad: launchpad,
-                x:         position.x,
-                y:         position.y,
-                width:     size.x,
-                height:    size.y,
-                on:        on,
-                off:       off,
-                down:      down,
+                position:  position,
+                size:      size,
+                colors:    colors,
                 value:     value)
           @on_select    = on_select
           @on_deselect  = on_deselect
@@ -23,7 +19,7 @@ module SparkleMotion
         def render
           (0..max_x).each do |xx|
             (0..max_y).each do |yy|
-              col = (value == index_for(x: xx, y: yy)) ? on : off
+              col = (value == index_for(x: xx, y: yy)) ? colors.on : colors.off
 
               change_grid(x: xx, y: yy, color: col)
             end

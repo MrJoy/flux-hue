@@ -1,22 +1,18 @@
+require "ostruct"
+
 module SparkleMotion
   module LaunchPad
     # Base class for Launchpad UI widgets.
     class Widget
-      attr_reader :value, :x, :y, :width, :height
-      attr_accessor :on, :off, :down
+      attr_reader :value, :position, :size, :colors
 
-      # TODO: Use `Vector2` for position/size...
-      def initialize(launchpad:, x: nil, y: nil, position: nil, width:, height:, on:, off:, down:,
-                     value:)
-        @x          = x
-        @y          = y
+      def initialize(launchpad:, position:, size:, colors:, value:)
         @position   = position
-        @width      = width
-        @height     = height
+        @size       = size
         @launchpad  = launchpad
         @value      = value
         @pressed    = {}
-        set_colors!(on, off, down)
+        @colors     = OpenStruct.new(normalize_colors!(colors))
         attach_handler!
       end
 
@@ -29,18 +25,18 @@ module SparkleMotion
       def render
         @pressed.map do |idx, state|
           next unless state
-          if @x
+          if on_grid?
             xx, yy = coords_for(idx: idx)
-            change_grid(x: xx, y: yy, color: down)
+            change_grid(x: xx, y: yy, color: @colors.down)
           else
-            change_command(position: @position, color: down)
+            change_command(position: @position, color: @colors.down)
           end
         end
       end
 
       def blank
         black = SparkleMotion::LaunchPad::Color::BLACK.to_h
-        if @x
+        if on_grid?
           (0..max_x).each do |xx|
             (0..max_y).each do |yy|
               change_grid(x: xx, y: yy, color: black)
@@ -52,11 +48,7 @@ module SparkleMotion
       end
 
       def max_v
-        if @x
-          @max_v ||= (height * width) - 1
-        else
-          1
-        end
+        @max_v ||= on_grid? ? (@size.y * @size.x) - 1 : 1
       end
 
     protected
@@ -65,7 +57,7 @@ module SparkleMotion
 
       def tag
         @tag ||= begin
-          pos = @x ? "#{@x},#{@y}" : @position
+          pos = on_grid? ? "#{@position.x},#{@position.y}" : @position
           "#{self.class.name}(#{pos})"
         end
       end
@@ -80,37 +72,39 @@ module SparkleMotion
         @pressed.delete(idx) if @pressed.key?(idx)
       end
 
-      def handle_grid_response(action)
-        xx  = action[:x] - @x
-        yy  = action[:y] - @y
-        if action[:state] == :down
-          pressed!(x: xx, y: yy)
-          on_down(x: xx, y: yy)
-        else
-          released!(x: xx, y: yy)
-          on_up(x: xx, y: yy)
-        end
+      def handle_grid_response_down(action)
+        xx  = action[:x] - @position.x
+        yy  = action[:y] - @position.y
+        pressed!(x: xx, y: yy)
+        on_down(x: xx, y: yy)
       end
 
-      def handle_command_response(action)
-        if action[:state] == :down
-          pressed!(position: @position)
-          on_down(position: @position)
-        else
-          released!(position: @position)
-          on_up(position: @position)
-        end
+      def handle_grid_response_up(action)
+        xx  = action[:x] - @position.x
+        yy  = action[:y] - @position.y
+        released!(x: xx, y: yy)
+        on_up(x: xx, y: yy)
       end
 
-      def index_for(x:, y:); (y * width) + x; end
-      def coords_for(idx:); [idx / width, idx % width]; end
+      def handle_command_response_down(action)
+        pressed!(position: @position)
+        on_down(position: @position)
+      end
+
+      def handle_command_response_up(action)
+        released!(position: @position)
+        on_up(position: @position)
+      end
+
+      def index_for(x:, y:); (y * @size.x) + x; end
+      def coords_for(idx:); [idx / @size.x, idx % @size.x]; end
 
       # Defaults that you may want to override:
       def on_down(x: nil, y: nil, position: nil)
-        if @x
-          change_grid(x: x, y: y, color: down)
+        if on_grid?
+          change_grid(x: x, y: y, color: @colors.down)
         else
-          change_command(position: position, color: down)
+          change_command(position: position, color: @colors.down)
         end
       end
 
@@ -137,18 +131,19 @@ module SparkleMotion
 
       def grid_apply_color(x, y, color)
         return unless launchpad
-        launchpad.device.change_grid(x + @x, y + @y, color[:r], color[:g], color[:b])
+        launchpad.device.change_grid(x + position.x, y + position.y, color[:r], color[:g], color[:b])
       end
 
-      def max_y; @max_y ||= height - 1; end
-      def max_x; @max_x ||= width - 1; end
+      def max_y; @max_y ||= @size.y - 1; end
+      def max_x; @max_x ||= @size.x - 1; end
+
+      def on_grid?; position.is_a?(Vector2); end
 
     private
 
-      def set_colors!(on, off, down)
-        @on   = normalize_color!(on)
-        @off  = normalize_color!(off)
-        @down = normalize_color!(down)
+      def normalize_colors!(colors)
+        puts colors.inspect
+        Hash[colors.map { |key, value| [key, normalize_color!(value)] }]
       end
 
       def normalize_color!(color)
@@ -162,20 +157,26 @@ module SparkleMotion
       end
 
       def attach_grid_handler!
-        return unless @x
+        return unless on_grid?
         return unless launchpad
-        xx = @x..(@x + max_x)
-        yy = @y..(@y + max_y)
-        launchpad.response_to(:grid, :both, x: xx, y: yy) do |_inter, action|
-          handle_grid_response(action)
+        xx = @position.x..(@position.x + max_x)
+        yy = @position.y..(@position.y + max_y)
+        launchpad.response_to(:grid, :down, x: xx, y: yy) do |_inter, action|
+          handle_grid_response_down(action)
+        end
+        launchpad.response_to(:grid, :up, x: xx, y: yy) do |_inter, action|
+          handle_grid_response_up(action)
         end
       end
 
       def attach_position_handler!
-        return if @x
+        return if on_grid?
         return unless launchpad
-        launchpad.response_to(@position, :both) do |_inter, action|
-          handle_command_response(action)
+        launchpad.response_to(@position, :down) do |_inter, action|
+          handle_command_response_down(action)
+        end
+        launchpad.response_to(@position, :up) do |_inter, action|
+          handle_command_response_up(action)
         end
       end
     end

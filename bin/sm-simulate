@@ -160,15 +160,13 @@ LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), id
                                                             logger:     LOGGER)
   NODES[int_key]  = last
   int_colors      = intensity_cfg["colors"]
-  pos             = intensity_cfg["positions"][idx]
+  pos             = SparkleMotion::Vector2.new(intensity_cfg["positions"][idx])
+  size            = int_vals.length
   int_widget      = Kernel.const_get(intensity_cfg["widget"])
   INT_STATES[idx] = int_widget.new(launchpad: INTERACTION,
-                                   x:         pos[0],
-                                   y:         pos[1],
-                                   size:      intensity_cfg["size"],
-                                   on:        int_colors["on"],
-                                   off:       int_colors["off"],
-                                   down:      int_colors["down"],
+                                   position:  pos,
+                                   size:      size,
+                                   colors:    int_colors,
                                    on_change: proc do |val|
                                      ival = int_vals[val]
                                      LOGGER.info { "Intensity[#{idx},#{val}]: #{ival}" }
@@ -178,7 +176,7 @@ LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), id
 end
 
 def sat_req(ival, sat_len, sat_bridge, sat_group)
-  data = with_transition_time({ "sat" => (255*ival).round }, sat_len)
+  data = with_transition_time({ "sat" => (255 * ival).round }, sat_len)
   { method:   :put,
     url:      hue_group_endpoint(sat_bridge, sat_group),
     put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
@@ -191,19 +189,17 @@ sat_colors  = sat_cfg["colors"]
 sat_vals    = sat_cfg["values"]
 sat_grps    = sat_cfg["groups"]
 sat_widget  = Kernel.const_get(sat_cfg["widget"])
-sat_cfg["positions"].each_with_index do |(xx, yy), idx|
+sat_cfg["positions"].each_with_index do |pos, idx|
   sat_grp_info  = sat_grps[idx]
   sat_bridge    = CONFIG["bridges"][sat_grp_info[0]]
   sat_group     = sat_grp_info[1]
   sat_key       = "SAT_STATES[#{idx}]"
+  sat_pos       = SparkleMotion::Vector2.new(pos)
   int_key       = "SHIFTED_#{idx}"
   SAT_STATES << sat_widget.new(launchpad: INTERACTION,
-                               x:         xx,
-                               y:         yy,
-                               size:      sat_cfg["size"],
-                               on:        sat_colors["on"],
-                               off:       sat_colors["off"],
-                               down:      sat_colors["down"],
+                               position:  sat_pos,
+                               size:      sat_vals.length,
+                               colors:    sat_colors,
                                on_change: proc do |val|
                                  ival, bri_max  = sat_vals[val]
                                  req            = sat_req(ival, sat_len, sat_bridge, sat_group)
@@ -228,12 +224,10 @@ sl_widget               = Kernel.const_get(sl_cfg["class"])
 SL_STATE                = sl_widget.new(launchpad:   INTERACTION,
                                         position:    sl_pos,
                                         size:        sl_size,
-                                        on:          sl_colors["on"],
-                                        off:         sl_colors["off"],
-                                        down:        sl_colors["down"],
+                                        colors:      sl_colors,
                                         on_select:   proc do |x|
-                                          LOGGER.info { "Spot ##{sl_pos[x]}" }
-                                          NODES[sl_key].spotlight!(sl_pos[x])
+                                          LOGGER.info { "Spot ##{sl_pos.x}" }
+                                          NODES[sl_key].spotlight!(sl_pos.x)
                                           update_state!(sl_key, x)
                                         end,
                                         on_deselect: proc do
@@ -259,8 +253,7 @@ TIME_TO_DIE               = [false, :terminate]
 e_cfg = CONFIG["simulation"]["controls"]["exit"]
 EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTION,
                                                             position:  e_cfg["position"].to_sym,
-                                                            color:     e_cfg["colors"]["color"],
-                                                            down:      e_cfg["colors"]["down"],
+                                                            colors:    e_cfg["colors"],
                                                             on_press:  lambda do |value|
                                                               return unless value != 0
                                                               LOGGER.unknown { "Kick!" }
