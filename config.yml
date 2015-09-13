@@ -1,8 +1,14 @@
 ---
+# The username for the Philips Hue Bridge(s).  You can either create one and
+# set it here, or obtain generated ones and set them below.
 common_username: &common_username "1234567890"
-# Determine HTTP request concurrency for updating lights.  Per-bridge.
+# The `max_connects`
 max_connects: 3
 bridges:
+  # List all of your Philips Hue Bridge(s) here.  I suggest keeping the ID info
+  # produced by `sm-discovery` in a comment next to the name so that when you're
+  # setting things up on-site and all your bridges get new DHCP-assigned
+  # addresses, you can quickly update the IP field here.
   "Bridge-01": # 0017881226f3
     ip: "192.168.2.10"
     username: *common_username
@@ -20,6 +26,9 @@ bridges:
     username: *common_username
     debug_hue: 12000
 initial_state:
+  # This defines what state the lights will be set to when running `sm-on`.
+  # It's important you run `sm-on` *before* running `sparkle-motion`, as the
+  # latter makes no attempt to
   hue: 49500
   sat: 255
   bri: 127
@@ -42,16 +51,26 @@ simulation:
   # TODO: Does Hue Bridge raw interface have any value here?
   # TODO: For color sweep, separate transition and wait time parameters.
   output:
+    # This controls the amount of time (in seconds, but only to a precision of
+    # 1/10th of a second) that it takes for the brightness of the lights to
+    # change when they're updated.  If a new update comes along while the light
+    # is still changing, then it will simply start moving from whatever
+    # brightness it's currently at to the new value, again spread over the full
+    # transition time.
     transition: 0.3
   sweep:
+    # This defines the color-swirl effect.  It's a list of steps, and the time
+    # take (in seconds) LERPing from color to color.  It will run through these
+    # in a loop.
+    #
     # Don't set this transition much below 1.0!  ZigBee spec only allows 1
-    # group update/sec, but Hue Bridge/lights seem to be OK with about 1 every
-    # 0.75 sec...
+    # group update/sec, but Hue Bridge/lights seem to be *mostly* OK with about
+    # 1 every 0.75 sec...
     #
     # Negative values mean to use a transition time of 0 for the change, but
-    # wait the absolute value between steps.
+    # wait the absolute value between steps.  I.E. just switch the color
+    # instantly.
     transition: 1.5
-    # Ballpark estimation of Jen's palette:
     values:
     - 49500
     - 49500
