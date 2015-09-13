@@ -20,6 +20,8 @@ Gem::Specification.new do |s|
                                 |Gemfile.*
                                 |notes/.*
                                 |tasks/.*
+                                |tools/.*
+                                |examples/.*
                                 |tmp/.*
                                 |Rakefile
                                 |.*\.sublime-project

@@ -98,7 +98,7 @@ INT_STATES              = []
 NODES                   = {}
 PENDING_COMMANDS        = Queue.new
 CURRENT_STATE           = {}
-STATE_FILENAME          = "tmp/state.tmp"
+STATE_FILENAME          = "/tmp/sparkle-motion.state"
 SKIP_STATE_PERSISTENCE  = [false]
 HAVE_STATE_FILE         = File.exist?(STATE_FILENAME)
 if HAVE_STATE_FILE
