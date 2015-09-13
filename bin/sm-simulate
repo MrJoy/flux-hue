@@ -179,6 +179,13 @@ LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), id
                                    end)
 end
 
+def sat_req(ival, sat_len, sat_bridge, sat_group)
+  data = with_transition_time({ "sat" => ival }, sat_len)
+  { method:   :put,
+    url:      hue_group_endpoint(sat_bridge, sat_group),
+    put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
+end
+
 SAT_STATES = []
 sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
 sat_len     = sat_cfg["transition"]
@@ -200,11 +207,7 @@ sat_cfg["positions"].each_with_index do |(xx, yy), idx|
                                down:      sat_colors["down"],
                                on_change: proc do |val|
                                  ival = sat_vals[val]
-                                 LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
-                                 data = with_transition_time({ "sat" => ival }, sat_len)
-                                 req  = { method:   :put,
-                                          url:      hue_group_endpoint(sat_bridge, sat_group),
-                                          put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
+                                 req  = sat_req(ival, sat_len, sat_bridge, sat_group)
                                  PENDING_COMMANDS << req
                                  update_state!(sat_key, val)
                                end)
@@ -422,6 +425,15 @@ def launch_dummy_light_threads!
   threads
 end
 
+def light_req(idx, lid, transition, config, stats, debug)
+  url = hue_light_endpoint(config, lid)
+  SparkleMotion::Hue::LazyRequestConfig.new(LOGGER, config, url, stats, debug: debug) do
+    # TODO: Recycle this hash?
+    data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
+    with_transition_time(data, transition)
+  end
+end
+
 def launch_light_threads!(cfg, global_results)
   threads = []
   return launch_dummy_light_threads! unless USE_LIGHTS
@@ -441,15 +453,7 @@ def launch_light_threads!(cfg, global_results)
 
       Thread.stop
 
-      requests = lights
-                 .map do |(idx, lid)|
-                   url = hue_light_endpoint(config, lid)
-                   SparkleMotion::Hue::LazyRequestConfig.new(LOGGER, config, url, stats, debug: debug) do
-                     # TODO: Recycle this hash?
-                     data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
-                     with_transition_time(data, transition)
-                   end
-                 end
+      requests = lights.map { |(idx, lid)| light_req(idx, lid, transition, config, stats, debug) }
 
       iterator.each do
         Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
