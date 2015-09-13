@@ -383,7 +383,7 @@ def add_group_command!(config, data)
   # TODO: Hoist the hash into something reusable?
   PENDING_COMMANDS << { method:   :put,
                         url:      hue_group_endpoint(config, 0),
-                        put_data: Oj.dump(data) }.merge(EASY_OPTIONS)
+                        put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
 end
 
 def launch_sweep_thread!(sweep_cfg)
@@ -456,7 +456,7 @@ def launch_light_threads!(cfg, global_results)
       requests = lights.map { |(idx, lid)| light_req(idx, lid, transition, config, stats, debug) }
 
       iterator.each do
-        Curl::Multi.http(requests.dup, MULTI_OPTIONS) do
+        Curl::Multi.http(requests.dup, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do
         end
 
         global_results.add_from(stats) if global_results
@@ -480,7 +480,7 @@ def launch_light_threads!(cfg, global_results)
       requests << PENDING_COMMANDS.pop until PENDING_COMMANDS.empty?
       next if requests.length == 0
       LOGGER.debug { "Processing #{requests.length} pending commands." }
-      Curl::Multi.http(requests, MULTI_OPTIONS) do |easy|
+      Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|
         rc    = easy.response_code
         body  = easy.body
         next if rc >= 200 && rc < 400 && body !~ /error/
