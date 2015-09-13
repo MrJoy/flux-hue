@@ -62,22 +62,62 @@ simulation:
     - 49500
     - 51000
   nodes:
-    # wave2:
-    #   speed: [0.1, 1.0]
     perlin:
+      # The speed parameter as a multiplier on `(x, time)` to map the Perlin
+      # surface onto the lights.  Smaller values for the x component bring the
+      # lights closer together on that surface, and larger ones move them
+      # further apart.
+      #
+      # Similarly, smaller values for the y component cause the lights to move
+      # down the surface more slowly as time passes -- and larger ones cause
+      # quicker movement.
+      #
+      # Be mindful of how this plays out given how slow the Hue lights are to
+      # update!
+      #
+      # NOTE: I'm ignoring octaves and persitence for the moment as the low
+      # NOTE: precision for brightness and slow light updates make it easy for
+      # NOTE: that to just get in the way.
       speed: [0.1, 4.0]
     contrast:
+      # Performs a contrast-stretch on the Perlin noise generated above.
+      # This has the effect of spreading the values out across the range of
+      # brightnesses somewhat more evenly, as they'll tend to be centered
+      # pretty heavily around 0.5 otherwise.
+      #
       # Function: LINEAR, CUBIC, QUINTIC -- don't bother using iterations > 1
       # with LINEAR, as LINEAR is a no-op.
+      #
+      # The iteration count is how many times to stretch the value in successtion.
       function:   cubic
       iterations: 3
   controls:
     exit:
+      # Sometimes the process(es) on Hue Bridge that a thread is connected to
+      # (or possibly `libcurl` on our end) just seem to get... stuck.  It's
+      # very rare but it does happen.  Also, you may find heap growth to be an
+      # issue, and swapping might cause you some problems.  This allows a quick
+      # (under 0.5s last I measured) restart of the process.  It preserves state
+      # to disk as it goes, so it will come back quickly and gracefully with no
+      # more than a tiny hiccup in the simulation.
+      #
+      # Alternatively,  you may just want to do a quick reload after making a
+      # configuration change.
+      #
+      # Position is which of the control buttons to use for this
+      # kick-in-the-head function.
       position: mixer
+      # What colors for the button.  Base color, and color while pressed.
       colors:
         "color": dark_gray
         "down":  white
     intensity:
+      # This is the set of controls for adjusting the intensity of the lights.
+      # You should define one position for each Philips Hue Bridge (as this is
+      # controlled via a group message to all lights).  The size defines the
+      # height or width of the widgets (depending on choice of
+      # vertical/horizontal slider), so leave room for one button per value
+      # when you compute your y coordinates (or x for horizontal).
       widget: SparkleMotion::LaunchPad::Widgets::VerticalSlider
       positions:
       - [0, 3]
@@ -86,35 +126,45 @@ simulation:
       - [3, 3]
       size: 5
       values:
-      # Mid-point, delta (was low/high):
+      # [Mid-point, delta].  Minimum brightness is `mid-point - delta` and max
+      # is `mid-point + delta`.
       - [0.000, 0.000]
       - [0.150, 0.075]
       - [0.200, 0.100]
       - [0.400, 0.150]
       - [0.600, 0.200]
-      # - [0.350, 0.050] #[0.25, 0.45]
-      # - [0.500, 0.050] #[0.40, 0.60]
-      # - [0.675, 0.125] #[0.55, 0.80]
-      # - [0.875, 0.125] #[0.75, 1.00]
       colors:
         "on":   0x22003F
         "off":  0x05000A
         "down": 0x27103F
     saturation:
+      # The desaturation controller.  As above, it's one control per bridge and
+      # the `size` defines the height/width of the control.
+      #
+      # Transition time is how quickly to transition the saturation.  I suggest
+      # not going too quickly because while the saturation is updated en masse
+      # via group update, the brightness is done per-bulb in the main rendering
+      # loop -- and you probably don't want to blind everyone during the
+      # transition time.
       widget: SparkleMotion::LaunchPad::Widgets::VerticalSlider
-      transition: 0.3
+      transition: 0.2
       positions:
       - [4, 4]
       - [5, 4]
       - [6, 4]
       - [7, 4]
       size: 4
+      # This defines which Hue Bridge, and which group on that bridge a control
+      # should affect.  It would be a bit nonsensical if this didn't correspond
+      # to the arrangement of lights for the intensity controls though.
       groups:
       - ["Bridge-01", 0]
       - ["Bridge-02", 0]
       - ["Bridge-03", 0]
       - ["Bridge-04", 0]
       values:
+      # Values are [saturation, maximum brightness] -- and null means "don't
+      # clamp brightness"
       - [0.2, 0.00]
       # - [0.4, 0.10]
       - [0.6, 0.30]
@@ -125,14 +175,18 @@ simulation:
         "off":  0x03030C
         "down": 0x10103F
     spotlighting:
+      # This defines the spotlighting effect.  The width and height of the
+      # widget are defined by the `mappings` configuration.  The choice of
+      # widget class is not configurable because at the moment there's only
+      # one option that will work.
       x: 0
       y: 0
       mappings:
-      # NOTE: Mappings defines the width/height of the widget implicitly!
       # NOTE: Values are indexes into main_lights array.
       #
-      # Excluding outermost lights, and going top-down for left-most to
-      # right-most light across left then right strings:
+      # Excluding outermost lights because they extend beyond the seating area.
+      # This configuration gives two rows, one corresponding to each of the two
+      # light strands I'm putting up.
       #
       # Bridge 3/4:
       - [14, 15, 16, 17,   18, 19, 20, 21]
@@ -175,24 +229,17 @@ main_lights:
 - ["Bridge-04", 1]
 - ["Bridge-04", 9]
 - ["Bridge-04", 8]
-# TODO: Come up with appropriate behaviors/extensions of behavior for dance
-# TODO: floor:
-# TODO: * Spotighting.
-# TODO: * Saturation.
-# TODO: * Intensity.
-#
-# Dance Lights is the group of lights above the dance floor, which will get
-# their own simulation, although updates will be interleaved with the main
-# lights per-bridge.  It should be a positional map affording spatial
-# coherence.
-#
-# For spotlighting/saturation/intensity purposes, it will be treated as one
-# group.
+# Dance Lights is the group of lights above the dance floor, which will
+# (ultimately) get their own simulation, although updates will be interleaved
+# with the main lights per-bridge.  It should be a positional map affording
+# spatial coherence.
 dance_lights:
 - ["Bridge-01", 26]
 - ["Bridge-02", 11]
 - ["Bridge-03", 7]
 - ["Bridge-04", 5]
+# Accent lights are just... other lights in the system.  Not part of any
+# simulation, they get their base color and that's it.
 accent_lights:
 - ["Bridge-01", 9]
 - ["Bridge-01", 10]
