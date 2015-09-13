@@ -4,9 +4,13 @@ AllCops:
   - '**/Rakefile'
   - '**/*.rake'
   - '**/*.gemspec'
+  - 'bin/*'
   Exclude:
-  - 'reference/**/*'
+  - 'data/**/*'
   - 'etc/**/*'
+  - 'notes/**/*'
+  - 'pkg/*'
+  - 'reference/**/*'
   - 'tmp/**/*'
 
 Lint/FormatParameterMismatch:
