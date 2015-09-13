@@ -65,6 +65,7 @@ module SparkleMotion
   end
 end
 
+require "sparkle_motion/version"
 require "sparkle_motion/utility"
 require "sparkle_motion/config"
 require "sparkle_motion/env"
