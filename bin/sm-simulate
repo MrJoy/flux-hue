@@ -443,7 +443,7 @@ def launch_light_threads!(cfg, global_results)
       requests = lights
                  .map do |(idx, lid)|
                    url = hue_light_endpoint(config, lid)
-                   SparkleMotion::LazyRequestConfig.new(LOGGER, config, url, stats, debug: debug) do
+                   SparkleMotion::Hue::LazyRequestConfig.new(LOGGER, config, url, stats, debug: debug) do
                      # TODO: Recycle this hash?
                      data = { "bri" => (FINAL_RESULT[idx] * 254).to_i }
                      with_transition_time(data, transition)

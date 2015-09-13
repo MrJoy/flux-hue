@@ -25,7 +25,7 @@ module SparkleMotion
   def self.use_hue!(discovery: false, api: false)
     if api
       require "sparkle_motion/results"
-      require "sparkle_motion/lazy_request_config"
+      require "sparkle_motion/hue/lazy_request_config"
     end
 
     if discovery
