@@ -81,28 +81,24 @@ module SparkleMotion
       end
 
       def handle_grid_response(action)
-        guard_call(tag) do
-          xx  = action[:x] - @x
-          yy  = action[:y] - @y
-          if action[:state] == :down
-            pressed!(x: xx, y: yy)
-            on_down(x: xx, y: yy)
-          else
-            released!(x: xx, y: yy)
-            on_up(x: xx, y: yy)
-          end
+        xx  = action[:x] - @x
+        yy  = action[:y] - @y
+        if action[:state] == :down
+          pressed!(x: xx, y: yy)
+          on_down(x: xx, y: yy)
+        else
+          released!(x: xx, y: yy)
+          on_up(x: xx, y: yy)
         end
       end
 
       def handle_command_response(action)
-        guard_call(tag) do
-          if action[:state] == :down
-            pressed!(position: @position)
-            on_down(position: @position)
-          else
-            released!(position: @position)
-            on_up(position: @position)
-          end
+        if action[:state] == :down
+          pressed!(position: @position)
+          on_down(position: @position)
+        else
+          released!(position: @position)
+          on_up(position: @position)
         end
       end
 
