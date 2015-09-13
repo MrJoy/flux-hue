@@ -8,7 +8,7 @@ SparkleMotion.use_widgets!
 SparkleMotion.use_launchpad!
 require_relative "lib/sparkle_motion/launch_pad/widgets/on_only"
 
-INTERACTION     = Launchpad::Interaction.new(use_threads: false)
+INTERACTION     = SurfaceMaster::Launchpad::Interaction.new
 BOARD           = []
 PLAYER_COLORS   = [SparkleMotion::LaunchPad::Color::RED, SparkleMotion::LaunchPad::Color::BLUE]
                   .map(&:to_h)
