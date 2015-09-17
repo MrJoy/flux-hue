@@ -451,12 +451,11 @@ def light_req(idx, lid, transition, config, stats, debug)
   end
 end
 
-def launch_light_threads!(cfg, global_results)
+def launch_light_threads!(cfg, global_results, debug)
   threads = []
   return launch_dummy_light_threads! unless USE_LIGHTS
 
   transition  = cfg["transition"]
-  debug       = DEBUG_FLAGS["OUTPUT"]
   threads    += LIGHTS_FOR_THREADS.bridges.map do |(bridge_name, config)|
     guarded_thread(bridge_name) do
       lights    = LIGHTS_FOR_THREADS.lights[bridge_name]
@@ -511,7 +510,7 @@ def launch_all_threads!(sim_cfg, global_results)
   tmp = { input:  [launch_input_thread!].compact,
           graph:  [launch_graph_thread!].compact,
           sweep:  launch_sweep_threads!(sim_cfg["sweep"]).compact,
-          lights: launch_light_threads!(sim_cfg["output"], global_results) }
+          lights: launch_light_threads!(sim_cfg["output"], global_results, DEBUG_FLAGS["OUTPUT"]) }
   tmp[:all] = tmp.values.flatten.compact
   tmp
 end
