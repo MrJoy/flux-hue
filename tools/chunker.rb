@@ -17,7 +17,9 @@ end
 
 def organize_rest_result(data)
   result = false
-  result_codes = data.map(&:to_a).map(&:first).map(&:first).sort.uniq
+  # The transitiontime component will always be true...
+  filtered = data.reject { |datum| datum.values.first.keys.first =~ %r{/transitiontime\z} }
+  result_codes = filtered.map(&:to_a).map(&:first).map(&:first).sort.uniq
   if result_codes.length == 1
     # Only one status.  Phew!
     result = (result_codes.first == "success")
