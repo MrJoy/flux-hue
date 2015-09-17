@@ -43,6 +43,7 @@ def organize_rest_result(data)
     #
     # You'll know which parameter(s) failed by the type of the value:
     # If it's a `Hash`, there was an error.  Otherwise, it succeeded.
+    puts "WAT: #{data.inspect}"
     results["status"] = "mixed"
   end
   results
