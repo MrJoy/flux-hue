@@ -297,3 +297,4 @@ simulation:
 # TODO: Does Hue Bridge raw interface have any value here?
 # TODO: For color sweep, separate transition and wait time parameters.
 # TODO: De-duplicate the command queue before running it, and run it in a reliable way (E.G. retries with backoff)
+# TODO: Handy for persistence? http://ruby-doc.org/stdlib-2.2.3/libdoc/yaml/rdoc/YAML/Store.html
