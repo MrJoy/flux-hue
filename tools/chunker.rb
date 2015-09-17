@@ -15,6 +15,26 @@ rescue StandardError
   raw
 end
 
+def organize_rest_result(data)
+  results = {}
+  data.each do |result|
+    status  = result.keys.first
+    data    = result[status]
+    case status
+    when "success"
+      target_parameter, target_value  = data.to_a.first
+      target_parameter                = target_parameter.split(%r{/}).last
+      results[target_parameter]       = [status, target_value]
+    when "error"
+      target_parameter = data.delete("address").split(%r{/}).last
+      results[target_parameter] = data
+    else
+      puts "WAT: #{result.inspect}"
+    end
+  end
+  results
+end
+
 def chunk(items, step_size = 0.1, digits = 1)
   chunks_out = Set.new
   items.each do |item|
@@ -72,7 +92,7 @@ bucketed.each do |url, events|
     good_events[light].push("start"         => events[index - 1]["time"],
                             "duration"      => event["time"] - events[index - 1]["time"],
                             "payload_begin" => events[index - 1]["payload"],
-                            "payload_end"   => event["payload"])
+                            "payload_end"   => organize_rest_result(event["payload"]))
                             # light_id:      [bridge, light_id])
   end
 end
