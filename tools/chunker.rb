@@ -38,10 +38,10 @@ def chunk(items, step_size = 0.1, digits = 1)
   items.each do |item|
     start_bucket, duration = coalesce(item, digits)
     (start_bucket..start_bucket + duration).step(step_size) do |x|
-      chunks_out.add("payload_begin" => item["payload_begin"],
-                     "payload_end"   => item["payload_end"],
+      chunks_out.add("payload" => item["payload"],
+                     "success" => item["success"],
                      # light_id:      item[:light_id],
-                     "time"          => x.round(digits))
+                     "time"    => x.round(digits))
     end
   end
   chunks_out
@@ -100,10 +100,10 @@ perform_with_timing "Organizing data" do
       # TODO: We'll need to pull config data to map this into a *logical* index!
       light     = [bridge, light_id].join("-")
       good_events[light] ||= []
-      good_events[light].push("start"         => events[index - 1]["time"],
-                              "duration"      => event["time"] - events[index - 1]["time"],
-                              "payload_begin" => events[index - 1]["payload"],
-                              "payload_end"   => organize_rest_result(event["payload"]))
+      good_events[light].push("start"     => events[index - 1]["time"],
+                              "duration"  => event["time"] - events[index - 1]["time"],
+                              "payload"   => events[index - 1]["payload"],
+                              "success"   => organize_rest_result(event["payload"]))
                               # light_id:      [bridge, light_id])
     end
   end
