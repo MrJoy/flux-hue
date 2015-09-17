@@ -56,7 +56,8 @@ module SparkleMotion
 
       def journal(stage, easy)
         return unless @debug
-        GLOBAL_HISTORY << "#{Time.now.to_f},#{stage},#{@url},#{easy.try(:body_str)}"
+        body = easy.respond_to?(:body_str) ? easy.body : easy[:body]
+        GLOBAL_HISTORY << "#{Time.now.to_f},#{stage},#{@url},#{body}"
       end
 
       def failure!(easy)
