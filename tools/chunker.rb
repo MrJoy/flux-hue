@@ -71,7 +71,7 @@ def stringify_keys(hash); Hash[hash.map { |key, val| [key.to_s, val] }]; end
 lines       = []
 bucketed    = {}
 good_events = {}
-chunked     = {}
+chunked     = { "base_time" => nil }
 all_events  = Set.new
 source      = ARGV.shift
 dest        = "#{source.sub(/\.raw\z/, '')}.yml"
@@ -121,11 +121,16 @@ perform_with_timing "Organizing data" do
 end
 
 perform_with_timing "Extracting successful events" do
+  base_times = []
   good_events.each do |k, v|
     v.sort_by! { |hsh| hsh["start"] }
+    base_times << v[0]["start"]
     chunked[k] = chunk(good_events[k])
     all_events.merge chunked[k]
+    # all_events[k] ||= []
+    # all_events[k] += chunked[k]
   end
+  chunked["base_time"] = (base_times.sort.first * 1000).round
 end
 
 # sorted = all_events.sort_by { |hsh| hsh[:time] }
@@ -134,7 +139,7 @@ end
 # binding.pry
 
 simplified = perform_with_timing "Simplifying data for output" do
-  Hash[chunked.map { |idx, data| [idx, data.to_a] }]
+  Hash[chunked.map { |idx, data| [idx, data.is_a?(Set) ? data.to_a : data] }]
 end
 
 output = perform_with_timing "Converting data to YAML" do
