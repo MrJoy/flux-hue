@@ -40,7 +40,7 @@ def organize_rest_result(data)
   result
 end
 
-def chunk(items, step_size = 0.01)
+def chunk(items, step_size = 40)
   # TODO: This should be chunked at the granularity defined by SparkleMotion::Node::FRAME_PERIOD
   #
   # TODO: We... probably do not want to blow up memory like this, but rather,
