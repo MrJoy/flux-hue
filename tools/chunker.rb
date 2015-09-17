@@ -29,6 +29,8 @@ all_events  = Set.new
 source      = ARGV.shift
 dest        = "#{source.sub(/\.raw\z/, '')}.yml"
 
+printf "Parsing raw data..."
+before = Time.now.to_f
 File.open(source, "r") do |f|
   f.each_line do |line|
     elts    = line.split(",")
@@ -43,7 +45,10 @@ File.open(source, "r") do |f|
                                 payload:  parsed[:payload])
   end
 end
+puts " #{(Time.now.to_f - before).round(2)} seconds."
 
+printf "Organizing data..."
+before = Time.now.to_f
 bucketed.each do |url, events|
   events.each_with_index do |event, index|
     next unless event[:action] == "END" && index > 0 && events[index - 1][:action] == "BEGIN"
@@ -56,20 +61,27 @@ bucketed.each do |url, events|
                           light_id: light_id.to_i)
   end
 end
+puts " #{(Time.now.to_f - before).round(2)} seconds."
 
+printf "Extracting successful events..."
+before = Time.now.to_f
 good_events.each do |k, v|
   v.sort_by! { |hsh| hsh[:start] }
   chunked[k] = chunk(good_events[k])
   all_events.merge chunked[k]
 end
+puts " #{(Time.now.to_f - before).round(2)} seconds."
 
 # sorted = all_events.sort_by { |hsh| hsh[:time] }
 
 # require "pry"
 # binding.pry
 
+printf "Writing #{dest}..."
+before = Time.now.to_f
 require "yaml"
 File.write(dest, chunked.to_yaml)
+puts " #{(Time.now.to_f - before).round(2)} seconds."
 
 # require "chunky_png"
 # size_x = chunked.values.map(&:count).max
