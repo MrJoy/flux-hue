@@ -42,7 +42,6 @@ def chunk(items, step_size = 0.1, digits = 1)
     (start_bucket..start_bucket + duration).step(step_size) do |x|
       chunks_out.add("payload" => item["payload"],
                      "success" => item["success"],
-                     # light_id:      item[:light_id],
                      "time"    => x.round(digits))
     end
   end
