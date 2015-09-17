@@ -54,11 +54,11 @@ bucketed.each do |url, events|
     next unless event[:action] == "END" && index > 0 && events[index - 1][:action] == "BEGIN"
     light_id = url.split("/")[6]
     good_events[light_id.to_i] ||= []
-    good_events[light_id.to_i].push(start: events[index - 1][:time],
-                          duration: event[:time] - events[index - 1][:time],
-                          payload_begin: events[index - 1][:payload],
-                          payload_end: event[:payload],
-                          light_id: light_id.to_i)
+    good_events[light_id.to_i].push(start:         events[index - 1][:time],
+                                    duration:      event[:time] - events[index - 1][:time],
+                                    payload_begin: events[index - 1][:payload],
+                                    payload_end:   event[:payload],
+                                    light_id:      light_id.to_i)
   end
 end
 puts " #{(Time.now.to_f - before).round(2)} seconds."
