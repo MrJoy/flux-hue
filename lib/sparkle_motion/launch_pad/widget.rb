@@ -86,12 +86,12 @@ module SparkleMotion
         on_up(x: xx, y: yy)
       end
 
-      def handle_command_response_down(action)
+      def handle_command_response_down
         pressed!(position: @position)
         on_down(position: @position)
       end
 
-      def handle_command_response_up(action)
+      def handle_command_response_up
         released!(position: @position)
         on_up(position: @position)
       end
@@ -131,7 +131,10 @@ module SparkleMotion
 
       def grid_apply_color(x, y, color)
         return unless launchpad
-        launchpad.device.change(grid: [x + position.x, y + position.y], red: color[:r], green: color[:g], blue: color[:b])
+        launchpad.device.change(grid:  [x + position.x, y + position.y],
+                                red:   color[:r],
+                                green: color[:g],
+                                blue:  color[:b])
       end
 
       def max_y; @max_y ||= @size.y - 1; end
@@ -158,8 +161,7 @@ module SparkleMotion
       def attach_grid_handler!
         return unless on_grid?
         return unless launchpad
-        xx = @position.x..(@position.x + max_x)
-        yy = @position.y..(@position.y + max_y)
+        xx, yy = expand_range
         launchpad.response_to(:grid, :down, x: xx, y: yy) do |_inter, action|
           handle_grid_response_down(action)
         end
@@ -171,12 +173,17 @@ module SparkleMotion
       def attach_position_handler!
         return if on_grid?
         return unless launchpad
-        launchpad.response_to(@position, :down) do |_inter, action|
-          handle_command_response_down(action)
+        launchpad.response_to(@position, :down) do |_inter, _action|
+          handle_command_response_down
         end
-        launchpad.response_to(@position, :up) do |_inter, action|
-          handle_command_response_up(action)
+        launchpad.response_to(@position, :up) do |_inter, _action|
+          handle_command_response_up
         end
+      end
+
+      def expand_range
+        [@position.x..(@position.x + max_x),
+         @position.y..(@position.y + max_y)]
       end
     end
   end

@@ -399,8 +399,7 @@ def launch_sweep_thread!(hues, sweep_len, sweep_wait)
       before_time = Time.now.to_f
       idx         = ((before_time / sweep_wait) % hues.length).floor
       # TODO: Recycle this hash?
-      data        = with_transition_time({ "hue" => hues[idx] }, sweep_len)
-      add_group_command!(config, data)
+      add_group_command!(config, with_transition_time({ "hue" => hues[idx] }, sweep_len))
 
       elapsed = Time.now.to_f - before_time
       sleep sweep_wait - elapsed if elapsed < sweep_wait
@@ -420,9 +419,9 @@ def launch_sweep_threads!(sweep_cfg)
 end
 
 def sweep_params(config)
-  [ sweep_cfg[name]["values"],
-    sweep_cfg[name]["transition"],
-    sweep_cfg[name]["wait"] ]
+  [config["values"],
+   config["transition"],
+   config["wait"]]
 end
 
 def validate_sweep_timings!(name, len, wait)

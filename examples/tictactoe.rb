@@ -26,9 +26,10 @@ cp              = 0
                                                                 position:  pos,
                                                                 colors:    base_color,
                                                                 on_press:  proc do |_val|
-                                                                  BOARD[x][y].colors.on = PLAYER_COLORS[cp]
-                                                                  cp            += 1
-                                                                  cp             = 0 if cp > 1
+                                                                  new_col = PLAYER_COLORS[cp]
+                                                                  BOARD[x][y].colors.on = new_col
+                                                                  cp += 1
+                                                                  cp  = 0 if cp > 1
                                                                   BOARD[x][y].render
                                                                 end)
   end
