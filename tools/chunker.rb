@@ -52,7 +52,7 @@ def chunk(items, step_size = 40)
     (start_bucket..start_bucket + duration).step(step_size) do |x|
       chunks_out.add("payload" => item["payload"],
                      "success" => item["success"],
-                     "time"    => (x * 1000).round)
+                     "time"    => x)
     end
   end
   chunks_out
