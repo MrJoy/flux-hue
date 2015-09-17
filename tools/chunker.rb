@@ -16,27 +16,11 @@ rescue StandardError
 end
 
 def organize_rest_result(data)
-  results = {}
-  result_codes = []
-  data.each do |result|
-    status, data = result.to_a.first
-    result_codes << status
-    case status
-    when "success"
-      target_parameter, target_value  = data.to_a.first
-      target_parameter                = target_parameter.split(%r{/}).last
-      results[target_parameter]       = target_value
-    when "error"
-      target_parameter = data.delete("address").split(%r{/}).last
-      results[target_parameter] = data
-    else
-      puts "WAT: #{result.inspect}"
-    end
-  end
-  result_codes_distinct = result_codes.sort.uniq
-  if result_codes_distinct.length == 1
+  result = false
+  result_codes = data.map(&:to_a).map(&:first).sort.uniq
+  if result_codes.length == 1
     # Only one status.  Phew!
-    results["status"] = result_codes_distinct.first
+    result = (result_codes.first == "success")
   else
     # Not sure this outcome is actually *possible*, but the format
     # of the response from the Hue Bridge seems to allow for it...
@@ -44,9 +28,9 @@ def organize_rest_result(data)
     # You'll know which parameter(s) failed by the type of the value:
     # If it's a `Hash`, there was an error.  Otherwise, it succeeded.
     puts "WAT: #{data.inspect}"
-    results["status"] = "mixed"
+    result = nil
   end
-  results
+  result
 end
 
 def chunk(items, step_size = 0.1, digits = 1)
