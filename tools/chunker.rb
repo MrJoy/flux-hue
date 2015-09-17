@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require "set"
 
 def coalesce(item, digits)
