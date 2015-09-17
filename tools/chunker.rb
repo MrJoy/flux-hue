@@ -88,7 +88,12 @@ end
 perform_with_timing "Organizing data" do
   bucketed.each do |url, events|
     events.each_with_index do |event, index|
-      next unless event["action"] == "END" && index > 0 && events[index - 1]["action"] == "BEGIN"
+      next unless event["action"] == "END"
+      unless index > 0 && events[index - 1]["action"] == "BEGIN"
+        # Calling this out because it would seriously bite us if it happened.
+        puts "Ordering issue!  GAH!  Perhaps results got interleaved oddly?!"
+        next
+      end
       raw       = url.split("/")
       bridge    = raw[2]
       light_id  = raw[6].to_i
