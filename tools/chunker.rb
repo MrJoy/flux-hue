@@ -4,9 +4,9 @@ require "set"
 require "chunky_png"
 require "json"
 
-def coalesce(item, digits)
-  [item["start"].round(digits),
-   item["duration"].round(digits)]
+def coalesce(item)
+  [(item["start"] * 1000).round,
+   (item["duration"] * 1000).round]
 end
 
 def safe_parse(raw)
@@ -40,14 +40,15 @@ def organize_rest_result(data)
   result
 end
 
-def chunk(items, step_size = 0.1, digits = 1)
+def chunk(items, step_size = 0.01)
   # TODO: This should be chunked at the granularity defined by SparkleMotion::Node::FRAME_PERIOD
   #
-  # TODO: We appear to be recording times at a granularity of 10ths of a second, but we probably
-  # TODO: want a digit more precision than that.
+  # TODO: We... probably do not want to blow up memory like this, but rather,
+  # TODO: round the time into frames, and when iterating over this, look at the
+  # TODO: gap length and proceed accordingly.
   chunks_out = Set.new
   items.each do |item|
-    start_bucket, duration = coalesce(item, digits)
+    start_bucket, duration = coalesce(item)
     (start_bucket..start_bucket + duration).step(step_size) do |x|
       chunks_out.add("payload" => item["payload"],
                      "success" => item["success"],
