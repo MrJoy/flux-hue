@@ -26,7 +26,7 @@ good_events = {}
 chunked     = {}
 all_events  = Set.new
 source      = ARGV.shift
-# dest        = "#{source.sub(/\.raw\z/, '')}.chunked"
+dest        = "#{source.sub(/\.raw\z/, '')}.yml"
 
 File.open(source, "r") do |f|
   f.each_line do |line|
@@ -66,6 +66,9 @@ end
 
 # require "pry"
 # binding.pry
+
+require "yaml"
+File.write(dest, chunked.to_yaml)
 
 # require "chunky_png"
 # size_x = chunked.values.map(&:count).max
