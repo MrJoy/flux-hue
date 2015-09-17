@@ -92,9 +92,22 @@ puts " #{(Time.now.to_f - before).round(2)} seconds."
 # require "pry"
 # binding.pry
 
+def stringify_keys(hash); Hash[hash.map { |key, val| [key.to_s, val] }]; end
+
+printf "Simplifying data for output..."
+before = Time.now.to_f
+arrays_not_sets = chunked.map { |idx, data| [idx, data.to_a] }
+simplified      = arrays_not_sets
+puts " #{(Time.now.to_f - before).round(2)} seconds."
+
+printf "Converting data to YAML..."
+before = Time.now.to_f
+output = Hash[simplified].to_yaml
+puts " #{(Time.now.to_f - before).round(2)} seconds."
+
 printf "Writing #{dest}..."
 before = Time.now.to_f
-File.write(dest, chunked.to_yaml)
+File.write(dest, output)
 puts " #{(Time.now.to_f - before).round(2)} seconds."
 
 # size_x = chunked.values.map(&:count).max
