@@ -60,6 +60,7 @@ bucketed.each do |url, events|
     raw       = url.split("/")
     bridge    = raw[2]
     light_id  = raw[6].to_i
+    # TODO: We'll need to pull config data to map this into a *logical* index!
     light     = [bridge, light_id].join("-")
     good_events[light] ||= []
     good_events[light].push(start:         events[index - 1][:time],
