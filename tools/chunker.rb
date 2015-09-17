@@ -10,7 +10,12 @@ def coalesce(item, digits)
 end
 
 def safe_parse(raw)
-  JSON.parse(raw)
+  tmp = JSON.parse(raw)
+  if tmp.is_a?(Hash) && tmp.key?("transitiontime")
+    # Transition time is in 10ths of a second.
+    tmp["transitiontime"] = tmp["transitiontime"] * 100
+  end
+  tmp
 rescue StandardError
   raw
 end
@@ -36,13 +41,17 @@ def organize_rest_result(data)
 end
 
 def chunk(items, step_size = 0.1, digits = 1)
+  # TODO: This should be chunked at the granularity defined by SparkleMotion::Node::FRAME_PERIOD
+  #
+  # TODO: We appear to be recording times at a granularity of 10ths of a second, but we probably
+  # TODO: want a digit more precision than that.
   chunks_out = Set.new
   items.each do |item|
     start_bucket, duration = coalesce(item, digits)
     (start_bucket..start_bucket + duration).step(step_size) do |x|
       chunks_out.add("payload" => item["payload"],
                      "success" => item["success"],
-                     "time"    => x.round(digits))
+                     "time"    => (x * 1000).round)
     end
   end
   chunks_out
