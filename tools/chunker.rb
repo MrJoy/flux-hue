@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
+require "yaml"
 require "set"
+require "chunky_png"
 
 def coalesce(item, digits)
   [item[:start].round(digits),
@@ -82,11 +84,9 @@ puts " #{(Time.now.to_f - before).round(2)} seconds."
 
 printf "Writing #{dest}..."
 before = Time.now.to_f
-require "yaml"
 File.write(dest, chunked.to_yaml)
 puts " #{(Time.now.to_f - before).round(2)} seconds."
 
-# require "chunky_png"
 # size_x = chunked.values.map(&:count).max
 # size_y = chunked.keys.last
 # png = ChunkyPNG::Image.new(size_x, size_y, ChunkyPNG::Color::TRANSPARENT)
