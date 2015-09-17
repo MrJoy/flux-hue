@@ -33,7 +33,10 @@ printf "Parsing raw data..."
 before = Time.now.to_f
 File.open(source, "r") do |f|
   f.each_line do |line|
-    elts    = line.split(",")
+    # TODO: Uh, we need proper CSV parsing here...  And proper CSV generation.
+    # TODO: In the meantime I'll cheat and rely on my knowledge that commas will
+    # TODO: only appear in the payload.
+    elts    = line.split(",", 4)
     parsed  = { time:    elts[0].to_f,
                 action:  elts[1],
                 url:     elts[2],
