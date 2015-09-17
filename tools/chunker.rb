@@ -57,13 +57,16 @@ before = Time.now.to_f
 bucketed.each do |url, events|
   events.each_with_index do |event, index|
     next unless event[:action] == "END" && index > 0 && events[index - 1][:action] == "BEGIN"
-    light_id = url.split("/")[6]
-    good_events[light_id.to_i] ||= []
-    good_events[light_id.to_i].push(start:         events[index - 1][:time],
-                                    duration:      event[:time] - events[index - 1][:time],
-                                    payload_begin: events[index - 1][:payload],
-                                    payload_end:   event[:payload],
-                                    light_id:      light_id.to_i)
+    raw       = url.split("/")
+    bridge    = raw[2]
+    light_id  = raw[6].to_i
+    light     = [bridge, light_id].join("-")
+    good_events[light] ||= []
+    good_events[light].push(start:         events[index - 1][:time],
+                            duration:      event[:time] - events[index - 1][:time],
+                            payload_begin: events[index - 1][:payload],
+                            payload_end:   event[:payload])
+                            # light_id:      [bridge, light_id])
   end
 end
 puts " #{(Time.now.to_f - before).round(2)} seconds."
