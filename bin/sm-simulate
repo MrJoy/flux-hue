@@ -213,9 +213,11 @@ sat_cfg["positions"].each_with_index do |pos, idx|
 end
 
 sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
+sl_base                 = sl_cfg["base"]
+sl_exp                  = sl_cfg["exponent"]
 last = NODES["SPOTLIT"] = SparkleMotion::Nodes::Transforms::Spotlight.new(source:   last,
-                                                                          base:     sl_cfg["base"],
-                                                                          exponent: sl_cfg["exponent"])
+                                                                          base:     sl_base,
+                                                                          exponent: sl_exp)
 FINAL_RESULT            = last # The end node that will be rendered to the lights.
 sl_colors               = sl_cfg["colors"]
 sl_map                  = sl_cfg["mappings"]
@@ -344,15 +346,7 @@ def guarded_thread(name, &block)
 end
 
 def launch_input_thread!
-  without_persistence do
-    setup_intensity_controls!
-    setup_saturation_controls!
-    setup_spotlight_controls!
-    setup_exit_controls!
-  end
-  # Don't send updates from our attempts at setting things up when we're
-  # picking up where we left of...
-  PENDING_COMMANDS.clear if HAVE_STATE_FILE
+  setup_control_state!
 
   return nil unless USE_INPUT
 
@@ -360,6 +354,19 @@ def launch_input_thread!
     Thread.stop
     INTERACTION.start
   end
+end
+
+def setup_control_state!
+  without_persistence do
+    setup_intensity_controls!
+    setup_saturation_controls!
+    setup_spotlight_controls!
+    setup_exit_controls!
+  end
+
+  # Don't send updates from our attempts at setting things up when we're
+  # picking up where we left of...
+  PENDING_COMMANDS.clear if HAVE_STATE_FILE
 end
 
 def launch_graph_thread!
@@ -384,32 +391,42 @@ def add_group_command!(config, data)
                         put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
 end
 
-def launch_sweep_threads!(sweep_cfg)
-  return [] unless USE_LIGHTS && USE_SWEEP
-  CONFIG["bridges"].map do |(name, config)|
-    hues        = sweep_cfg[name]["values"]
-    sweep_len   = sweep_cfg[name]["transition"]
-    sweep_wait  = sweep_cfg[name]["wait"]
-    if sweep_wait < sweep_len
-      LOGGER.warn { "Sweep[#{name}]: Wait should be at least as long as transition!" }
-    end
-    if sweep_wait < 1.0
-      LOGGER.warn { "Sweep[#{name}]: Wait should be at least 1 second!" }
-    end
-    guarded_thread("Sweeper") do
-      Thread.stop
+def launch_sweep_thread!(hues, sweep_len, sweep_wait)
+  guarded_thread("Sweeper") do
+    Thread.stop
 
-      loop do
-        before_time = Time.now.to_f
-        idx         = ((before_time / sweep_wait) % hues.length).floor
-        data        = with_transition_time({ "hue" => hues[idx] }, sweep_len)
-        add_group_command!(config, data)
+    loop do
+      before_time = Time.now.to_f
+      idx         = ((before_time / sweep_wait) % hues.length).floor
+      # TODO: Recycle this hash?
+      data        = with_transition_time({ "hue" => hues[idx] }, sweep_len)
+      add_group_command!(config, data)
 
-        elapsed = Time.now.to_f - before_time
-        sleep sweep_wait - elapsed if elapsed < sweep_wait
-      end
+      elapsed = Time.now.to_f - before_time
+      sleep sweep_wait - elapsed if elapsed < sweep_wait
     end
   end
+
+def launch_sweep_threads!(sweep_cfg)
+  return [] unless USE_LIGHTS && USE_SWEEP
+  CONFIG["bridges"].keys.map do |name|
+    hues, sweep_len, sweep_wait = sweep_params(sweep_cfg[name])
+
+    validate_sweep_timings!(name, sweep_len, sweep_wait)
+
+    launch_sweep_thread!(hues, sweep_len, sweep_wait)
+  end
+end
+
+def sweep_params(config)
+  [ sweep_cfg[name]["values"],
+    sweep_cfg[name]["transition"],
+    sweep_cfg[name]["wait"] ]
+end
+
+def validate_sweep_timings!(name, len, wait)
+  LOGGER.warn { "Sweep[#{name}]: Wait should be at least as long as transition!" } if wait < len
+  LOGGER.warn { "Sweep[#{name}]: Wait should be at least 1 second!" } if wait < 1.0
 end
 
 def launch_dummy_light_threads!

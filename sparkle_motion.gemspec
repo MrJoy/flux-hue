@@ -12,23 +12,21 @@ Gem::Specification.new do |s|
                               " from a Novation Launchpad"
   s.summary               = "Generative event lighting using Philips Hue, and Novation Launchpad"
   raw_file_list           = `git ls-files`.split("\n")
-  s.files                 = raw_file_list
-                            .reject do |fname|
-                              fname =~ %r{
-                                \A
-                                (\..*
-                                |Gemfile.*
-                                |notes/.*
-                                |tasks/.*
-                                |tools/.*
-                                |examples/.*
-                                |tmp/.*
-                                |Rakefile
-                                |.*\.sublime-project
-                                )
-                                \z
-                              }x
-                            end
+  blacklist               = %r{
+                              \A
+                              (\..*
+                              |Gemfile.*
+                              |notes/.*
+                              |tasks/.*
+                              |tools/.*
+                              |examples/.*
+                              |tmp/.*
+                              |Rakefile
+                              |.*\.sublime-project
+                              )
+                              \z
+                            }x
+  s.files                 = raw_file_list.reject { |fname| fname =~ blacklist }
   s.test_files            = `git ls-files -- {spec,features}/*`.split("\n")
   s.executables           = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
   s.extra_rdoc_files      = %w(CHANGELOG.md README.md LICENSE)
