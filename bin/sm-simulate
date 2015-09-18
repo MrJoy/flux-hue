@@ -594,7 +594,6 @@ def main
 
   print_results(global_results) if global_results
   dump_debug_data!
-  exit 127 if TIME_TO_DIE[1] == :restart
 end
 
 def profile!(&block)
@@ -621,3 +620,5 @@ profile! do
   bench_end! if defined?(bench_end!)
   main
 end
+
+exit 127 if TIME_TO_DIE[1] == :restart
