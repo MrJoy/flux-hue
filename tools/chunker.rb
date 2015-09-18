@@ -4,9 +4,13 @@ require "set"
 require "chunky_png"
 require "json"
 
-def coalesce(item)
-  [(item["start"] * 1000).round,
-   (item["duration"] * 1000).round]
+def in_ms(val); (val * 1000).round; end
+
+def coalesce(item, base_time, frame_time)
+  start_at = in_ms(item["start"]) - base_time
+  duration = in_ms(item["duration"])
+  # Return the starting *frame*...
+  ((start_at + duration) / frame_time.to_f).round
 end
 
 def safe_parse(raw)
@@ -40,7 +44,7 @@ def organize_rest_result(data)
   result
 end
 
-def chunk(items, step_size = 40)
+def chunk(items, base_time, frame_time = 40)
   # TODO: This should be chunked at the granularity defined by SparkleMotion::Node::FRAME_PERIOD
   #
   # TODO: We... probably do not want to blow up memory like this, but rather,
@@ -48,12 +52,19 @@ def chunk(items, step_size = 40)
   # TODO: gap length and proceed accordingly.
   chunks_out = Set.new
   items.each do |item|
-    start_bucket, duration = coalesce(item)
-    (start_bucket..start_bucket + duration).step(step_size) do |x|
-      chunks_out.add("payload" => item["payload"],
-                     "success" => item["success"],
-                     "time"    => x)
-    end
+    start_frame = coalesce(item, base_time, frame_time)
+    # TODO: Hrm.  Looking at duration is... not the right way to go.  We should
+    # TODO: probably assume that the light begins changing at roughly (start + duration)
+    # TODO: -- it definitely continues for some period of time towards the target value
+    # TODO: where that period is defined by the transition time...
+
+    # TODO: We need to interpolate, but we need the previous value as it existed
+    # TODO: when we started.  I.E. it may or may not have gotten done
+    # TODO: interpolating but wherever it had gotten to when we started
+    # TODO: is the starting point for our interpolation...
+    chunks_out.add("payload"     => item["payload"],
+                   "success"     => item["success"],
+                   "start_frame" => start_frame)
   end
   chunks_out
 end
@@ -122,15 +133,17 @@ end
 
 perform_with_timing "Extracting successful events" do
   base_times = []
-  good_events.each do |k, v|
+  good_events.each do |_k, v|
     v.sort_by! { |hsh| hsh["start"] }
     base_times << v[0]["start"]
-    chunked[k] = chunk(good_events[k])
+  end
+  chunked["base_time"] = (base_times.sort.first * 1000).round
+  good_events.each do |k, _v|
+    chunked[k] = chunk(good_events[k], chunked["base_time"])
     all_events.merge chunked[k]
     # all_events[k] ||= []
     # all_events[k] += chunked[k]
   end
-  chunked["base_time"] = (base_times.sort.first * 1000).round
 end
 
 # sorted = all_events.sort_by { |hsh| hsh[:time] }
