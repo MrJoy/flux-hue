@@ -87,9 +87,8 @@ lines       = []
 bucketed    = {}
 good_events = {}
 chunked     = {}
-all_events  = Set.new
 source      = ARGV.shift
-dest        = "#{source.sub(/\.raw\z/, '')}.yml"
+dest        = "#{source.sub(/\.raw\z/, '')}.png"
 
 perform_with_timing "Parsing raw data" do
   File.open(source, "r") do |f|
@@ -144,68 +143,53 @@ perform_with_timing "Extracting successful events" do
   base_time = (base_times.sort.first * 1000).round
   good_events.each do |k, _v|
     chunked[k] = chunk(good_events[k], base_time)
-    all_events.merge chunked[k]
-    # all_events[k] ||= []
-    # all_events[k] += chunked[k]
   end
 end
-
-# sorted = all_events.sort_by { |hsh| hsh[:time] }
-
-# require "pry"
-# binding.pry
 
 simplified = perform_with_timing "Simplifying data for output" do
   Hash[chunked.map { |idx, data| [idx, data.is_a?(Set) ? data.to_a : data] }]
 end
 
-output = perform_with_timing "Converting data to YAML" do
-  simplified.to_yaml
-end
-
-perform_with_timing "Writing #{dest}" do
-  File.write(dest, output)
-end
-
-def to_color(val)
-  ChunkyPNG::Color.rgba(val, val, val, 255)
+def to_color(payload, last_bri)
+  success = payload["status"]
+  val     = payload["bri"]
+  ChunkyPNG::Color.rgba(val, success ? val : 0, success ? val : 0, 255)
 end
 
 # TODO: This needs to be computed in terms of start_frame AND transitiontime...
-size_x  = simplified.keys.count * SCALE_X
-size_y  = (simplified.values.map { |l| l.map { |m| m["start_frame"] }.last }.sort.last + 1) * SCALE_Y
-png     = ChunkyPNG::Image.new(size_x, size_y, ChunkyPNG::Color::TRANSPARENT)
-max_y   = size_y - 1
+size_x = simplified.keys.count * SCALE_X
+size_y = (simplified.values.map { |l| l.map { |m| m["start_frame"] }.last }.sort.last + 1) * SCALE_Y
 puts "Expected target size: #{size_x}x#{size_y}"
-# require "pry"
-# binding.pry
-# TODO: Map the keys here into the index of lights!  Order by light position....
-simplified.keys.sort.each_with_index do |light, l_idx|
-  x_min = l_idx * SCALE_X
-  x_max = (x_min + SCALE_X) - 1
-  puts "#{x_min}..#{x_max}"
-  last_bri = 0
-  simplified[light].each_with_index do |cur_sample, s_idx|
-    next_sample   = simplified[light][s_idx + 1]
-    y_min         = cur_sample["start_frame"] * SCALE_Y
-    y_transition  = cur_sample["payload"]["transitiontime"]
-    if next_sample
-      y_max = next_sample["start_frame"] * SCALE_Y
-    else
-      y_max = y_min + ((y_transition / FRAME_TIME).round * SCALE_Y)
-    end
-    y_max -= 1
-    # puts "  #{cur_sample['start_frame']}: #{y_min}..#{y_max}"
-    (x_min..x_max).each do |x|
-      eff_y_max = (y_max > max_y) ? max_y : y_max
-      (y_min..eff_y_max).each do |y|
-        # TODO: Interpolation...
-        last_bri = cur_sample["payload"]["bri"]
-        png[x, y] = to_color(last_bri)
+perform_with_timing "Writing PNG" do
+  png   = ChunkyPNG::Image.new(size_x, size_y, ChunkyPNG::Color::TRANSPARENT)
+  max_y = size_y - 1
+  # require "pry"
+  # binding.pry
+  # TODO: Map the keys here into the index of lights!  Order by light position....
+  simplified.keys.sort.each_with_index do |light, l_idx|
+    x_min = l_idx * SCALE_X
+    x_max = (x_min + SCALE_X) - 1
+    last_bri = 0
+    simplified[light].each_with_index do |cur_sample, s_idx|
+      next_sample   = simplified[light][s_idx + 1]
+      y_min         = cur_sample["start_frame"] * SCALE_Y
+      y_transition  = cur_sample["payload"]["transitiontime"]
+      if next_sample
+        y_max = next_sample["start_frame"] * SCALE_Y
+      else
+        y_max = y_min + ((y_transition / FRAME_TIME).round * SCALE_Y)
       end
+      y_max -= 1
+      # puts "  #{cur_sample['start_frame']}: #{y_min}..#{y_max}"
+      (x_min..x_max).each do |x|
+        eff_y_max = (y_max > max_y) ? max_y : y_max
+        (y_min..eff_y_max).each do |y|
+          # TODO: Interpolation...
+          png[x, y] = to_color(cur_sample["payload"], last_bri)
+        end
+      end
+      last_bri = cur_sample["payload"]["bri"]
     end
-
   end
+  png.save(dest, interlace: false)
 end
-png.save(dest.sub(/\.yml\z/, ".png"), interlace: false)
-# Getting pretty close now. Sorted contains all the data, ordered by timestamp.
