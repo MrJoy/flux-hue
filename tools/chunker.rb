@@ -166,15 +166,15 @@ end
 # TODO: This needs to be computed in terms of start_frame AND transitiontime...
 size_x = simplified.keys.count * SCALE_X
 size_y = (simplified.values.map { |l| l.map { |m| m["start_frame"] }.last }.sort.last + 1) * SCALE_Y
+max_y  = size_y - 1
 puts "Expected target size: #{size_x}x#{size_y}"
 perform_with_timing "Writing PNG" do
   config  = YAML.load(File.read("config.yml"))
   png     = ChunkyPNG::Image.new(size_x, size_y, ChunkyPNG::Color::TRANSPARENT)
-  max_y   = size_y - 1
   # require "pry"
   # binding.pry
   # TODO: Map the keys here into the index of lights!  Order by light position....
-  simplified.keys.sort.each do |light|
+  keys = simplified.keys.sort.map do |light|
     bridge_id = config["bridges"].to_a.find { |(_id, br)| br["ip"] == light[0] }.first
     x_offset = 0
     # TODO: Make which light group we're looking at be configurable...
@@ -183,6 +183,11 @@ perform_with_timing "Writing PNG" do
       x_offset = idx
       break
     end
+    [x_offset, bridge_id, light]
+  end
+
+  keys.sort { |a, b| a[0] <=> b[0] }.each do |(x_offset, bridge_id, light)|
+    puts "%2d => %s, %d" % [x_offset, bridge_id, light[1]]
     x_min     = (x_offset * SCALE_X)
     x_max     = (x_min + SCALE_X) - 1
     last_bri  = 0
