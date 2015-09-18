@@ -1,8 +1,12 @@
 ###############################################################################
 # Performance Tuning
 ###############################################################################
+# http://eng.rightscale.com/2015/09/16/how-to-debug-ruby-memory-issues.html?utm_source=rubyweekly&utm_medium=email
+
 # How many heap slots to start with.  This helps with (re)start time:
 export RUBY_GC_HEAP_INIT_SLOTS=75000
+#export RUBY_GC_HEAP_GROWTH_FACTOR=??
+#export RUBY_GC_HEAP_GROWTH_MAX_SLOTS=??
 
 ###############################################################################
 # Visual Effects
