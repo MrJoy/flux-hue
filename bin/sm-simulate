@@ -13,6 +13,14 @@
 # def bench_end!
 #   @last_time = @first_time
 #   bench_snap!(2)
+
+#   # From: http://eng.rightscale.com/2015/09/16/how-to-debug-ruby-memory-issues.html
+#   GC.start # Start a full garbage collection
+#   s = GC.stat # Take a snapshot of the gc status
+#   recommended_slots = GC.stat(:heap_live_slots) * (s[:old_objects] / s[:heap_live_slots].to_f)
+
+#   puts s.inspect
+#   puts "Recommended heap slots: #{recommended_slots}"
 # end
 
 # TODO: Run update across nodes from back to front for simulation rather than
