@@ -1,0 +1,331 @@
+---
+# The username for the Philips Hue Bridge(s).  You can either create one and
+# set it here, or obtain generated ones and set them below.
+common_username: &common_username "1234567890"
+# The `max_connects`
+max_connects: 3
+bridges:
+  # List all of your Philips Hue Bridge(s) here.  I suggest keeping the ID info
+  # produced by `sm-discovery` in a comment next to the name so that when you're
+  # setting things up on-site and all your bridges get new DHCP-assigned
+  # addresses, you can quickly update the IP field here.
+  "Bridge-01": # 0017881226f3
+    ip: "192.168.2.10"
+    username: *common_username
+    debug_hue: 0
+  "Bridge-02": # 001788105eda
+    ip: "192.168.2.6"
+    username: *common_username
+    debug_hue: 25000
+  "Bridge-03": # 0017881853d0
+    ip: "192.168.2.7"
+    username: *common_username
+    debug_hue: 45000
+  "Bridge-04": # 0017881a1d5c
+    ip: "192.168.2.9"
+    username: *common_username
+    debug_hue: 12000
+light_groups:
+  # Groups of lights for different purposes.
+  #
+  # The numeric portion is the ID as *assigned by the Philips Hue Bridge*.
+  #
+  # Main Lights is the group for which the main simulation will be applied.
+  # It can be any number of lights from any number of bridges but you'll need to
+  # plan groups out for saturation controls.
+  main_lights:
+  - ["Bridge-01", 37]
+  - ["Bridge-01", 36]
+  - ["Bridge-01", 38]
+  - ["Bridge-01", 39]
+  - ["Bridge-01", 40]
+  - ["Bridge-01", 35]
+
+  - ["Bridge-02", 12]
+  - ["Bridge-02", 21]
+  - ["Bridge-02", 20]
+  - ["Bridge-02", 19]
+  - ["Bridge-02", 15]
+  - ["Bridge-02", 18]
+
+  - ["Bridge-03",  2]
+  - ["Bridge-03",  3]
+  - ["Bridge-03",  8]
+  - ["Bridge-03", 10]
+  - ["Bridge-03",  9]
+  - ["Bridge-03",  6]
+
+  - ["Bridge-04",  7]
+  - ["Bridge-04", 11]
+  - ["Bridge-04", 12]
+  - ["Bridge-04",  1]
+  - ["Bridge-04",  9]
+  - ["Bridge-04",  8]
+  # Dance Lights is the group of lights above the dance floor, which will
+  # (ultimately) get their own simulation, although updates will be interleaved
+  # with the main lights per-bridge.  It should be a positional map affording
+  # spatial coherence.
+  dance_lights:
+  - ["Bridge-01", 26]
+  - ["Bridge-02", 11]
+  - ["Bridge-03",  7]
+  - ["Bridge-04",  5]
+  # Accent lights are just... other lights in the system.  Not part of any
+  # simulation, they get their base color and that's it.
+  accent_lights:
+  - ["Bridge-01",  9]
+  - ["Bridge-01", 10]
+  - ["Bridge-01", 11]
+  - ["Bridge-01", 12]
+  - ["Bridge-01", 13]
+  - ["Bridge-01", 33]
+  - ["Bridge-01", 34]
+  - ["Bridge-02",  7]
+  - ["Bridge-02",  8]
+initial_state:
+  # This defines what state the lights will be set to when running `sm-on`.
+  # It's important you run `sm-on` *before* running `sparkle-motion`, as the
+  # latter makes no attempt to
+  hue: 49500
+  sat: 255
+  bri: 127
+simulation:
+  output:
+    # This controls the amount of time (in seconds, but only to a precision of
+    # 1/10th of a second) that it takes for the brightness of the lights to
+    # change when they're updated.  If a new update comes along while the light
+    # is still changing, then it will simply start moving from whatever
+    # brightness it's currently at to the new value, again spread over the full
+    # transition time.
+    transition: 0.2
+  sweep:
+    # This defines the color-swirl effect, per Hue Bridge.  It's a list of
+    # steps, the time take (in seconds) LERPing from color to color, and the
+    # time to wait between steps.
+    #
+    # Don't set wait much below 1.0!  ZigBee spec only allows 1 group
+    # update/sec, but Hue Bridge/lights seem to be *mostly* OK with about 1
+    # every 0.75 sec...
+    shared_sweep_transition: &shared_sweep_transition 0.5
+    shared_sweep_wait: &shared_sweep_wait 1.0
+
+    Bridge-01:
+      transition: 1.1
+      wait:       1.1
+      values:
+      - 0
+      - 5460
+      - 10923
+      - 16384
+      - 21845
+      - 27307
+      - 32768
+      - 38229
+      - 43691
+      - 49152
+      - 54613
+      - 60075
+    Bridge-02:
+      transition: 1.5
+      wait:       1.5
+      values:
+      - 21845
+      - 27307
+      - 32768
+      - 38229
+      - 43691
+      - 49152
+      - 54613
+      - 60075
+      - 5460
+      - 10923
+      - 16384
+    Bridge-03:
+      transition: 1.3
+      wait:       1.3
+      values:
+      - 38229
+      - 43691
+      - 49152
+      - 54613
+      - 60075
+      - 0
+      - 5460
+      - 10923
+      - 16384
+      - 21845
+      - 27307
+      - 32768
+    Bridge-04:
+      transition: 1.7
+      wait:       1.7
+      values:
+      - 54613
+      - 60075
+      - 0
+      - 5460
+      - 10923
+      - 16384
+      - 21845
+      - 27307
+      - 32768
+      - 38229
+      - 43691
+      - 49152
+      # - 5100
+      # - 49500
+      # - 4800
+      # - 4950
+  nodes:
+    perlin:
+      # The speed parameter as a multiplier on `(x, time)` to map the Perlin
+      # surface onto the lights.  Smaller values for the x component bring the
+      # lights closer together on that surface, and larger ones move them
+      # further apart.
+      #
+      # Similarly, smaller values for the y component cause the lights to move
+      # down the surface more slowly as time passes -- and larger ones cause
+      # quicker movement.
+      #
+      # Be mindful of how this plays out given how slow the Hue lights are to
+      # update!
+      #
+      # NOTE: I'm ignoring octaves and persitence for the moment as the low
+      # NOTE: precision for brightness and slow light updates make it easy for
+      # NOTE: that to just get in the way.
+      speed: [0.1, 4.0]
+    contrast:
+      # Performs a contrast-stretch on the Perlin noise generated above.
+      # This has the effect of spreading the values out across the range of
+      # brightnesses somewhat more evenly, as they'll tend to be centered
+      # pretty heavily around 0.5 otherwise.
+      #
+      # Function: LINEAR, CUBIC, QUINTIC -- don't bother using iterations > 1
+      # with LINEAR, as LINEAR is a no-op.
+      #
+      # The iteration count is how many times to stretch the value in successtion.
+      function:   cubic
+      iterations: 3
+  controls:
+    exit:
+      # Sometimes the process(es) on Hue Bridge that a thread is connected to
+      # (or possibly `libcurl` on our end) just seem to get... stuck.  It's
+      # very rare but it does happen.  Also, you may find heap growth to be an
+      # issue, and swapping might cause you some problems.  This allows a quick
+      # (under 0.5s last I measured) restart of the process.  It preserves state
+      # to disk as it goes, so it will come back quickly and gracefully with no
+      # more than a tiny hiccup in the simulation.
+      #
+      # Alternatively,  you may just want to do a quick reload after making a
+      # configuration change.
+      #
+      # Position is which of the control buttons to use for this
+      # kick-in-the-head function.
+      position: mixer
+      # What colors for the button.  Base color, and color while pressed.
+      colors:
+        "color": dark_gray
+        "down":  white
+    intensity:
+      # This is the set of controls for adjusting the intensity of the lights.
+      # You should define one position for each Philips Hue Bridge (as this is
+      # controlled via a group message to all lights).  The size defines the
+      # height or width of the widgets (depending on choice of
+      # vertical/horizontal slider), so leave room for one button per value
+      # when you compute your y coordinates (or x for horizontal).
+      widget: SparkleMotion::LaunchPad::Widgets::VerticalSlider
+      positions:
+      - [0, 3]
+      - [1, 3]
+      - [2, 3]
+      - [3, 3]
+      values:
+      # [Mid-point, delta].  Minimum brightness is `mid-point - delta` and max
+      # is `mid-point + delta`.
+      - [0.000, 0.000]
+      - [0.150, 0.075]
+      - [0.200, 0.100]
+      - [0.400, 0.150]
+      - [0.600, 0.200]
+      colors:
+        "on":   0x22003F
+        "off":  0x05000A
+        "down": 0x27103F
+    saturation:
+      # The desaturation controller.  As above, it's one control per bridge and
+      # the `size` defines the height/width of the control.
+      #
+      # Transition time is how quickly to transition the saturation.  I suggest
+      # not going too quickly because while the saturation is updated en masse
+      # via group update, the brightness is done per-bulb in the main rendering
+      # loop -- and you probably don't want to blind everyone during the
+      # transition time.
+      widget: SparkleMotion::LaunchPad::Widgets::VerticalSlider
+      transition: 0.5
+      positions:
+      - [4, 4]
+      - [5, 4]
+      - [6, 4]
+      - [7, 4]
+      # This defines which Hue Bridge, and which group on that bridge a control
+      # should affect.  It would be a bit nonsensical if this didn't correspond
+      # to the arrangement of lights for the intensity controls though.
+      groups:
+      - ["Bridge-01", 0]
+      - ["Bridge-02", 0]
+      - ["Bridge-03", 0]
+      - ["Bridge-04", 0]
+      values:
+      # Values are [saturation, maximum brightness] -- and null means "don't
+      # clamp brightness"
+      - [0.2, 0.00]
+      # - [0.4, 0.10]
+      - [0.6, 0.30]
+      - [0.8, 0.70]
+      - [1.0, null]
+      colors:
+        "on":   0x1C103F
+        "off":  0x03030C
+        "down": 0x10103F
+    spotlighting:
+      class: SparkleMotion::LaunchPad::Widgets::RadioGroup
+      # This defines the spotlighting effect.  The width and height of the
+      # widget are defined by the `mappings` configuration.  The choice of
+      # widget class is not configurable because at the moment there's only
+      # one option that will work.
+      position: [0, 0]
+      base:     0.9
+      exponent: 3
+      mappings:
+      # NOTE: Values are indexes into main_lights array.
+      #
+      # Excluding outermost lights because they extend beyond the seating area.
+      # This configuration gives two rows, one corresponding to each of the two
+      # light strands I'm putting up.
+      #
+      # Bridge 3/4:
+      - [14, 15, 16, 17,   18, 19, 20, 21]
+      # Bridge 1/2:
+      - [ 2, 3,  4,  5,     6,  7,  8,  9]
+      colors:
+        "on":   0x272700
+        "off":  0x020200
+        "down": 0x3F3F10
+# TODO: Either self-tune delays, or avoid sending refreshes to each light/group too fast?
+# TODO: Finish simulation visualization tool.
+# TODO: Re-parameterize sleep option, and maybe add a way to tweak it on the fly.
+# TODO: Way to tweak output transition time on the fly?
+# TODO: Play with X multiplier for Perlin component to see if that makes the lighting more visually interesting.
+# TODO: Way to tweak sweep transition time on the fly?
+# TODO: Have day/night configurations and a way to LERP between them.
+# TODO: Interactive tool for testing bulb positioning.
+# TODO: Group all writes to a bridge into a single thread.
+# TODO: Either self-tune delays, or avoid sending refreshes to each light/group too fast?
+#     TODO: Perhaps when we group things per-bridge we can keep track of when we last updated a given light and plan around that?
+# TODO: Dance-floor simulation / controls / behaviors?
+#     TODO: Perhaps just put everything into an X/Y grid structure and traverse Z as time?
+# TODO: Controls for accent lights?
+# TODO: Does Hue Bridge raw interface have any value here?
+# TODO: For color sweep, separate transition and wait time parameters.
+# TODO: De-duplicate the command queue before running it, and run it in a reliable way (E.G. retries with backoff)
+# TODO: Handy for persistence? http://ruby-doc.org/stdlib-2.2.3/libdoc/yaml/rdoc/YAML/Store.html
