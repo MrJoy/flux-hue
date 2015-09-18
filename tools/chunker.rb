@@ -56,7 +56,9 @@ def chunk(items, base_time, frame_time = FRAME_TIME)
   # TODO: gap length and proceed accordingly.
   chunks_out = Set.new
   items.each do |item|
+    transition  = (item["payload"]["transitiontime"] / frame_time).round
     start_frame = coalesce(item, base_time, frame_time)
+    end_frame   = start_frame + transition
     # TODO: Hrm.  Looking at duration is... not the right way to go.  We should
     # TODO: probably assume that the light begins changing at roughly (start + duration)
     # TODO: -- it definitely continues for some period of time towards the target value
@@ -66,9 +68,11 @@ def chunk(items, base_time, frame_time = FRAME_TIME)
     # TODO: when we started.  I.E. it may or may not have gotten done
     # TODO: interpolating but wherever it had gotten to when we started
     # TODO: is the starting point for our interpolation...
-    chunks_out.add("payload"     => item["payload"],
-                   "success"     => item["success"],
-                   "start_frame" => start_frame)
+    chunks_out.add("success"        => item["success"],
+                   "bri"            => item["payload"]["bri"],
+                   "transitiontime" => transition,
+                   "start_frame"    => start_frame,
+                   "end_frame"      => end_frame)
   end
   chunks_out
 end
@@ -150,9 +154,13 @@ simplified = perform_with_timing "Simplifying data for output" do
   Hash[chunked.map { |idx, data| [idx, data.is_a?(Set) ? data.to_a : data] }]
 end
 
-def to_color(rel_y, payload, success, last_bri)
-  val = payload["bri"]
-  ChunkyPNG::Color.rgba(val, success ? val : 0, success ? val : 0, 255)
+def to_color(rel_y, target_y, payload, last_bri)
+  lerp     = (rel_y.to_f / target_y.to_f)
+  lerp     = 1.0 if lerp > 1.0
+  next_bri = payload["bri"]
+  cur_bri  = (last_bri + (lerp * (next_bri - last_bri))).round
+  gb       = payload["success"] ? cur_bri : 0
+  ChunkyPNG::Color.rgba(cur_bri, gb, gb, 255)
 end
 
 # TODO: This needs to be computed in terms of start_frame AND transitiontime...
@@ -166,7 +174,7 @@ perform_with_timing "Writing PNG" do
   # require "pry"
   # binding.pry
   # TODO: Map the keys here into the index of lights!  Order by light position....
-  simplified.keys.sort.each_with_index do |light, l_idx|
+  simplified.keys.sort.each do |light|
     bridge_id = config["bridges"].to_a.find { |(_id, br)| br["ip"] == light[0] }.first
     x_offset = 0
     # TODO: Make which light group we're looking at be configurable...
@@ -181,22 +189,30 @@ perform_with_timing "Writing PNG" do
     simplified[light].each_with_index do |cur_sample, s_idx|
       next_sample   = simplified[light][s_idx + 1]
       y_min         = cur_sample["start_frame"] * SCALE_Y
-      y_transition  = cur_sample["payload"]["transitiontime"]
+      y_max_target  = cur_sample["end_frame"] * SCALE_Y - 1
+      rel_y_target  = y_max_target - y_min
       if next_sample
-        y_max = next_sample["start_frame"] * SCALE_Y
+        alt_y_max = (next_sample["start_frame"] * SCALE_Y) - 1
+        # if alt_y_max <= y_max_target
+          # Perfect timing if they're equal.  So very unlikely...
+          # If they're not equal: Overlap -- we cut ourselves off before the transition finished.
+          y_max = alt_y_max
+        # else
+        #   # We have a gap where the transition time finished, but we haven't
+        #   # received a new command yet.
+        #   y_max = y_max_target
+        # end
       else
-        y_max = y_min + ((y_transition / FRAME_TIME).round * SCALE_Y)
+        y_max = y_max_target
+        y_max = (y_max > max_y) ? max_y : y_max
       end
-      y_max -= 1
-      # puts "  #{cur_sample['start_frame']}: #{y_min}..#{y_max}"
       (x_min..x_max).each do |x|
-        eff_y_max = (y_max > max_y) ? max_y : y_max
-        (y_min..eff_y_max).each do |y|
-          # TODO: Interpolation...
-          png[x, y] = to_color(y - y_min, cur_sample["payload"], cur_sample["success"], last_bri)
+        (y_min..y_max).each do |y|
+          rel_y = y - y_min
+          png[x, y] = to_color(rel_y, rel_y_target, cur_sample, last_bri)
         end
       end
-      last_bri = cur_sample["payload"]["bri"]
+      last_bri = cur_sample["bri"]
     end
   end
   png.save(dest, interlace: false)
