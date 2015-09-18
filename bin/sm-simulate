@@ -391,7 +391,7 @@ def add_group_command!(config, data)
                         put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
 end
 
-def launch_sweep_thread!(hues, sweep_len, sweep_wait)
+def launch_sweep_thread!(config, hues, sweep_len, sweep_wait)
   guarded_thread("Sweeper") do
     Thread.stop
 
@@ -409,12 +409,12 @@ end
 
 def launch_sweep_threads!(sweep_cfg)
   return [] unless USE_LIGHTS && USE_SWEEP
-  CONFIG["bridges"].keys.map do |name|
+  CONFIG["bridges"].map do |(name, config)|
     hues, sweep_len, sweep_wait = sweep_params(sweep_cfg[name])
 
     validate_sweep_timings!(name, sweep_len, sweep_wait)
 
-    launch_sweep_thread!(hues, sweep_len, sweep_wait)
+    launch_sweep_thread!(config, hues, sweep_len, sweep_wait)
   end
 end
 
