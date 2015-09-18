@@ -2,7 +2,7 @@ module SparkleMotion
   # Base class representing the state of an ordered set of lights, with an ability to debug
   # things via PNG dump.
   class Node
-    FRAME_PERIOD  = 0.04
+    FRAME_PERIOD  = 0.1
     DEBUG_SCALE   = Vector2.new(2, 1)
 
     attr_accessor :history, :debug, :lights

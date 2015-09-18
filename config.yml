@@ -97,7 +97,7 @@ simulation:
     # is still changing, then it will simply start moving from whatever
     # brightness it's currently at to the new value, again spread over the full
     # transition time.
-    transition: 0.3
+    transition: 0.1
   sweep:
     # This defines the color-swirl effect, per Hue Bridge.  It's a list of
     # steps, the time take (in seconds) LERPing from color to color, and the
