@@ -1,4 +1,10 @@
 ###############################################################################
+# Performance Tuning
+###############################################################################
+# How many heap slots to start with.  This helps with (re)start time:
+export RUBY_GC_HEAP_INIT_SLOTS=75000
+
+###############################################################################
 # Visual Effects
 ###############################################################################
 # Whether to use background sweep thread for saw-tooth pattern on hue:
