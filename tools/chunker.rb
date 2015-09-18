@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 require "yaml"
+require "json"
 require "set"
 require "chunky_png"
-require "json"
 
 FRAME_TIME  = 40
 SCALE_X     = 40
@@ -123,7 +123,7 @@ perform_with_timing "Organizing data" do
       bridge    = raw[2]
       light_id  = raw[6].to_i
       # TODO: We'll need to pull config data to map this into a *logical* index!
-      light     = [bridge, light_id].join("-")
+      light     = [bridge, light_id]
       good_events[light] ||= []
       good_events[light].push("start"     => events[index - 1]["time"],
                               "duration"  => event["time"] - events[index - 1]["time"],
@@ -160,15 +160,24 @@ size_x = simplified.keys.count * SCALE_X
 size_y = (simplified.values.map { |l| l.map { |m| m["start_frame"] }.last }.sort.last + 1) * SCALE_Y
 puts "Expected target size: #{size_x}x#{size_y}"
 perform_with_timing "Writing PNG" do
-  png   = ChunkyPNG::Image.new(size_x, size_y, ChunkyPNG::Color::TRANSPARENT)
-  max_y = size_y - 1
+  config  = YAML.load(File.read("config.yml"))
+  png     = ChunkyPNG::Image.new(size_x, size_y, ChunkyPNG::Color::TRANSPARENT)
+  max_y   = size_y - 1
   # require "pry"
   # binding.pry
   # TODO: Map the keys here into the index of lights!  Order by light position....
   simplified.keys.sort.each_with_index do |light, l_idx|
-    x_min = l_idx * SCALE_X
-    x_max = (x_min + SCALE_X) - 1
-    last_bri = 0
+    bridge_id = config["bridges"].to_a.find { |(_id, br)| br["ip"] == light[0] }.first
+    x_offset = 0
+    # TODO: Make which light group we're looking at be configurable...
+    config["light_groups"]["main_lights"].each_with_index do |light_ref, idx|
+      next unless light_ref[0] == bridge_id && light_ref[1] == light[1]
+      x_offset = idx
+      break
+    end
+    x_min     = (x_offset * SCALE_X)
+    x_max     = (x_min + SCALE_X) - 1
+    last_bri  = 0
     simplified[light].each_with_index do |cur_sample, s_idx|
       next_sample   = simplified[light][s_idx + 1]
       y_min         = cur_sample["start_frame"] * SCALE_Y
