@@ -1,4 +1,8 @@
 #!/usr/bin/env ruby
+# Benchmarks:
+#   Baseline:         0.16..0.20
+#   Heap Slot Tuning: 0.15..0.20
+
 # def bench_init!; @first_time = @last_time = Time.now.to_f; end
 
 # def bench_snap!(depth = 0)
