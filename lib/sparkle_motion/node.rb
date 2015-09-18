@@ -71,7 +71,7 @@ module SparkleMotion
 
     def to_color(val)
       # Based on precision of Hue API...
-      z = (val * 254).to_i
+      z = (val * 254).round
       ChunkyPNG::Color.rgba(z, z, z, 255)
     end
   end
