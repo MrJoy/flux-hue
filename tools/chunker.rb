@@ -4,6 +4,10 @@ require "set"
 require "chunky_png"
 require "json"
 
+FRAME_TIME  = 40
+SCALE_X     = 40
+SCALE_Y     = 4 # About 10ms per pixel....
+
 def in_ms(val); (val * 1000).round; end
 
 def coalesce(item, base_time, frame_time)
@@ -44,7 +48,7 @@ def organize_rest_result(data)
   result
 end
 
-def chunk(items, base_time, frame_time = 40)
+def chunk(items, base_time, frame_time = FRAME_TIME)
   # TODO: This should be chunked at the granularity defined by SparkleMotion::Node::FRAME_PERIOD
   #
   # TODO: We... probably do not want to blow up memory like this, but rather,
@@ -82,7 +86,7 @@ def stringify_keys(hash); Hash[hash.map { |key, val| [key.to_s, val] }]; end
 lines       = []
 bucketed    = {}
 good_events = {}
-chunked     = { "base_time" => nil }
+chunked     = {}
 all_events  = Set.new
 source      = ARGV.shift
 dest        = "#{source.sub(/\.raw\z/, '')}.yml"
@@ -137,9 +141,9 @@ perform_with_timing "Extracting successful events" do
     v.sort_by! { |hsh| hsh["start"] }
     base_times << v[0]["start"]
   end
-  chunked["base_time"] = (base_times.sort.first * 1000).round
+  base_time = (base_times.sort.first * 1000).round
   good_events.each do |k, _v|
-    chunked[k] = chunk(good_events[k], chunked["base_time"])
+    chunked[k] = chunk(good_events[k], base_time)
     all_events.merge chunked[k]
     # all_events[k] ||= []
     # all_events[k] += chunked[k]
@@ -163,8 +167,45 @@ perform_with_timing "Writing #{dest}" do
   File.write(dest, output)
 end
 
-# size_x = chunked.values.map(&:count).max
-# size_y = chunked.keys.last
-# png = ChunkyPNG::Image.new(size_x, size_y, ChunkyPNG::Color::TRANSPARENT)
+def to_color(val)
+  ChunkyPNG::Color.rgba(val, val, val, 255)
+end
 
+# TODO: This needs to be computed in terms of start_frame AND transitiontime...
+size_x  = simplified.keys.count * SCALE_X
+size_y  = (simplified.values.map { |l| l.map { |m| m["start_frame"] }.last }.sort.last + 1) * SCALE_Y
+png     = ChunkyPNG::Image.new(size_x, size_y, ChunkyPNG::Color::TRANSPARENT)
+max_y   = size_y - 1
+puts "Expected target size: #{size_x}x#{size_y}"
+# require "pry"
+# binding.pry
+# TODO: Map the keys here into the index of lights!  Order by light position....
+simplified.keys.sort.each_with_index do |light, l_idx|
+  x_min = l_idx * SCALE_X
+  x_max = (x_min + SCALE_X) - 1
+  puts "#{x_min}..#{x_max}"
+  last_bri = 0
+  simplified[light].each_with_index do |cur_sample, s_idx|
+    next_sample   = simplified[light][s_idx + 1]
+    y_min         = cur_sample["start_frame"] * SCALE_Y
+    y_transition  = cur_sample["payload"]["transitiontime"]
+    if next_sample
+      y_max = next_sample["start_frame"] * SCALE_Y
+    else
+      y_max = y_min + ((y_transition / FRAME_TIME).round * SCALE_Y)
+    end
+    y_max -= 1
+    # puts "  #{cur_sample['start_frame']}: #{y_min}..#{y_max}"
+    (x_min..x_max).each do |x|
+      eff_y_max = (y_max > max_y) ? max_y : y_max
+      (y_min..eff_y_max).each do |y|
+        # TODO: Interpolation...
+        last_bri = cur_sample["payload"]["bri"]
+        png[x, y] = to_color(last_bri)
+      end
+    end
+
+  end
+end
+png.save(dest.sub(/\.yml\z/, ".png"), interlace: false)
 # Getting pretty close now. Sorted contains all the data, ordered by timestamp.
