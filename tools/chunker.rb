@@ -150,9 +150,8 @@ simplified = perform_with_timing "Simplifying data for output" do
   Hash[chunked.map { |idx, data| [idx, data.is_a?(Set) ? data.to_a : data] }]
 end
 
-def to_color(payload, last_bri)
-  success = payload["status"]
-  val     = payload["bri"]
+def to_color(rel_y, payload, success, last_bri)
+  val = payload["bri"]
   ChunkyPNG::Color.rgba(val, success ? val : 0, success ? val : 0, 255)
 end
 
@@ -185,7 +184,7 @@ perform_with_timing "Writing PNG" do
         eff_y_max = (y_max > max_y) ? max_y : y_max
         (y_min..eff_y_max).each do |y|
           # TODO: Interpolation...
-          png[x, y] = to_color(cur_sample["payload"], last_bri)
+          png[x, y] = to_color(y - y_min, cur_sample["payload"], cur_sample["success"], last_bri)
         end
       end
       last_bri = cur_sample["payload"]["bri"]
