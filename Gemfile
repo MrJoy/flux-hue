@@ -1,6 +1,7 @@
 # rubocop:disable Style/LeadingCommentSpace
 #ruby-gemset=sparkle_motion
 # rubocop:enable Style/LeadingCommentSpace
+# TODO: Look into this --> https://github.com/skaes/rvm-patchsets
 source "https://rubygems.org"
 ruby "2.2.3"
 

@@ -277,9 +277,9 @@ def stop_ruby_prof!
   return unless PROFILE_RUN == "ruby-prof"
 
   result  = RubyProf.stop
-  printer = RubyProf::CallStackPrinter.new(result)
+  printer = RubyProf::CallTreePrinter.new(result)
   File.open("tmp/results.html", "w") do |fh|
-    printer.print(fh)
+    printer.print(fh, min_percent: 1)
   end
 end
 
