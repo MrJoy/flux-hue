@@ -67,7 +67,7 @@ USE_LIGHTS  = env_bool("USE_LIGHTS")
 USE_INPUT   = env_bool("USE_INPUT")
 USE_SWEEP   = env_bool("USE_SWEEP")
 USE_GRAPH   = env_bool("USE_GRAPH")
-SparkleMotion.use_hue!(api: true) if USE_LIGHTS
+SparkleMotion.use_hue!(api: true)
 SparkleMotion.use_widgets!
 SparkleMotion.use_input! if USE_INPUT
 
