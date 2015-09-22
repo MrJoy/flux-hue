@@ -25,7 +25,7 @@ GEM
       eventmachine (>= 1.0.0.beta.1)
     eventmachine (1.0.8)
     ffi (1.9.10)
-    frisky (0.1.1)
+    frisky (0.1.2)
       em-synchrony
       eventmachine (>= 1.0.0)
       log_switch (~> 1.0.0)
