@@ -29,7 +29,7 @@ def unpack_vector_in_place!(cfg)
   end
 end
 
-CONFIG = YAML.load_file("config.yml")
+CONFIG = YAML.load(ERB.new(File.read("config.yml"), nil, "-").result(binding))
 CONFIG["bridges"].map do |name, cfg|
   cfg["name"] = name
 end

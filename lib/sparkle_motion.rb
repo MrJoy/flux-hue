@@ -7,6 +7,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 # require "rubygems"
 # require "bundler/setup"
 
+require "erb"
 require "yaml"
 require "logger-better"
 
