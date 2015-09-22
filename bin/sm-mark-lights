@@ -19,7 +19,7 @@ def light_state(hue, index, num_lights)
   target      = (254 * (index / num_lights.to_f)).round
   data        = { "on" => true,
                   "hue" => hue,
-                  "sat" => target,
+                  "sat" => 255,
                   "bri" => target }
   with_transition_time(data, 0)
 end
