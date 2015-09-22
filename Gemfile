@@ -1,7 +1,10 @@
 # rubocop:disable Style/LeadingCommentSpace
 #ruby-gemset=sparkle_motion
 # rubocop:enable Style/LeadingCommentSpace
-# TODO: Look into this --> https://github.com/skaes/rvm-patchsets
+# TODO: Look into these:
+# TODO:   https://github.com/skaes/rvm-patchsets
+# TODO:   http://tmm1.net/ruby21-rgengc/
+# TODO:   http://blog.paracode.com/2015/08/28/ruby-and-go-sitting-in-a-tree
 source "https://rubygems.org"
 ruby "2.2.3"
 
