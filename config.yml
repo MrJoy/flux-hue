@@ -1,3 +1,10 @@
+<%-
+def color_step(steps); ((((160.0 / 360.0) * 65536) * steps) % 65536).round; end
+
+base_hue  = 50_000
+min_hue   = base_hue - 2_000
+max_hue   = base_hue + 2_000
+-%>
 ---
 # The username for the Philips Hue Bridge(s).  You can either create one and
 # set it here, or obtain generated ones and set them below.
@@ -12,19 +19,19 @@ bridges:
   "Bridge-01": # 0017881226f3
     ip: "192.168.2.10"
     username: *common_username
-    debug_hue: 0
+    debug_hue: <%= color_step(0) %>
   "Bridge-02": # 001788105eda
     ip: "192.168.2.6"
     username: *common_username
-    debug_hue: 25000
+    debug_hue: <%= color_step(1) %>
   "Bridge-03": # 0017881853d0
     ip: "192.168.2.7"
     username: *common_username
-    debug_hue: 45000
+    debug_hue: <%= color_step(2) %>
   "Bridge-04": # 0017881a1d5c
     ip: "192.168.2.9"
     username: *common_username
-    debug_hue: 12000
+    debug_hue: <%= color_step(3) %>
 light_groups:
   # Groups of lights for different purposes.
   #
@@ -86,7 +93,7 @@ initial_state:
   # This defines what state the lights will be set to when running `sm-on`.
   # It's important you run `sm-on` *before* running `sparkle-motion`, as the
   # latter makes no attempt to
-  hue: 49500
+  hue: <%= base_hue %>
   sat: 255
   bri: 127
 simulation:
@@ -113,34 +120,34 @@ simulation:
       transition: *shared_sweep_transition
       wait:       *shared_sweep_wait
       values:
-      - 49500
-      - 48000
-      - 49500
-      - 51000
+      - <%= base_hue %>
+      - <%= min_hue %>
+      - <%= base_hue %>
+      - <%= max_hue %>
     Bridge-02:
       transition: *shared_sweep_transition
       wait:       *shared_sweep_wait
       values:
-      - 48000
-      - 49500
-      - 51000
-      - 49500
+      - <%= min_hue %>
+      - <%= base_hue %>
+      - <%= max_hue %>
+      - <%= base_hue %>
     Bridge-03:
       transition: *shared_sweep_transition
       wait:       *shared_sweep_wait
       values:
-      - 49500
-      - 51000
-      - 49500
-      - 48000
+      - <%= base_hue %>
+      - <%= max_hue %>
+      - <%= base_hue %>
+      - <%= min_hue %>
     Bridge-04:
       transition: *shared_sweep_transition
       wait:       *shared_sweep_wait
       values:
-      - 51000
-      - 49500
-      - 48000
-      - 49500
+      - <%= max_hue %>
+      - <%= base_hue %>
+      - <%= min_hue %>
+      - <%= base_hue %>
       # - 5100
       # - 49500
       # - 4800
