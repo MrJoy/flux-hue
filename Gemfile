@@ -68,6 +68,10 @@ group :development do
   gem "oily_png",         require: false
 end
 
+# gem "ncursesw-ruby" # https://github.com/sup-heliotrope/ncursesw-ruby
+# gem "curses" # https://github.com/ruby/curses/blob/master/sample/hello.rb
+# gem "ncurses-ruby" # https://github.com/eclubb/ncurses-ruby
+
 # Measure memory usage thusly:
 #   pid, size = `ps ax -o pid,rss | grep -E "^[[:space:]]*#{$$}"`.strip.split.map(&:to_i)
 # Note problem of PID 1234 when PID 12345 exists... Maybe use this instead:
