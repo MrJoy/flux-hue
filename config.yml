@@ -97,6 +97,19 @@ initial_state:
   hue: <%= base_hue %>
   sat: 255
   bri: 127
+controllers:
+  # Specify which controllers you want to use here.  You can refer to them via
+  # the hash key later on.  Any field other than `class` is sent as a parameter
+  # to the constructor, so if you want to control multiple Novation Launchpads,
+  # for example, you could add a `name` attribute to differentiate them when
+  # the code searches for the devices.
+  #
+  # At the moment there's some notable hard-coding and a generally poor
+  # structural model for this stuff.  It needs a massive refactor.
+  launchpad:
+    class: SurfaceMaster::Launchpad::Interaction
+  orbit:
+    class: SurfaceMaster::Orbit::Interaction
 simulation:
   output:
     # This controls the amount of time (in seconds, but only to a precision of

@@ -95,7 +95,16 @@ DEBUG_FLAGS   = Hash[(ENV["DEBUG_NODES"] || "")
 # TODO: Run all simulations, and use a mixer to blend between them...
 num_lights              = CONFIG["light_groups"]["main_lights"].length
 LIGHTS_FOR_THREADS      = SparkleMotion::LightConfig.new(config: CONFIG, group: "main_lights")
-INTERACTION             = USE_INPUT ? SurfaceMaster::Launchpad::Interaction.new : nil
+if USE_INPUT
+  controllers = {}
+  CONFIG["controllers"].each do |name, config|
+    klass = config.delete("class")
+    controllers[name] = Kernel.const_get(klass).new(config)
+  end
+  INTERACTIONS = controllers
+else
+  INTERACTIONS = nil
+end
 INT_STATES              = []
 NODES                   = {}
 PENDING_COMMANDS        = Queue.new
@@ -162,7 +171,7 @@ LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), id
   pos             = SparkleMotion::Vector2.new(intensity_cfg["positions"][idx])
   size            = int_vals.length
   int_widget      = Kernel.const_get(intensity_cfg["widget"])
-  INT_STATES[idx] = int_widget.new(launchpad: INTERACTION,
+  INT_STATES[idx] = int_widget.new(launchpad: INTERACTIONS["launchpad"],
                                    position:  pos,
                                    size:      size,
                                    colors:    int_colors,
@@ -195,7 +204,8 @@ sat_cfg["positions"].each_with_index do |pos, idx|
   sat_key       = "SAT_STATES[#{idx}]"
   sat_pos       = SparkleMotion::Vector2.new(pos)
   int_key       = "SHIFTED_#{idx}"
-  SAT_STATES << sat_widget.new(launchpad: INTERACTION,
+  SAT_STATES << sat_widget.new(launchpad: INTERACTIONS["launchpad"],
+                               orbit:     INTERACTIONS["orbit"],
                                position:  sat_pos,
                                size:      sat_vals.length,
                                colors:    sat_colors,
@@ -224,7 +234,7 @@ sl_key                  = "SPOTLIT"
 sl_pos                  = SparkleMotion::Vector2.new(sl_cfg["position"])
 sl_size                 = SparkleMotion::Vector2.new(sl_map.map(&:length).sort[-1], sl_map.length)
 sl_widget               = Kernel.const_get(sl_cfg["class"])
-SL_STATE                = sl_widget.new(launchpad:   INTERACTION,
+SL_STATE                = sl_widget.new(launchpad:   INTERACTIONS["launchpad"],
                                         position:    sl_pos,
                                         size:        sl_size,
                                         colors:      sl_colors,
@@ -254,7 +264,7 @@ TIME_TO_DIE               = [false, :terminate]
 ###############################################################################
 # TODO: Make this optional.
 e_cfg = CONFIG["simulation"]["controls"]["exit"]
-EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTION,
+EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTIONS["launchpad"],
                                                             position:  e_cfg["position"].to_sym,
                                                             colors:    e_cfg["colors"],
                                                             on_press:  lambda do |value|
@@ -344,14 +354,20 @@ def guarded_thread(name, &block)
   Thread.new { guard_call(name, &block) }
 end
 
-def launch_input_thread!
+def launch_input_thread!(name, controller)
+  guarded_thread("Input Handler: #{name}") do
+    Thread.stop
+    controller.start
+  end
+end
+
+def launch_input_threads!
   setup_control_state!
 
-  return nil unless USE_INPUT
+  return [] unless USE_INPUT
 
-  guarded_thread("Input Handler") do
-    Thread.stop
-    INTERACTION.start
+  INTERACTIONS.map do |(name, controller)|
+    launch_input_thread!(name, controller)
   end
 end
 
@@ -507,7 +523,7 @@ def launch_light_threads!(cfg, global_results, debug)
 end
 
 def launch_all_threads!(sim_cfg, global_results)
-  tmp = { input:  [launch_input_thread!].compact,
+  tmp = { input:  launch_input_threads!.compact,
           graph:  [launch_graph_thread!].compact,
           sweep:  launch_sweep_threads!(sim_cfg["sweep"]).compact,
           lights: launch_light_threads!(sim_cfg["output"], global_results, DEBUG_FLAGS["OUTPUT"]) }
