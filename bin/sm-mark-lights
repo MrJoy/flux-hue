@@ -16,7 +16,7 @@ extend SparkleMotion::Hue::HTTP
 ###############################################################################
 # TODO: Use Novation Launchpad to be able to toggle lights.
 def light_state(hue, index, num_lights)
-  target      = (254 * (index / num_lights.to_f)).round
+  target      = (232 * (index / num_lights.to_f)).round + 23
   data        = { "on" => true,
                   "hue" => hue,
                   "sat" => 255,

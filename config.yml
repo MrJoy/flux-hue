@@ -1,5 +1,5 @@
 <%-
-def color_step(steps); ((((160.0 / 360.0) * 65536) * steps) % 65536).round; end
+def color_step(steps); ((((120.0 / 360.0) * 65536) * steps) % 65536).round; end
 
 base_hue  = 50_000
 min_hue   = base_hue - 2_000
