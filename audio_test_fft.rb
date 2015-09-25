@@ -8,7 +8,7 @@ require "fftw3"
 
 Thread.abort_on_exception = true
 
-WINDOW = 4096
+WINDOW = 1024
 
 inbuf = CoreAudio.default_input_device.input_buffer(WINDOW)
 
