@@ -22,6 +22,8 @@ module SparkleMotion
         end
 
         def update(t)
+          # TODO: When spotlight is in effect, we should be able to elide the parent
+          # TODO: calculations.
           super(t) do |x|
             val = @source[x]
             if @spotlight
