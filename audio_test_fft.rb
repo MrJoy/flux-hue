@@ -38,7 +38,7 @@ inbuf.start
 outbuf.start
 $stdout.print "loopback..."
 $stdout.flush
-sleep 10;
+$stdin.gets
 queue.push(nil)
 inbuf.stop
 outbuf.stop
