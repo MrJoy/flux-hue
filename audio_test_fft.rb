@@ -17,6 +17,7 @@ SAMPLE_RATE = device.actual_rate
 
 puts "Sampling at #{SAMPLE_RATE}hz from #{device.name}..."
 # def bin_freq(idx); (idx * SAMPLE_RATE) / WINDOW; end
+# TODO: Do I need to add 1 to compensate for the DC bin?
 def freq_bin(hz); ((hz * WINDOW) / SAMPLE_RATE).round; end
 
 # Only care about frequencies from 300hz to 3khz...
