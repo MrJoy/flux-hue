@@ -16,8 +16,11 @@ queue = Queue.new
 pitch_shift_th = Thread.start do
   while w = queue.pop
     f = FFTW3.fft(w, 1)
+
+    # Because of NArray, the `map` eaves magnitude of each `Complex` in the
+    # real component of a new Complex. >.<
     amplitudes    = f[0, 1..(w.shape[1] - 1)]
-                    .map { |n| n.magnitude } # Leaves magnitude in the real component of a new Complex. >.<
+                    .map { |n| n.magnitude }
     avg_amplitude = amplitudes.sum.real / WINDOW
     puts avg_amplitude.round(1)
   end
