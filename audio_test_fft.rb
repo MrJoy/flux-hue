@@ -8,8 +8,10 @@ require "fftw3"
 
 Thread.abort_on_exception = true
 
+DEVICE_ID   = ARGV.shift.to_i
 WINDOW      = 1024
-device      = CoreAudio.default_input_device
+device      = CoreAudio.devices.find { |dev| dev.devid == DEVICE_ID.to_i }
+fail "No such device ID!" unless device
 inbuf       = device.input_buffer(WINDOW)
 SAMPLE_RATE = device.actual_rate
 
