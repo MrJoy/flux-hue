@@ -45,6 +45,8 @@ pitch_shift_th = Thread.start do
     w = queue.pop
     break unless w
 
+    # TODO: We get back a 2D matrix.  We're blithely ignoring one dimension.
+    # TODO: Is that about stereo channels, or something else?
     f = FFTW3.fft(w, 1)
 
     # Because of NArray, the `map` eaves magnitude of each `Complex` in the
