@@ -39,6 +39,8 @@ num_bins  = bin_end - bin_start + 1
 
 queue = Queue.new
 pitch_shift_th = Thread.start do
+  min = Float::INFINITY
+  max = 0.0
   loop do
     w = queue.pop
     break unless w
@@ -49,7 +51,9 @@ pitch_shift_th = Thread.start do
     # real component of a new Complex. >.<
     amplitudes    = f[0, bin_start..bin_end].map(&:magnitude)
     avg_amplitude = amplitudes.sum.real / num_bins
-    puts avg_amplitude.round(1)
+    min = avg_amplitude if avg_amplitude < min
+    max = avg_amplitude if avg_amplitude > max
+    puts "%0.1f, %0.1f, %0.1f" % [min, max, avg_amplitude]
   end
 end
 
