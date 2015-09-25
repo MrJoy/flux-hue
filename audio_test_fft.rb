@@ -49,8 +49,7 @@ end
 
 th = Thread.start do
   loop do
-    wav = inbuf.read(WINDOW)
-    queue.push(wav)
+    queue.push(inbuf.read(WINDOW))
   end
 end
 
