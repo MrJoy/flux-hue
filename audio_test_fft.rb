@@ -28,12 +28,10 @@ th = Thread.start do
 end
 
 inbuf.start
-$stdout.print "loopback..."
-$stdout.flush
+# Wait for input...
 $stdin.gets
 queue.push(nil)
 inbuf.stop
-$stdout.puts "done."
 th.kill.join
 pitch_shift_th.kill.join
 
