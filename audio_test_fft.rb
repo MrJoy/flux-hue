@@ -16,7 +16,10 @@ queue = Queue.new
 pitch_shift_th = Thread.start do
   while w = queue.pop
     f = FFTW3.fft(w, 1)
-    puts (f[0, 1..(w.shape[1] - 1)].map(&:abs).sum.real / WINDOW).round(1)
+    amplitudes    = f[0, 1..(w.shape[1] - 1)]
+                    .map { |n| n.magnitude } # Leaves magnitude in the real component of a new Complex. >.<
+    avg_amplitude = amplitudes.sum.real / WINDOW
+    puts avg_amplitude.round(1)
   end
 end
 
