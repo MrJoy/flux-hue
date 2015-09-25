@@ -32,6 +32,7 @@ bin_start = freq_bin(300)
 bin_end   = freq_bin(3_000)
 
 # TODO: Look into this to allow routing AudioHijack output into processor? http://www.ambrosiasw.com/utilities/wta/
+# http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
 
 queue = Queue.new
 pitch_shift_th = Thread.start do
