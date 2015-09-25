@@ -54,7 +54,8 @@ th = Thread.start do
 end
 
 inbuf.start
-# Wait for input...
+$stdout.puts "Press enter to terminate..."
+$stdout.flush
 $stdin.gets
 queue.push(nil)
 inbuf.stop
