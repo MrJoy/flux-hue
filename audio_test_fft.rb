@@ -32,6 +32,7 @@ def freq_bin(hz); ((hz * WINDOW) / SAMPLE_RATE).round; end
 
 bin_start = freq_bin(300)
 bin_end   = freq_bin(3_000)
+num_bins  = bin_end - bin_start + 1
 
 # TODO: Look into this to allow routing AudioHijack output into processor? http://www.ambrosiasw.com/utilities/wta/
 # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
@@ -47,7 +48,7 @@ pitch_shift_th = Thread.start do
     # Because of NArray, the `map` eaves magnitude of each `Complex` in the
     # real component of a new Complex. >.<
     amplitudes    = f[0, bin_start..bin_end].map(&:magnitude)
-    avg_amplitude = amplitudes.sum.real / WINDOW
+    avg_amplitude = amplitudes.sum.real / num_bins
     puts avg_amplitude.round(1)
   end
 end
