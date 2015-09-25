@@ -8,17 +8,28 @@ require "fftw3"
 
 Thread.abort_on_exception = true
 
-WINDOW = 1024
-# TODO: Ask the device about it's frequency.
-# def bin_freq(idx); (idx * 44_100) / WINDOW; end
-def freq_bin(hz); ((hz * WINDOW) / 44_100.0).round; end
+WINDOW      = 1024
+device      = CoreAudio.default_input_device
+inbuf       = device.input_buffer(WINDOW)
+SAMPLE_RATE = device.actual_rate
 
-# For WINDOW=1024, bin 7 == 301Hz, bin 70 == 3014Hz
-# F                 = 44100*x / WINDOW
-# F*WINDOW          = 44100*x
-# (F*WINDOW)/44_100 = x
+puts "Sampling at #{SAMPLE_RATE}hz from #{device.name}..."
+# def bin_freq(idx); (idx * SAMPLE_RATE) / WINDOW; end
+def freq_bin(hz); ((hz * WINDOW) / SAMPLE_RATE).round; end
 
-inbuf = CoreAudio.default_input_device.input_buffer(WINDOW)
+# Only care about frequencies from 300hz to 3khz...
+# Do we need to go around the mid-point a la the pitch-shifting code did?
+#     half = w.shape[1] / 2
+#     f = FFTW3.fft(w, 1)
+#     shift = 12
+#     f.shape[0].times do |ch|
+#       f[ch, (shift+1)...half] = f[ch, 1...(half-shift)]
+#       f[ch, 1..shift] = 0
+#       f[ch, (half+1)...(w.shape[1]-shift)] = f[ch, (half+shift+1)..-1]
+#       f[ch, -shift..-1] = 0
+
+bin_start = freq_bin(300)
+bin_end   = freq_bin(3_000)
 
 # TODO: Look into this to allow routing AudioHijack output into processor? http://www.ambrosiasw.com/utilities/wta/
 
@@ -29,7 +40,7 @@ pitch_shift_th = Thread.start do
 
     # Because of NArray, the `map` eaves magnitude of each `Complex` in the
     # real component of a new Complex. >.<
-    amplitudes    = f[0, 1..(w.shape[1] - 1)]
+    amplitudes    = f[0, bin_start..bin_end]
                     .map { |n| n.magnitude }
     avg_amplitude = amplitudes.sum.real / WINDOW
     puts avg_amplitude.round(1)
