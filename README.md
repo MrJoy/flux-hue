@@ -68,7 +68,7 @@ I strongly suggest not trying to use more than about 7 bulbs per bridge.
 After cloning this repo, run:
 
 ```bash
-brew install portmidi
+brew install portmidi fftw
 gem install sparkle_motion
 sm-discover # Find all available bridges using SSDP.
 # Create `config.yml`, and register the username(s) in it with the relevant bridges.
