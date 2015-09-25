@@ -41,8 +41,7 @@ pitch_shift_th = Thread.start do
 
     # Because of NArray, the `map` eaves magnitude of each `Complex` in the
     # real component of a new Complex. >.<
-    amplitudes    = f[0, bin_start..bin_end]
-                    .map { |n| n.magnitude }
+    amplitudes    = f[0, bin_start..bin_end].map(&:magnitude)
     avg_amplitude = amplitudes.sum.real / WINDOW
     puts avg_amplitude.round(1)
   end
