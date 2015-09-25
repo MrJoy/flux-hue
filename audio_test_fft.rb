@@ -36,7 +36,10 @@ bin_end   = freq_bin(3_000)
 
 queue = Queue.new
 pitch_shift_th = Thread.start do
-  while w = queue.pop
+  loop do
+    w = queue.pop
+    break unless w
+
     f = FFTW3.fft(w, 1)
 
     # Because of NArray, the `map` eaves magnitude of each `Complex` in the
