@@ -9,6 +9,11 @@ require "fftw3"
 Thread.abort_on_exception = true
 
 DEVICE_ID   = ARGV.shift.to_i
+# For 300Hz..3kHz:
+#    512 == bins 4..36 (33)
+#   1024 == bins 8..71 (64)
+#   2048 == bins 15..140 (126)
+#   4096 == bins 29..280 (252)
 WINDOW      = 1024
 device      = CoreAudio.devices.find { |dev| dev.devid == DEVICE_ID.to_i }
 fail "No such device ID!" unless device
@@ -18,7 +23,7 @@ SAMPLE_RATE = device.actual_rate
 puts "Sampling at #{SAMPLE_RATE}hz from #{device.name}..."
 # def bin_freq(idx); (idx * SAMPLE_RATE) / WINDOW; end
 # TODO: Do I need to add 1 to compensate for the DC bin?
-def freq_bin(hz); ((hz * WINDOW) / SAMPLE_RATE).round; end
+def freq_bin(hz); ((hz * WINDOW) / SAMPLE_RATE).round + 1; end
 
 # Only care about frequencies from 300hz to 3khz...
 # Do we need to go around the mid-point a la the pitch-shifting code did?
@@ -34,6 +39,19 @@ def freq_bin(hz); ((hz * WINDOW) / SAMPLE_RATE).round; end
 bin_start = freq_bin(300)
 bin_end   = freq_bin(3_000)
 num_bins  = bin_end - bin_start + 1
+puts "Getting bins #{bin_start}..#{bin_end} (#{num_bins} bins)."
+
+# Internal Microphone, Noise Reduction:
+#   No Offset:
+#      512 Samples: Min=1069.6, Max=1331759.8
+#     1024 Samples: Min=1477.9, Max=1874171.2
+#     2048 Samples: Min=1984.8, Max=2620696.1
+#     4096 Samples: Min=2638.2, Max=3489267.6
+#   1 offset:
+#      512 Samples: Min= 986.8, Max=1378807.9
+#     1024 Samples: Min=1552.5, Max=1930567.0
+#     2048 Samples: Min=1329.5, Max=2763622.3
+#     4096 Samples: Min=2697.6, Max=3851381.3
 
 # TODO: Look into this to allow routing AudioHijack output into processor? http://www.ambrosiasw.com/utilities/wta/
 # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
