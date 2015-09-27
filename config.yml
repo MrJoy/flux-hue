@@ -295,10 +295,10 @@ simulation:
       # This configuration gives two rows, one corresponding to each of the two
       # light strands I'm putting up.
       #
-      # Bridge 1/2:
-      - [ 2, 3,  4,  5,     6,  7,  8,  9]
       # Bridge 3/4:
       - [14, 15, 16, 17,   18, 19, 20, 21]
+      # Bridge 1/2:
+      - [ 2, 3,  4,  5,     6,  7,  8,  9]
       colors:
         "on":   0x032727
         "off":  0x000202

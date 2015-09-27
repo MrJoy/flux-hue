@@ -235,6 +235,7 @@ last = NODES["SPOTLIT"] = SparkleMotion::Nodes::Transforms::Spotlight.new(source
 FINAL_RESULT            = last # The end node that will be rendered to the lights.
 sl_colors               = sl_cfg["colors"]
 sl_map                  = sl_cfg["mappings"]
+sl_pos_map              = sl_map.flatten
 sl_key                  = "SPOTLIT"
 sl_pos                  = SparkleMotion::Vector2.new(sl_cfg["position"])
 sl_size                 = SparkleMotion::Vector2.new(sl_map.map(&:length).sort[-1], sl_map.length)
@@ -244,8 +245,8 @@ SL_STATE                = sl_widget.new(launchpad:   INTERACTIONS["launchpad"],
                                         size:        sl_size,
                                         colors:      sl_colors,
                                         on_select:   proc do |x|
-                                          LOGGER.info { "Spot ##{x}" }
-                                          NODES[sl_key].spotlight!(x)
+                                          LOGGER.info { "Spot ##{sl_pos_map[x]}" }
+                                          NODES[sl_key].spotlight!(sl_pos_map[x])
                                           update_state!(sl_key, x)
                                         end,
                                         on_deselect: proc do
