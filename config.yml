@@ -162,10 +162,6 @@ simulation:
       - <%= base_hue %>
       - <%= min_hue %>
       - <%= base_hue %>
-      # - 5100
-      # - 49500
-      # - 4800
-      # - 4950
   nodes:
     perlin:
       # The speed parameter as a multiplier on `(x, time)` to map the Perlin
