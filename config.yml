@@ -300,9 +300,9 @@ simulation:
       # Bridge 1/2:
       - [ 2, 3,  4,  5,     6,  7,  8,  9]
       colors:
-        "on":   0x272700
-        "off":  0x020200
-        "down": 0x3F3F10
+        "on":   0x032727
+        "off":  0x000202
+        "down": 0x103F3F
 # TODO: Either self-tune delays, or avoid sending refreshes to each light/group too fast?
 # TODO: Finish simulation visualization tool.
 # TODO: Re-parameterize sleep option, and maybe add a way to tweak it on the fly.
