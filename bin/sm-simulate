@@ -98,6 +98,7 @@ LIGHTS_FOR_THREADS      = SparkleMotion::LightConfig.new(config: CONFIG, group: 
 if USE_INPUT
   controllers = {}
   CONFIG["controllers"].each do |name, config|
+    # next if name =~ /orbit/i
     klass = config.delete("class")
     controllers[name] = Kernel.const_get(klass).new(config)
   end
