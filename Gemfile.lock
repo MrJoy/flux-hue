@@ -4,7 +4,7 @@ PATH
     sparkle_motion (0.2.0)
       coreaudio (~> 0.0.11)
       curb (~> 0.8.8)
-      fftw3
+      fftw3 (~> 0.3.0)
       frisky (~> 0.1.1)
       logger-better (~> 0.2.1)
       oj (~> 2.12.13)
