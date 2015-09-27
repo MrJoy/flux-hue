@@ -110,13 +110,14 @@ begin
       failed                  = error?(status, body)
       if failed
         failures += 1
-        extra_wait += 50
+        extra_wait += 10
       else
         successes += 1
       end
       printf failed ? "-" : "*"
+      sleep 0.015 + (extra_wait / 1000.0)
     end
-    sleep 0.06 + (extra_wait / 1000.0)
+    # sleep 0.08 + (extra_wait / 1000.0)
     printf " (#{extra_wait}ms)" if extra_wait > 0
     puts
   end
