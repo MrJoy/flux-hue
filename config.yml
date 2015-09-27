@@ -252,11 +252,16 @@ simulation:
       # transition time.
       widget: SparkleMotion::LaunchPad::Widgets::VerticalSlider
       transition: 0.5
-      positions:
+      positions_lp:
       - [4, 4]
       - [5, 4]
       - [6, 4]
       - [7, 4]
+      positions_no:
+      - [0, 0]
+      - [1, 0]
+      - [2, 0]
+      - [3, 0]
       # This defines which Hue Bridge, and which group on that bridge a control
       # should affect.  It would be a bit nonsensical if this didn't correspond
       # to the arrangement of lights for the intensity controls though.
