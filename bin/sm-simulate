@@ -55,6 +55,7 @@ bench_init! if defined?(bench_init!)
 lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "sparkle_motion"
+require "set"
 
 SparkleMotion.init!("simulate")
 # We load the following unconditionally because so much plugs into the graph
@@ -65,6 +66,7 @@ SparkleMotion.use_graph!
 # Code loading / modular behavior configuration:
 USE_LIGHTS  = env_bool("USE_LIGHTS")
 USE_INPUT   = env_bool("USE_INPUT")
+SKIP_INPUTS = Set.new((ENV["SKIP_INPUTS"] || "").split(/\s*,\s*/).map(&:upcase))
 USE_SWEEP   = env_bool("USE_SWEEP")
 USE_GRAPH   = env_bool("USE_GRAPH")
 SparkleMotion.use_hue!(api: true)
@@ -98,7 +100,7 @@ LIGHTS_FOR_THREADS      = SparkleMotion::LightConfig.new(config: CONFIG, group: 
 if USE_INPUT
   controllers = {}
   CONFIG["controllers"].each do |name, config|
-    # next if name =~ /orbit/i
+    next if SKIP_INPUTS.include?(name.upcase)
     klass = config.delete("class")
     controllers[name] = Kernel.const_get(klass).new(config)
   end
