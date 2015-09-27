@@ -103,7 +103,7 @@ if USE_INPUT
   end
   INTERACTIONS = controllers
 else
-  INTERACTIONS = nil
+  INTERACTIONS = {}
 end
 INT_STATES              = []
 NODES                   = {}
