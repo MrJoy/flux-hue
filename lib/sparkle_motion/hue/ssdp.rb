@@ -7,7 +7,7 @@ module SparkleMotion
     class SSDP
       def scan
         raw = Frisky::SSDP
-              .search("IpBridge")
+              .search("IpBridge", ttl: 30)
               .select { |resp| ssdp_response?(resp) }
               .map { |resp| ssdp_extract(resp) }
               .select { |resp| resp["name"] == "upnp:rootdevice" }
