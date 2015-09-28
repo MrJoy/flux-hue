@@ -135,6 +135,14 @@ simulation:
       transition: *shared_sweep_transition
       wait:       *shared_sweep_wait
       values:
+      # - <%= random_color(0) %>
+      # - <%= random_color(1) %>
+      # - <%= random_color(2) %>
+      # - <%= random_color(3) %>
+      # - <%= random_color(4) %>
+      # - <%= random_color(5) %>
+      # - <%= random_color(6) %>
+      # - <%= random_color(7) %>
       - <%= base_hue %>
       - <%= min_hue %>
       - <%= base_hue %>
@@ -143,6 +151,14 @@ simulation:
       transition: *shared_sweep_transition
       wait:       *shared_sweep_wait
       values:
+      # - <%= random_color(1) %>
+      # - <%= random_color(2) %>
+      # - <%= random_color(3) %>
+      # - <%= random_color(4) %>
+      # - <%= random_color(5) %>
+      # - <%= random_color(6) %>
+      # - <%= random_color(7) %>
+      # - <%= random_color(8) %>
       - <%= min_hue %>
       - <%= base_hue %>
       - <%= max_hue %>
@@ -151,6 +167,14 @@ simulation:
       transition: *shared_sweep_transition
       wait:       *shared_sweep_wait
       values:
+      # - <%= random_color(2) %>
+      # - <%= random_color(3) %>
+      # - <%= random_color(4) %>
+      # - <%= random_color(5) %>
+      # - <%= random_color(6) %>
+      # - <%= random_color(7) %>
+      # - <%= random_color(8) %>
+      # - <%= random_color(9) %>
       - <%= base_hue %>
       - <%= max_hue %>
       - <%= base_hue %>
@@ -159,6 +183,14 @@ simulation:
       transition: *shared_sweep_transition
       wait:       *shared_sweep_wait
       values:
+      # - <%= random_color(3) %>
+      # - <%= random_color(4) %>
+      # - <%= random_color(5) %>
+      # - <%= random_color(6) %>
+      # - <%= random_color(7) %>
+      # - <%= random_color(8) %>
+      # - <%= random_color(9) %>
+      # - <%= random_color(10) %>
       - <%= max_hue %>
       - <%= base_hue %>
       - <%= min_hue %>
