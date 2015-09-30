@@ -29,9 +29,8 @@ CONFIG["light_groups"].keys.each do |group_name|
     light_ids.each_with_index do |light_id, index|
       light_payload = { "on" => true,
                         "hue" => bridge["debug_hue"],
-                        "bri" => 0 } #(232 * (index / num_lights)).round + 23 }
-      requests << light_update(bridge, light_id, payload: light_payload,
-                                                 transition: 50)
+                        "bri" => (232 * (index / num_lights)).round + 23 }
+      requests << light_update(bridge, light_id, payload: light_payload)
     end
     requests_by_bridge[bridge_name] ||= []
     requests_by_bridge[bridge_name] += requests
