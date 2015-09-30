@@ -31,10 +31,12 @@ def make_req_struct(url, data)
 end
 
 def hue_init(config)
-  make_req_struct(hue_group_endpoint(config, 0), "on"  => true,
-                                                 "bri" => INIT_BRI,
-                                                 "sat" => INIT_SAT,
-                                                 "hue" => INIT_HUE)
+  make_req_struct(hue_group_endpoint(config, 0), "on"     => true,
+                                                 "bri"    => INIT_BRI,
+                                                 "sat"    => INIT_SAT,
+                                                 "hue"    => INIT_HUE,
+                                                 "alert"  => "none",
+                                                 "effect" => "none")
 end
 
 ###############################################################################
