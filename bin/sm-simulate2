@@ -141,7 +141,8 @@ protected
   def create_thread(&callback)
     guarded_thread(name) do
       Thread.stop
-      # last_frame = 0.0
+      # TODO: Maybe keep an eye on this to ensure it's not getting too large?  Shouldn't really be
+      # TODO: an issue in practice, but not certain of that.
       group_commands = []
       loop do
         raw_commands = []
