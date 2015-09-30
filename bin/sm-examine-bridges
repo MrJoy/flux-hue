@@ -11,11 +11,11 @@ SparkleMotion.use_hue!(api: true)
 LOGGER = SparkleMotion.logger
 extend SparkleMotion::Hue::HTTP
 require "json"
+require "set"
 
 ###############################################################################
 # Helper Functions
 ###############################################################################
-
 def by_name(hsh); hsh.sort { |(_a_key, a), (_b_key, b)| a["name"] <=> b["name"] }; end
 
 def table(name, data, format, field_names, &callback)
@@ -30,11 +30,11 @@ end
 ###############################################################################
 # Main
 ###############################################################################
-bridges   = CONFIG["bridges"].keys.length
-requests  = CONFIG["bridges"]
-            .values
-            .map { |bridge| bridge_query(bridge) }
-perform_with_retries(requests, options: { max_connects: bridges }) do |easy, request|
+bridges = CONFIG["bridges"].values
+desired_bridges = ARGV.map { |name| bridges.find { |bridge| bridge["name"] == name } }.compact
+desired_bridges = bridges unless desired_bridges.length > 0
+requests = desired_bridges.map { |bridge| bridge_query(bridge) }
+perform_with_retries(requests, options: { max_connects: bridges.length }) do |easy, request|
   response      = JSON.parse(easy.body)
   config        = response["config"]
   expected_name = request.bridge["name"]
