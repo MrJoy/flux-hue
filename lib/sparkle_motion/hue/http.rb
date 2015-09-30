@@ -7,7 +7,7 @@ module SparkleMotion
     module HTTP
       # Class to encapsulate a request to the Hue Bridge
       class Request
-        attr_reader :bridge, :action, :light_id, :group_id, :http_method, :uri, :payload
+        attr_reader :bridge, :action, :light_id, :group_id, :http_method, :uri, :payload, :callback
 
         def initialize(bridge, action, light_id: nil, group_id: nil, payload: nil, &callback)
           @bridge             = bridge
