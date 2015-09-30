@@ -9,10 +9,11 @@ module SparkleMotion
       # TODO: Disable Curl from sending keepalives by trying HTTP/1.0.
       MULTI_OPTIONS = { pipeline:     false,
                         max_connects: (CONFIG["max_connects"] || 3) }
-      EASY_OPTIONS = { "timeout" =>         5,
-                       "connect_timeout" => 5,
-                       "follow_location" => false,
-                       "max_redirects" =>   0 } # ,
+      EASY_OPTIONS = { "timeout"           => 5,
+                       "connect_timeout"   => 5,
+                       "follow_location"   => false,
+                       "max_redirects"     => 0,
+                       "dns_cache_timeout" => -1 } # ,
                        # version:          Curl::HTTP_1_0 }
       #   easy.header_str.grep(/keep-alive/)
       # Force keepalive off to see if that makes any difference...
