@@ -17,19 +17,23 @@ bridges:
   # produced by `sm-discovery` in a comment next to the name so that when you're
   # setting things up on-site and all your bridges get new DHCP-assigned
   # addresses, you can quickly update the IP field here.
-  "Bridge-01": # 0017881226f3
+  "Bridge-01":
+    id: "0017881226f3"
     ip: "192.168.2.10"
     username: *common_username
     debug_hue: <%= color_step(0) %>
-  "Bridge-02": # 001788105eda
+  "Bridge-02":
+    id: "001788105eda"
     ip: "192.168.2.6"
     username: *common_username
     debug_hue: <%= color_step(1) %>
-  "Bridge-03": # 0017881853d0
+  "Bridge-03":
+    id: "0017881853d0"
     ip: "192.168.2.7"
     username: *common_username
     debug_hue: <%= color_step(2) %>
-  "Bridge-04": # 0017881a1d5c
+  "Bridge-04":
+    id: "0017881a1d5c"
     ip: "192.168.2.9"
     username: *common_username
     debug_hue: <%= color_step(3) %>
