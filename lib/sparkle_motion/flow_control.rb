@@ -7,5 +7,17 @@ module SparkleMotion
       SparkleMotion.logger.error { "#{prefix}: Exception for #{prefix}: #{e.message}" }
       SparkleMotion.logger.error { "#{prefix}:\t#{e.backtrace.join("\n#{prefix}:\t")}" }
     end
+
+    def guarded_thread(prefix, &block); Thread.new { guard_call(prefix, &block) }; end
+
+    def any_in_state(threads, state)
+      threads = Array(threads)
+      threads.find { |th| th.status != state }
+    end
+
+    def wait_for(threads, state)
+      threads = Array(threads)
+      sleep 0.01 while any_in_state(threads, state)
+    end
   end
 end

@@ -319,16 +319,6 @@ def clear_board!
   EXIT_BUTTON.blank
 end
 
-def any_in_state(threads, state)
-  threads = Array(threads)
-  threads.find { |th| th.status != state }
-end
-
-def wait_for(threads, state)
-  threads = Array(threads)
-  sleep 0.01 while any_in_state(threads, state)
-end
-
 def without_persistence(&block)
   SKIP_STATE_PERSISTENCE[0] = defined?(LaunchPad) ? true : false
   block.call
@@ -354,10 +344,6 @@ end
 
 def setup_exit_controls!
   EXIT_BUTTON.update(false)
-end
-
-def guarded_thread(name, &block)
-  Thread.new { guard_call(name, &block) }
 end
 
 def launch_input_thread!(name, controller)
