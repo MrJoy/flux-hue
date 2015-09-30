@@ -344,6 +344,7 @@ simulation:
 # TODO: Allocate accent lights to groups.
 # TODO: Add group for food lights.
 # TODO: Set up explicit groups for lights, and do sweeps / etc over those.
+# TODO: Reallocate these to bridges 3-4: [Bridge-01, 11], [Bridge-01, 12], [Bridge-01, 13], [Bridge-01, 33], [Bridge-01, 34]
 # TODO: Simulation for dance lights.
 # TODO: Simulation for accent lights.
 # TODO: Intensity/saturation controls for dance lights.
