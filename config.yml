@@ -335,28 +335,31 @@ simulation:
         "on":   0x032727
         "off":  0x000202
         "down": 0x103F3F
-# TODO: Either self-tune delays, or avoid sending refreshes to each light/group too fast?
-# TODO: Group all writes to a particular bridge into a single thread.
-# TODO: Finish simulation visualization tool.  (Needs debugging!)
-# TODO: Support more dance lights / accent lights.
-# TODO: Remap accent lights to different bridges.
+# TODO: Add one more light to each group.
+# TODO: Allocate accent lights to groups.
+# TODO: Add group for food lights.
 # TODO: Set up explicit groups for lights, and do sweeps / etc over those.
-# TODO: X/Y mapping of lights vs. simulation.
-# TODO:   Is time Z, or do we still slide across X?
 # TODO: Simulation for dance lights.
 # TODO: Simulation for accent lights.
 # TODO: Intensity/saturation controls for dance lights.
 # TODO: Intensity/saturation controls for accent lights.
+# TODO: Brightness controls for eating lights.
+# TODO: X/Y mapping of lights vs. simulation.
+# TODO:   Is time Z, or do we still slide across X?
 # TODO: Rearrange lights to evenly disperse A19s.
-# TODO: Interactive tool for testing bulb positioning. (Be able to blink a specific light)
-# TODO: Document bunching.
+# TODO: Document bunching configuration on physical deployment.
 # TODO: Document on-site validation process, including testing of all spotlighting positions.
 # TODO: Document DHCP setup and use of nmap in case I forget Minbar again!!
+
+# TODO: Group all writes to a particular bridge into a single thread.
+# TODO: Either self-tune delays, or avoid sending refreshes to each light/group too fast?
 # TODO: Play with X multiplier for Perlin component to see if that makes the lighting more visually interesting.
-# TODO: Way to tweak output transition time on the fly?
-# TODO: Way to tweak sweep transition time on the fly?
-# TODO: Does Hue Bridge raw interface have any value here?
-# TODO: For color sweep, separate transition and wait time parameters.
+# TODO: Way to tweak output transition time on the fly?  Maybe make this part of the intensity?
+# TODO: Way to tweak sweep transition time on the fly?  Maybe make this part of the intensity?
 # TODO: De-duplicate the command queue before running it, and run it in a reliable way (E.G. retries with backoff)
 # TODO:   If multiple entries exist in-queue for a bridge/group, collapse them together.
+
+# TODO: Finish simulation visualization tool.  (Needs debugging!)
+# TODO: Interactive tool for testing bulb positioning. (Be able to blink a specific light)
+# TODO: Does Hue Bridge raw interface have any value here?
 # TODO: Handy for persistence? http://ruby-doc.org/stdlib-2.2.3/libdoc/yaml/rdoc/YAML/Store.html
