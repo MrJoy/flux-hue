@@ -114,8 +114,8 @@ def stop_ruby_prof!
   end
 end
 
-###############################################################################
-###############################################################################
+# Class for interacting with a Hue Bridge in a coherent manner.  Runs commands in a thread, after
+# coalescing/de-duping commands.
 class Bridge
   attr_reader :name
   def initialize(config, &callback)
