@@ -168,21 +168,6 @@ class Bridge
     end
   end
 
-  def coalesce(commands)
-    grouped_commands = {}
-    commands.each do |cmd|
-      # Making the bold assumption that we're always doing PUT requests!
-      grouped_commands[cmd[1]] ||= []
-      cmd[-1] = Array(cmd[-1])
-      grouped_group_commands[cmd[1]] << cmd
-    end
-    grouped_commands.map do |target_id, cmds|
-      pl  = merge_chain(cmds.map { |cmd| cmd[2] }.compact)
-      cbs = cmds.map { |cmd| cmd[3] }.flatten.compact
-      [cmds.first[0], target_id, pl, cbs]
-    end
-  end
-
   def group_command!(group_id, payload, transition: nil, &callback)
     @queue << [:group, group_id, payload, transition, callback]
   end
@@ -195,7 +180,26 @@ class Bridge
 
 protected
 
-  def merge_chain(chain); chain.inject({}) { |x, a| a.merge(x) }; end
+  def coalesce(commands)
+    group_commands_by_entity(commands).map do |target_id, cmds|
+      pl  = merge_chain(cmds.map { |cmd| cmd[2] }.compact)
+      cbs = cmds.map { |cmd| cmd[3] }.flatten.compact
+      [cmds.first[0], target_id, pl, cbs]
+    end
+  end
+
+  def group_commands_by_entity(commands)
+    grouped_commands = {}
+    commands.each do |cmd|
+      # Making the bold assumption that we're always doing PUT requests!
+      grouped_commands[cmd[1]] ||= []
+      cmd[-1] = Array(cmd[-1])
+      grouped_group_commands[cmd[1]] << cmd
+    end
+    grouped_commands
+  end
+
+  def merge_chain(chain); chain.inject({}) { |a, e| a.merge(e) }; end
 end
 
 def pre_init!
