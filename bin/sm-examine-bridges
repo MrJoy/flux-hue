@@ -34,8 +34,8 @@ bridges = CONFIG["bridges"].values
 desired_bridges = ARGV.map { |name| bridges.find { |bridge| bridge["name"] == name } }.compact
 desired_bridges = bridges unless desired_bridges.length > 0
 requests = desired_bridges.map { |bridge| bridge_query(bridge) }
-perform_with_retries(requests, options: { max_connects: bridges.length }) do |easy, request|
-  response      = JSON.parse(easy.body)
+perform_with_retries(requests) do |request, _status, body|
+  response      = JSON.parse(body.join("\n"))
   config        = response["config"]
   expected_name = request.bridge["name"]
   actual_name   = config["name"]
