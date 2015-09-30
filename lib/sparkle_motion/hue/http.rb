@@ -90,6 +90,7 @@ module SparkleMotion
           if easy.response_code != 200 || easy.body =~ /error/
             LOGGER.error { "#{url} => #{easy.response_code} / #{easy.body}" }
             failures << reqs[url]
+            next
           end
           if block_given?
             begin
