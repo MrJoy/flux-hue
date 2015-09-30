@@ -24,11 +24,18 @@ CONFIG["light_groups"].keys.each do |group_name|
 
   config.bridges.each do |bridge_name, bridge|
     requests    = []
-    light_ids   = config.lights[bridge_name].map(&:last)
-    num_lights  = light_ids.length.to_f
-    light_ids.each_with_index do |light_id, index|
+    c_light_ids = config.lights[bridge_name].select { |ll| ll.last == "color" }.map { |ll| ll[1] }
+    w_light_ids = config.lights[bridge_name].select { |ll| ll.last == "white" }.map { |ll| ll[1] }
+    num_lights  = c_light_ids.length.to_f
+    c_light_ids.each_with_index do |light_id, index|
       light_payload = { "on" => true,
                         "hue" => bridge["debug_hue"],
+                        "bri" => (232 * (index / num_lights)).round + 23 }
+      requests << light_update(bridge, light_id, payload: light_payload)
+    end
+    num_lights = w_light_ids.length.to_f
+    w_light_ids.each_with_index do |light_id, index|
+      light_payload = { "on" => true,
                         "bri" => (232 * (index / num_lights)).round + 23 }
       requests << light_update(bridge, light_id, payload: light_payload)
     end
@@ -41,7 +48,7 @@ threads = requests_by_bridge.values.map do |requests|
   Thread.start do
     perform_with_retries(requests) do |request, _status, _body|
       LOGGER.info { "Updated light on #{request.bridge['name']}: #{request.uri}" }
-      sleep 0.04
+      sleep 0.065
     end
   end
 end

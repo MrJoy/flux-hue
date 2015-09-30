@@ -29,8 +29,8 @@ module SparkleMotion
 
     def group_lights_by_bridge(config)
       groups = Hash.new { |hsh, x| hsh[x] = [] }
-      config.each do |(bridge_name, light_id)|
-        groups[bridge_name] << light_id
+      config.each do |(bridge_name, light_id, kind)|
+        groups[bridge_name] << [light_id, kind]
       end
       groups
     end
@@ -39,8 +39,8 @@ module SparkleMotion
     # logically, but also relate physical mappings.
     def index_lights(lights, index)
       indexed_lights = []
-      lights.each do |light_id|
-        indexed_lights << [index, light_id]
+      lights.each do |(light_id, kind)|
+        indexed_lights << [index, light_id, kind]
         index += 1
       end
       [indexed_lights, index]
