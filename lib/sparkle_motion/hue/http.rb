@@ -30,6 +30,8 @@ module SparkleMotion
       end
 
       def with_transition_time(transition, data)
+        # This allows you to specify transition time in seconds, as a float instead of the awkward
+        # tenths-of-a-second actually supported by the bridge.
         data["transitiontime"] = (transition * 10.0).round(0)
         data
       end

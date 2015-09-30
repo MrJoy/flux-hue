@@ -14,6 +14,7 @@ extend SparkleMotion::Hue::HTTP
 ###############################################################################
 # Main
 ###############################################################################
+# TODO: Allow specifying bridges, groups of lights, or just lights.
 bridges   = CONFIG["bridges"].keys.length
 requests  = CONFIG["bridges"]
             .values

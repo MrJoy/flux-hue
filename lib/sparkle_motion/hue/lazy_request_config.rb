@@ -6,6 +6,15 @@ module SparkleMotion
     class LazyRequestConfig
       GLOBAL_HISTORY = []
 
+      # TODO: Look into Curl::Easy method:
+      # TODO: app_connect_time, connect_time, connect_timeout, dns_cache_timeout, file_time,
+      # TODO: low_speed_limit, low_speed_time, name_lookup_time, pre_transfer_time,
+      # TODO: redirect_time, resolve_mode, start_transfer_time, timeout, total_time, verbose
+      # puts "  total_time:           %.5f" % _easy.total_time                  # total time in seconds for the previous transfer, including name resolving, TCP connect etc.
+      # puts "    start_transfer_time:  %.5f" % _easy.start_transfer_time       # from the start until the first byte is just about to be transferred. This includes the pre_transfer_time and also the time the server needs to calculate the result.
+      # puts "      pre_transfer_time:    %.5f" % _easy.pre_transfer_time       # from the start until the file transfer is just about to begin. This includes all pre-transfer commands and negotiations that are specific to the particular protocol(s) involved.
+      # puts "        connect_time:         %.5f" % _easy.connect_time          # from the start until the connect to the remote host (or proxy) was completed.
+      # puts "          name_lookup_time:     %.5f" % _easy.name_lookup_time    # from the start until the name resolving was completed
       attr_reader :url, :http_method, :bridge
       def initialize(logger, bridge, http_method, url, results = nil, debug: nil, &callback)
         @logger       = logger
