@@ -1,0 +1,231 @@
+{
+  "lights": {
+    "26": {
+      "state": {
+        "on": true,
+        "bri": 254,
+        "hue": 4444,
+        "sat": 254,
+        "xy": [
+          0.0,
+          0.0
+        ],
+        "ct": 0,
+        "alert": "none",
+        "effect": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Extended color light",
+      "name": "Main-01",
+      "modelid": "LCT001",
+      "swversion": "65003148",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "37": {
+      "state": {
+        "on": true,
+        "bri": 254,
+        "hue": 23536,
+        "sat": 144,
+        "xy": [
+          0.346,
+          0.3568
+        ],
+        "ct": 201,
+        "alert": "none",
+        "effect": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Extended color light",
+      "name": "Main-02",
+      "modelid": "LCT001",
+      "swversion": "65003148",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "36": {
+      "state": {
+        "on": true,
+        "bri": 254,
+        "hue": 65136,
+        "sat": 254,
+        "xy": [
+          0.346,
+          0.3568
+        ],
+        "ct": 201,
+        "alert": "none",
+        "effect": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Extended color light",
+      "name": "Main-03",
+      "modelid": "LCT001",
+      "swversion": "65003148",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "38": {
+      "state": {
+        "on": true,
+        "bri": 254,
+        "hue": 5000,
+        "sat": 254,
+        "xy": null,
+        "ct": null,
+        "alert": "none",
+        "effect": "none",
+        "colormode": null,
+        "reachable": true
+      },
+      "type": null,
+      "name": "Main-04",
+      "modelid": "LCT001",
+      "swversion": null,
+      "pointsymbol": null
+    },
+    "39": {
+      "state": {
+        "on": true,
+        "bri": 254,
+        "hue": 5000,
+        "sat": 254,
+        "xy": null,
+        "ct": null,
+        "alert": "none",
+        "effect": "none",
+        "colormode": null,
+        "reachable": true
+      },
+      "type": null,
+      "name": "Main-05",
+      "modelid": "LCT001",
+      "swversion": null,
+      "pointsymbol": null
+    },
+    "40": {
+      "state": {
+        "on": true,
+        "bri": 254,
+        "hue": 5000,
+        "sat": 254,
+        "xy": null,
+        "ct": null,
+        "alert": "none",
+        "effect": "none",
+        "colormode": null,
+        "reachable": true
+      },
+      "type": null,
+      "name": "Main-06",
+      "modelid": "LCT001",
+      "swversion": null,
+      "pointsymbol": null
+    },
+    "35": {
+      "state": {
+        "on": true,
+        "bri": 254,
+        "hue": 5000,
+        "sat": 254,
+        "xy": null,
+        "ct": null,
+        "alert": "none",
+        "effect": "none",
+        "colormode": null,
+        "reachable": true
+      },
+      "type": null,
+      "name": "Main-07",
+      "modelid": "LCT001",
+      "swversion": null,
+      "pointsymbol": null
+    }
+  },
+  "schedules": {},
+  "config": {
+    "portalservices": false,
+    "gateway": "192.168.2.1",
+    "mac": "00:00:88:00:bb:ee",
+    "swversion": "01005215",
+    "linkbutton": false,
+    "ipaddress": "127.0.0.1:8000",
+    "proxyport": 0,
+    "swupdate": {
+      "text": "",
+      "notify": false,
+      "updatestate": 0,
+      "url": ""
+    },
+    "netmask": "255.255.255.0",
+    "name": "Bridge-01",
+    "dhcp": true,
+    "proxyaddress": "",
+    "whitelist": {
+      "1234567890": {
+        "name": "SparkleMotion",
+        "last use date": "2012-10-29T12:00:00",
+        "create date": "2012-10-29T12:00:00"
+      }
+    },
+    "UTC": "2012-10-29T12:05:00"
+  },
+  "groups": {
+    "1": {
+      "name": "Main",
+      "action": {
+        "on": true,
+        "bri": 254,
+        "hue": 33536,
+        "sat": 144,
+        "xy": [
+          0.346,
+          0.3568
+        ],
+        "ct": 201,
+        "alert": null,
+        "effect": "none",
+        "colormode": "xy",
+        "reachable": null
+      },
+      "lights": [
+        "26",
+        "37",
+        "36",
+        "38",
+        "39",
+        "40",
+        "35"
+      ]
+    }
+  },
+  "scenes": {}
+}
