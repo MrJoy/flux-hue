@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+
+###############################################################################
+# Early Initialization/Helpers
+###############################################################################
+lib = File.expand_path("../../lib", __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require "sparkle_motion"
+SparkleMotion.init!("sm-rename-light")
+SparkleMotion.use_hue!(api: true)
+LOGGER = SparkleMotion.logger
+extend SparkleMotion::Hue::HTTP
+
+###############################################################################
+# Parameters
+###############################################################################
+BRIDGE_NAME   = ARGV.shift
+LIGHT_ID      = ARGV.shift.to_i
+NEW_NAME      = ARGV.shift
+
+BRIDGE        = CONFIG["bridges"].values.find { |bridge| bridge["name"] == BRIDGE_NAME }
+HAVE_LIGHT    = !!CONFIG["light_groups"]
+                  .values
+                  .flatten
+                  .select { |group| group[0] == BRIDGE_NAME && group[1] == LIGHT_ID }
+
+errors = []
+errors << "Must specify a valid bridge name from config.yml!" unless BRIDGE
+errors << "Must specify a valid light ID from config.yml!" unless HAVE_LIGHT
+# TODO: Figure out what's actually a valid component of a light name!
+errors << "Must specify a valid light name!" unless NEW_NAME && NEW_NAME =~ /\A[ a-z0-9-]{1,32}\z/i
+
+if errors.length > 0
+  LOGGER.info "Usage: sm-rename-light <bridge-name> <light ID> <new name>"
+  errors.each do |error|
+    LOGGER.error { error }
+  end
+  exit 1
+end
+
+###############################################################################
+# Main
+###############################################################################
+requests = [light_modify(BRIDGE, LIGHT_ID, payload: { "name" => NEW_NAME })]
+perform_with_retries(requests) do |_easy, request|
+  LOGGER.info { "Updated name of light ##{LIGHT_ID} on #{request.bridge['name']}!" }
+end

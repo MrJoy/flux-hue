@@ -68,6 +68,11 @@ module SparkleMotion
         request(bridge, :put, url, payload, transition, &callback)
       end
 
+      def light_modify(bridge, light_id, payload: nil, transition: nil, &callback)
+        url = light_query_url(bridge, light_id)
+        request(bridge, :put, url, payload, transition, &callback)
+      end
+
       def group_update(bridge, group_id, payload: nil, transition: nil, &callback)
         url = group_update_url(bridge, group_id)
         request(bridge, :put, url, payload, transition, &callback)
