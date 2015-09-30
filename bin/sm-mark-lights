@@ -15,45 +15,36 @@ extend SparkleMotion::Hue::HTTP
 # Main Logic
 ###############################################################################
 # TODO: Use Novation Launchpad to be able to toggle lights.
-def light_state(hue, index, num_lights)
-  target      = (232 * (index / num_lights.to_f)).round + 23
-  data        = { "on" => true,
-                  "hue" => hue,
-                  "sat" => 255,
-                  "bri" => target }
-  with_transition_time(data, 0)
-end
+BASE_LIGHT_OPTIONS = { "on" => true }
 
 # TODO: Speed this up by setting on/hue via group message per bridge...
+requests_by_bridge = {}
 CONFIG["light_groups"].keys.each do |group_name|
-  config  = SparkleMotion::LightConfig.new(config: CONFIG, group: group_name)
-  reqs    = {}
-  config.bridges.each do |bridge_name, bridge|
-    light_ids   = config.lights[bridge_name].map(&:last)
-    hue         = bridge["debug_hue"]
-    index       = 0
-    num_lights  = light_ids.length
-    requests    = light_ids
-                  .map do |lid|
-                    url       = hue_light_endpoint(bridge, lid)
-                    color     = light_state(hue, index, num_lights)
-                    index    += 1
-                    reqs[url] = SparkleMotion::Hue::LazyRequestConfig.new(LOGGER, bridge, url) do
-                      color
-                    end
-                  end
+  config = SparkleMotion::LightConfig.new(config: CONFIG, group: group_name)
 
-    next unless requests.length > 0
-    while requests.length > 0
-      retry_queue = []
-      Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|
-        if easy.response_code != 200 || easy.body =~ /error/
-          url = easy.url
-          LOGGER.error { "#{url} => #{easy.response_code} / #{easy.body}" }
-          retry_queue << url
-        end
-      end
-      requests = retry_queue.map { |url| reqs[url] }
+  config.bridges.each do |bridge_name, bridge|
+    requests    = []
+    light_ids   = config.lights[bridge_name].map(&:last)
+    num_lights  = light_ids.length.to_f
+    light_ids.each_with_index do |light_id, index|
+      light_payload = { "on" => true,
+                        "hue" => bridge["debug_hue"],
+                        "bri" => 0 } #(232 * (index / num_lights)).round + 23 }
+      requests << light_update(bridge, light_id, payload: light_payload,
+                                                 transition: 50)
+    end
+    requests_by_bridge[bridge_name] ||= []
+    requests_by_bridge[bridge_name] += requests
+  end
+end
+
+threads = requests_by_bridge.values.map do |requests|
+  Thread.start do
+    perform_with_retries(requests, options: { max_connects: 1 }) do |_easy, request|
+      LOGGER.info { "Updated light on #{request.bridge['name']}: #{request.url}" }
+      sleep 0.075
     end
   end
 end
+
+threads.map(&:join)

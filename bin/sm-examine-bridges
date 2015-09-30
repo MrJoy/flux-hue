@@ -15,12 +15,7 @@ require "json"
 ###############################################################################
 # Helper Functions
 ###############################################################################
-def make_req_struct(url)
-  { method: :get,
-    url:    url }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
-end
 
-def hue_query(config); make_req_struct(hue_base(config)); end
 def by_name(hsh); hsh.sort { |(_a_key, a), (_b_key, b)| a["name"] <=> b["name"] }; end
 
 def table(name, data, format, field_names, &callback)
@@ -38,64 +33,40 @@ end
 bridges   = CONFIG["bridges"].keys.length
 requests  = CONFIG["bridges"]
             .values
-            .map { |config| hue_query(config) }
-reqs      = Hash[requests.map { |req| [req[:url], req.dup] }]
-retries   = 0
-opts      = SparkleMotion::Hue::HTTP::MULTI_OPTIONS.merge(max_connects: bridges)
-while requests.length > 0
-  retry_queue = []
-  Curl::Multi.http(requests, opts) do |easy|
-    begin
-      if easy.response_code != 200 || easy.body =~ /error/
-        url = easy.url
-        LOGGER.error { "#{url} => #{easy.response_code} / #{easy.body}" }
-        retry_queue << url
-        next
-      end
+            .map { |bridge| bridge_query(bridge) }
+perform_with_retries(requests, options: { max_connects: bridges }) do |easy, request|
+  response      = JSON.parse(easy.body)
+  config        = response["config"]
+  expected_name = request.bridge["name"]
+  actual_name   = config["name"]
+  mismatch      = expected_name != actual_name
+  warning       = " -- WARNING: CONFIG FILE THINKS THIS SHOULD BE '#{expected_name}'!" if mismatch
 
-      response = JSON.parse(easy.body)
-      config = response["config"]
-      ip_for_name = (CONFIG["bridges"][config["name"]] || {})["ip"]
-      # TODO: Check if config['name'] matches what's in our config file, bitch if not!
-      puts "#{config['name']}: "
-      missing   = ip_for_name.nil?
-      mismatch  = config["ipaddress"] != ip_for_name
-      warning   = " -- WARNING: CONFIG FILE THINKS THIS SHOULD BE '#{ip_for_name}'!" if mismatch
-      warning   = " -- WARNING: CONFIG FILE HAS NO BRIDGE OF THIS NAME!" if missing
-      puts "  IP:       #{config['ipaddress']}#{warning}"
-      puts "  Gateway:  #{config['gateway']}"
-      puts "  Channel:  #{config['zigbeechannel']}"
-      puts "  Firmware: #{config['swversion']}"
+  puts "#{config['name']}:#{warning}"
+  puts "  IP:       #{config['ipaddress']}"
+  puts "  Gateway:  #{config['gateway']}"
+  puts "  Channel:  #{config['zigbeechannel']}"
+  puts "  Firmware: #{config['swversion']}"
 
-      light_format = "%-32s %-2s %-6s %-9s %-5s %-5s %-5s %-6s %-6s %-6s"
-      light_fields =  %w(Name ID Model Firmware State Bri Sat Hue Alert Effect)
-      table("Lights", response["lights"], light_format, light_fields) do |light_id, light_info|
-        state = light_info["state"]
-        [light_info["name"],
-         light_id,
-         light_info["modelid"],
-         light_info["swversion"],
-         state["on"] ? "On" : "Off",
-         state["bri"],
-         state["sat"],
-         state["hue"],
-         state["alert"],
-         state["effect"]]
-      end
-
-      group_format = "%-32s %-2s %s"
-      group_fields =  %w(Name ID Lights)
-      table("Groups", response["groups"], group_format, group_fields) do |group_id, group_info|
-        [group_info["name"], group_id, group_info["lights"].map(&:to_i).sort.join(", ")]
-      end
-    rescue StandardError => se
-      LOGGER.error { "Exception: #{se.message}" }
-      se.backtrace.each do |line|
-        LOGGER.error { "  #{line}" }
-      end
-    end
+  light_format = "%-32s %-2s %-6s %-9s %-5s %-5s %-5s %-6s %-6s %-6s"
+  light_fields =  %w(Name ID Model Firmware State Bri Sat Hue Alert Effect)
+  table("Lights", response["lights"], light_format, light_fields) do |light_id, light_info|
+    state = light_info["state"]
+    [light_info["name"],
+     light_id,
+     light_info["modelid"],
+     light_info["swversion"],
+     state["on"] ? "On" : "Off",
+     state["bri"],
+     state["sat"],
+     state["hue"],
+     state["alert"],
+     state["effect"]]
   end
-  requests = retry_queue.map { |url| reqs[url] }
-  retries += 1
-  sleep 0.5 * (2**retries) if requests.length > 0
+
+  group_format = "%-32s %-2s %s"
+  group_fields =  %w(Name ID Lights)
+  table("Groups", response["groups"], group_format, group_fields) do |group_id, group_info|
+    [group_info["name"], group_id, group_info["lights"].map(&:to_i).sort.join(", ")]
+  end
 end

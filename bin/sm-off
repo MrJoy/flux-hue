@@ -12,41 +12,12 @@ LOGGER = SparkleMotion.logger
 extend SparkleMotion::Hue::HTTP
 
 ###############################################################################
-# Helper Functions
-###############################################################################
-def make_req_struct(url, data)
-  { method:   :put,
-    url:      url,
-    put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
-end
-
-def hue_init(config)
-  make_req_struct(hue_group_endpoint(config, 0), "on" => false)
-end
-
-###############################################################################
 # Main
 ###############################################################################
-# TODO: Hoist this into a separate script.
-# debug "Initializing lights..."
 bridges   = CONFIG["bridges"].keys.length
 requests  = CONFIG["bridges"]
             .values
-            .map { |config| hue_init(config) }
-reqs      = Hash[requests.map { |req| [req[:url], req.dup] }]
-retries   = 0
-opts      = SparkleMotion::Hue::HTTP::MULTI_OPTIONS.merge(max_connects: bridges)
-while requests.length > 0
-  retry_queue = []
-  Curl::Multi.http(requests, opts) do |easy|
-    puts easy.url
-    if easy.response_code != 200 || easy.body =~ /error/
-      url = easy.url
-      LOGGER.error { "#{url} => #{easy.response_code} / #{easy.body}" }
-      retry_queue << url
-    end
-  end
-  requests = retry_queue.map { |url| reqs[url] }
-  retries += 1
-  sleep 0.5 * (2**retries) if requests.length > 0
+            .map { |bridge| group_update(bridge, 0, payload: { "on" => false }) }
+perform_with_retries(requests, options: { max_connects: bridges }) do |_easy, request|
+  LOGGER.info { "Broadcast to all-lights group sent to #{request.bridge['name']}!" }
 end

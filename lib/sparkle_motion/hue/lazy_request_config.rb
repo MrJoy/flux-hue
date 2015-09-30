@@ -5,14 +5,17 @@ module SparkleMotion
     # then spending a bunch of time feeding updates to lights.
     class LazyRequestConfig
       GLOBAL_HISTORY = []
-      def initialize(logger, config, url, results = nil, debug: nil, &callback)
-        @logger     = logger
-        @config     = config
-        @url        = url
-        @results    = results
-        @callback   = callback
-        @fixed      = create_fixed(url)
-        @debug      = debug
+
+      attr_reader :url, :http_method, :bridge
+      def initialize(logger, bridge, http_method, url, results = nil, debug: nil, &callback)
+        @logger       = logger
+        @bridge       = bridge
+        @http_method  = http_method
+        @url          = url
+        @results      = results
+        @callback     = callback
+        @fixed        = create_fixed
+        @debug        = debug
       end
 
       def each(&block)
@@ -35,16 +38,16 @@ module SparkleMotion
 
     protected
 
-      def error(msg); "#{@config['name']}; #{@url}: #{msg}"; end
+      def error(msg); "#{@bridge['name']}; #{@url}: #{msg}"; end
       def overloaded(easy); error("Bridge overloaded: #{easy.body}"); end
       def unknown_error(easy); error("Unknown error: #{easy.response_code}, #{easy.body}"); end
       def hard_timeout(_easy); error("Request timed out."); end
       def soft_timeout(easy); error("Failed updating light: #{easy.body}"); end
 
-      def create_fixed(url)
+      def create_fixed
         # TODO: Maybe skip per-event callbacks and go for single handler?
         { url:         url,
-          method:      :put,
+          method:      http_method,
           headers:     nil,
           on_failure:  proc { |easy, _| failure!(easy) },
           on_success:  proc { |easy| success!(easy) },
