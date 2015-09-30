@@ -355,11 +355,9 @@ simulation:
         "on":   0x032727
         "off":  0x000202
         "down": 0x103F3F
-# TODO: Add one more light to each group.
-# TODO: Allocate accent lights to groups.
-# TODO: Add group for food lights.
-# TODO: Set up explicit groups for lights, and do sweeps / etc over those.
-# TODO: Reallocate these to bridges 3-4: [Bridge-01, 11], [Bridge-01, 12], [Bridge-01, 13], [Bridge-01, 33], [Bridge-01, 34]
+# TODO: Reallocate these accent lights to bridges 3-4: [Bridge-01, 11], [Bridge-01, 12], [Bridge-01, 13], [Bridge-01, 33], [Bridge-01, 34]
+# TODO: Allow sweepers to address a particular *group or light* at each step.
+# TODO: Allow arbitrary sweeper definitions.
 # TODO: Simulation for dance lights.
 # TODO: Simulation for accent lights.
 # TODO: Intensity/saturation controls for dance lights.
