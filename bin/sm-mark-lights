@@ -39,9 +39,9 @@ end
 
 threads = requests_by_bridge.values.map do |requests|
   Thread.start do
-    perform_with_retries(requests, options: { max_connects: 1 }) do |_easy, request|
-      LOGGER.info { "Updated light on #{request.bridge['name']}: #{request.url}" }
-      sleep 0.015
+    perform_with_retries(requests) do |request, _status, _body|
+      LOGGER.info { "Updated light on #{request.bridge['name']}: #{request.uri}" }
+      sleep 0.04
     end
   end
 end

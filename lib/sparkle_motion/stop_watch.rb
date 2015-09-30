@@ -4,12 +4,22 @@ module SparkleMotion
     attr_accessor :results
 
     def initialize(expected_recordings = 0)
-      start           = Time.now
       expected_labels = expected_recordings > 0 ? expected_recordings - 1 : 0
       @timings        = Array.new(expected_recordings)
       @labels         = Array.new(expected_labels)
-      @index          = 1
-      @timings[0]     = start
+    end
+
+    def begin!
+      start = Time.now
+      if @index && @index > 1
+        @timings.each_with_index do |_, i|
+          @timings[i]    = nil
+          @labels[i - 1] = nil if i > 0
+        end
+      end
+      @results    = nil
+      @index      = 1
+      @timings[0] = start
     end
 
     def record!(name)

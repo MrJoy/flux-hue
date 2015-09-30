@@ -32,10 +32,9 @@ LIGHT_PARAMS  = { "on"     => true,
 # Main
 ###############################################################################
 # TODO: Allow specifying bridges, groups of lights, or just lights.
-bridges   = CONFIG["bridges"].keys.length
-requests  = CONFIG["bridges"]
-            .values
-            .map { |bridge| group_update(bridge, 0, payload: LIGHT_PARAMS) }
-perform_with_retries(requests, options: { max_connects: bridges }) do |_easy, request|
+requests = CONFIG["bridges"]
+           .values
+           .map { |bridge| group_update(bridge, 0, payload: LIGHT_PARAMS) }
+perform_with_retries(requests) do |request, _status, _body|
   LOGGER.info { "Broadcast to all-lights group sent to #{request.bridge['name']}!" }
 end
