@@ -47,37 +47,37 @@ light_groups:
   # plan groups out for saturation controls.
   # TODO: Break this into separate simulations per table?
   main_lights:
-  - ["Bridge-01", 26]
-  - ["Bridge-01", 37]
-  - ["Bridge-01", 36]
-  - ["Bridge-01", 38]
-  - ["Bridge-01", 39]
-  - ["Bridge-01", 40]
-  - ["Bridge-01", 35]
+  - ["Bridge-01", 26, color]
+  - ["Bridge-01", 37, color]
+  - ["Bridge-01", 36, color]
+  - ["Bridge-01", 38, color]
+  - ["Bridge-01", 39, color]
+  - ["Bridge-01", 40, color]
+  - ["Bridge-01", 35, color]
 
-  - ["Bridge-02", 12]
-  - ["Bridge-02", 21]
-  - ["Bridge-02", 20]
-  - ["Bridge-02", 19]
-  - ["Bridge-02", 15]
-  - ["Bridge-02", 18]
-  - ["Bridge-02", 11]
+  - ["Bridge-02", 12, color]
+  - ["Bridge-02", 21, color]
+  - ["Bridge-02", 20, color]
+  - ["Bridge-02", 19, color]
+  - ["Bridge-02", 15, color]
+  - ["Bridge-02", 18, color]
+  - ["Bridge-02", 11, color]
 
-  - ["Bridge-03",  7]
-  - ["Bridge-03",  2]
-  - ["Bridge-03",  3]
-  - ["Bridge-03",  8]
-  - ["Bridge-03", 10]
-  - ["Bridge-03",  9]
-  - ["Bridge-03",  6]
+  - ["Bridge-03",  7, color]
+  - ["Bridge-03",  2, color]
+  - ["Bridge-03",  3, color]
+  - ["Bridge-03",  8, color]
+  - ["Bridge-03", 10, color]
+  - ["Bridge-03",  9, color]
+  - ["Bridge-03",  6, color]
 
-  - ["Bridge-04",  5]
-  - ["Bridge-04",  7]
-  - ["Bridge-04", 11]
-  - ["Bridge-04", 12]
-  - ["Bridge-04",  1]
-  - ["Bridge-04",  9]
-  - ["Bridge-04",  8]
+  - ["Bridge-04",  5, color]
+  - ["Bridge-04",  7, color]
+  - ["Bridge-04", 11, color]
+  - ["Bridge-04", 12, color]
+  - ["Bridge-04",  1, color]
+  - ["Bridge-04",  9, color]
+  - ["Bridge-04",  8, color]
   # Dance Lights is the group of lights above the dance floor, which will
   # (ultimately) get their own simulation, although updates will be interleaved
   # with the main lights per-bridge.  It should be a positional map affording
@@ -86,15 +86,30 @@ light_groups:
   # Accent lights are just... other lights in the system.  Not part of any
   # simulation, they get their base color and that's it.
   accent_lights:
-  - ["Bridge-01",  9]
-  - ["Bridge-01", 10]
-  - ["Bridge-01", 11]
-  - ["Bridge-01", 12]
-  - ["Bridge-01", 13]
-  - ["Bridge-01", 33]
-  - ["Bridge-01", 34]
-  - ["Bridge-02",  7]
-  - ["Bridge-02",  8]
+  - ["Bridge-01",  9, color]
+  - ["Bridge-01", 10, color]
+  - ["Bridge-01", 11, color]
+  - ["Bridge-01", 12, color]
+  - ["Bridge-01", 13, color]
+  - ["Bridge-01", 33, color]
+  - ["Bridge-01", 34, color]
+
+  - ["Bridge-02",  7, color]
+  - ["Bridge-02",  8, color]
+  food_lights:
+  # TODO: Allow specifying both a group ID and individual light IDs.  While we're at it, break this
+  # TODO: out into a separate file, and use it as a cache -- with a way to regenerate from the
+  # TODO: lights, and/or apply it to the lights.
+  - ["Bridge-01",  3, white]
+  - ["Bridge-01",  4, white]
+  - ["Bridge-01",  5, white]
+  - ["Bridge-01", 16, white]
+  - ["Bridge-01", 24, white]
+  - ["Bridge-01", 25, white]
+
+  - ["Bridge-02",  4, white]
+  - ["Bridge-02",  5, white]
+  - ["Bridge-02",  6, white]
 initial_state:
   # This defines what state the lights will be set to when running `sm-on`.
   # It's important you run `sm-on` *before* running `sparkle-motion`, as the
