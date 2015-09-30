@@ -16,8 +16,10 @@ extend SparkleMotion::Hue::HTTP
 ###############################################################################
 # TODO: Allow specifying bridges, groups of lights, or just lights.
 # TODO: Run this in parallel, one thread per bridge.
-requests = CONFIG["bridges"]
-           .values
+bridges = CONFIG["bridges"].values
+desired_bridges = ARGV.map { |name| bridges.find { |bridge| bridge["name"] == name } }.compact
+desired_bridges = bridges unless desired_bridges.length > 0
+requests = desired_bridges
            .map { |bridge| group_update(bridge, 0, payload: { "on" => false }) }
 perform_with_retries(requests) do |request, _status, _body|
   LOGGER.info { "Broadcast to all-lights group sent to #{request.bridge['name']}!" }
