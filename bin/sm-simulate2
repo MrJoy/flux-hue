@@ -90,7 +90,7 @@ DEBUG_FLAGS   = Hash[(ENV["DEBUG_NODES"] || "")
 ###############################################################################
 # Shared State Setup
 ###############################################################################
-PENDING_COMMANDS = Hash[CONFIG["bridges"].map { |bridge| [bridge["name"], Queue.new] }]
+TIME_TO_DIE = [false, :terminate]
 
 ###############################################################################
 # Profiling Support
@@ -109,6 +109,7 @@ def stop_ruby_prof!
 
   result  = RubyProf.stop
   printer = RubyProf::CallTreePrinter.new(result)
+  # TODO: Put this in the CWD to be more gem-friendly?
   File.open("tmp/results.html", "w") do |fh|
     printer.print(fh, min_percent: 1)
   end
@@ -216,6 +217,7 @@ end
 
 def pre_init!
   trap("INT") do
+    # TODO: Notify `Bridge` instances that it's time to die...
     TIME_TO_DIE[0] = true
     # If we hit ctrl-c, it'll show up on the terminal, mucking with log output right when we're
     # about to produce reports.  This annoys me, so I'm working around it:
@@ -229,59 +231,36 @@ end
 #   wait_for(threads, "sleep")
 # end
 
-def init!(global_results)
-  LOGGER.unknown { "Initializing system..." }
-  if SKIP_GC
-    LOGGER.unknown { "Disabling garbage collection!  BE CAREFUL!" }
-    GC.disable
-  end
-  global_results.begin! if global_results
-  start_ruby_prof!
-  FINAL_RESULT.update(Time.now.to_f)
-end
+# def init!
+#   LOGGER.unknown { "Initializing system..." }
+#   if SKIP_GC
+#     LOGGER.unknown { "Disabling garbage collection!  BE CAREFUL!" }
+#     GC.disable
+#   end
+#   start_ruby_prof!
+#   # TODO: Prime any simulations here.
+# end
 
-def wake!(threads)
-  LOGGER.unknown { "Final setup done, waking threads..." }
-  threads.each(&:run)
-end
-
-def spin!(threads)
-  LOGGER.unknown { "Waiting for the world to end..." }
-  loop do
-    # Someone hit the exit button:
-    break if TIME_TO_DIE[0]
-    # We went through and did `ITERATIONS` update loops over the lights:
-    # ... the `- 1` is for the command queue thread!
-    unfinished = (threads.length - threads.count { |th| th.status == false }) - 1
-    break if USE_LIGHTS && unfinished == 0
-    sleep 0.25
-  end
-end
-
-def stop!(threads)
-  LOGGER.unknown { "Stopping threads..." }
-  %i(lights sweep graph input).each do |thread_group|
-    threads[thread_group].each(&:terminate)
-  end
-end
+# def wake!(threads)
+#   LOGGER.unknown { "Final setup done, waking threads..." }
+#   threads.each(&:run)
+# end
 
 def main
   pre_init!
 
-  threads         = launch_all_threads!(CONFIG["simulation"], global_results)
+#   # wait_for_threads!(threads[:all])
+#   # init!(global_results)
+#   # wake!(threads[:all])
+#   # spin!(threads[:lights])
+#   # stop!(threads)
 
-  wait_for_threads!(threads[:all])
-  init!(global_results)
-  wake!(threads[:all])
-  spin!(threads[:lights])
-  stop!(threads)
+#   # LOGGER.unknown { "Doing final shutdown..." }
+#   # global_results.done! if global_results
+#   # clear_board!
 
-  LOGGER.unknown { "Doing final shutdown..." }
-  global_results.done! if global_results
-  clear_board!
-
-  print_results(global_results) if global_results
-  dump_debug_data!
+#   # print_results(global_results) if global_results
+#   # dump_debug_data!
 end
 
 def profile!(&block)

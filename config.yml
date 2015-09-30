@@ -360,6 +360,7 @@ simulation:
 # TODO: Allow arbitrary sweeper definitions.
 # TODO: Simulation for dance lights.
 # TODO: Simulation for accent lights.
+# TODO: Either break white lights up across bridges, or consolidate them to Bridge-01 -- I'm... not really sure which.
 # TODO: Intensity/saturation controls for dance lights.
 # TODO: Intensity/saturation controls for accent lights.
 # TODO: Brightness controls for eating lights.
