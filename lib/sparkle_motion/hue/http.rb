@@ -222,7 +222,7 @@ module SparkleMotion
           failures = requests = perform_once(requests, &callback)
           break if max_retries && retries >= max_retries
           retries += 1
-          sleep 0.5 * (2**retries) if requests.length > 0
+          sleep 0.05 * (2**retries) if requests.length > 0
         end
         failures
       end
