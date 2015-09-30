@@ -42,6 +42,6 @@ end
 # Main
 ###############################################################################
 requests = [light_modify(BRIDGE, LIGHT_ID, payload: { "name" => NEW_NAME })]
-perform_with_retries(requests) do |_easy, request|
+perform_with_retries(requests) do |request, _status, _body|
   LOGGER.info { "Updated name of light ##{LIGHT_ID} on #{request.bridge['name']}!" }
 end
