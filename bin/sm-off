@@ -15,6 +15,7 @@ extend SparkleMotion::Hue::HTTP
 # Main
 ###############################################################################
 # TODO: Allow specifying bridges, groups of lights, or just lights.
+# TODO: Run this in parallel, one thread per bridge.
 requests = CONFIG["bridges"]
            .values
            .map { |bridge| group_update(bridge, 0, payload: { "on" => false }) }

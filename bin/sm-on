@@ -32,6 +32,7 @@ LIGHT_PARAMS  = { "on"     => true,
 # Main
 ###############################################################################
 # TODO: Allow specifying bridges, groups of lights, or just lights.
+# TODO: Run this in parallel, one thread per bridge.
 requests = CONFIG["bridges"]
            .values
            .map { |bridge| group_update(bridge, 0, payload: LIGHT_PARAMS) }

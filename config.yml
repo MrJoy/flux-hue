@@ -45,6 +45,7 @@ light_groups:
   # Main Lights is the group for which the main simulation will be applied.
   # It can be any number of lights from any number of bridges but you'll need to
   # plan groups out for saturation controls.
+  # TODO: Break this into separate simulations per table?
   main_lights:
   - ["Bridge-01", 26]
   - ["Bridge-01", 37]
