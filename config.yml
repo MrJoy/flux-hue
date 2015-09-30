@@ -46,6 +46,7 @@ light_groups:
   # It can be any number of lights from any number of bridges but you'll need to
   # plan groups out for saturation controls.
   main_lights:
+  - ["Bridge-01", 26]
   - ["Bridge-01", 37]
   - ["Bridge-01", 36]
   - ["Bridge-01", 38]
@@ -59,7 +60,9 @@ light_groups:
   - ["Bridge-02", 19]
   - ["Bridge-02", 15]
   - ["Bridge-02", 18]
+  - ["Bridge-02", 11]
 
+  - ["Bridge-03",  7]
   - ["Bridge-03",  2]
   - ["Bridge-03",  3]
   - ["Bridge-03",  8]
@@ -67,6 +70,7 @@ light_groups:
   - ["Bridge-03",  9]
   - ["Bridge-03",  6]
 
+  - ["Bridge-04",  5]
   - ["Bridge-04",  7]
   - ["Bridge-04", 11]
   - ["Bridge-04", 12]
@@ -77,11 +81,7 @@ light_groups:
   # (ultimately) get their own simulation, although updates will be interleaved
   # with the main lights per-bridge.  It should be a positional map affording
   # spatial coherence.
-  dance_lights:
-  - ["Bridge-01", 26]
-  - ["Bridge-02", 11]
-  - ["Bridge-03",  7]
-  - ["Bridge-04",  5]
+  dance_lights: []
   # Accent lights are just... other lights in the system.  Not part of any
   # simulation, they get their base color and that's it.
   accent_lights:
