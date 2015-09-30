@@ -1,5 +1,5 @@
 <%-
-def color_step(steps); ((((120.0 / 360.0) * 65536) * steps) % 65536).round; end
+def color_step(steps); ((((90.0 / 360.0) * 65536) * steps) % 65536).round; end
 def random_color(steps); Random.rand(65536); end
 
 base_hue  = 50_000
