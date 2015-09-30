@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+###############################################################################
+# Early Initialization/Helpers
+###############################################################################
+lib = File.expand_path("../../lib", __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require "sparkle_motion"
+SparkleMotion.init!("sm-modify-group")
+SparkleMotion.use_hue!(api: true)
+LOGGER = SparkleMotion.logger
+extend SparkleMotion::Hue::HTTP
+
+###############################################################################
+# Parameters
+###############################################################################
+BRIDGE_NAME   = ARGV.shift
+GROUP_ID      = ARGV.shift.to_i
+LIGHTS_RAW    = ARGV.shift
+
+BRIDGE        = CONFIG["bridges"].values.find { |bridge| bridge["name"] == BRIDGE_NAME }
+
+errors = []
+errors << "Must specify a valid bridge name from config.yml!" unless BRIDGE
+# TODO: Query bridge to ensure our group and light IDs are sane...
+errors << "Must specify a valid list of lights!" unless LIGHTS_RAW && LIGHTS_RAW =~ /\A[ 0-9,]+\z/i
+
+if errors.length > 0
+  LOGGER.info "Usage: sm-modify-group <bridge-name> <group ID> <light>[,<light>...]"
+  errors.each do |error|
+    LOGGER.error { error }
+  end
+  exit 1
+end
+
+###############################################################################
+# Main
+###############################################################################
+light_ids = LIGHTS_RAW.split(/\s*,\s*/)
+requests  = [group_modify(BRIDGE, GROUP_ID, payload: { "lights" => light_ids })]
+perform_with_retries(requests) do |request, _status, _body|
+  LOGGER.info { "Updated membership of group ##{GROUP_ID} on #{request.bridge['name']}!" }
+end

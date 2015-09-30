@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+
+###############################################################################
+# Early Initialization/Helpers
+###############################################################################
+lib = File.expand_path("../../lib", __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require "sparkle_motion"
+SparkleMotion.init!("sm-create-group")
+SparkleMotion.use_hue!(api: true)
+LOGGER = SparkleMotion.logger
+extend SparkleMotion::Hue::HTTP
+
+###############################################################################
+# Parameters
+###############################################################################
+BRIDGE_NAME   = ARGV.shift
+NEW_NAME      = ARGV.shift
+LIGHTS_RAW    = ARGV.shift
+
+BRIDGE        = CONFIG["bridges"].values.find { |bridge| bridge["name"] == BRIDGE_NAME }
+
+errors = []
+errors << "Must specify a valid bridge name from config.yml!" unless BRIDGE
+# TODO: Figure out what's actually a valid component of a group name!
+errors << "Must specify a valid light name!" unless NEW_NAME && NEW_NAME =~ /\A[ a-z0-9-]{1,32}\z/i
+# TODO: Query bridge to ensure our group ID is sane...
+errors << "Must specify a valid list of lights!" unless LIGHTS_RAW && LIGHTS_RAW =~ /\A[ 0-9,]+\z/i
+
+if errors.length > 0
+  LOGGER.info "Usage: sm-create-group <bridge-name> <name> <light>[,<light>...]"
+  errors.each do |error|
+    LOGGER.error { error }
+  end
+  exit 1
+end
+
+###############################################################################
+# Main
+###############################################################################
+light_ids = LIGHTS_RAW.split(/\s*,\s*/)
+requests  = [group_create(BRIDGE, payload: { "name" => NEW_NAME, "lights" => light_ids })]
+perform_with_retries(requests) do |request, _status, _body|
+  LOGGER.info { "Group on #{request.bridge['name']} created!" }
+end

@@ -64,6 +64,7 @@ perform_with_retries(requests) do |request, _status, body|
      state["effect"]]
   end
 
+  # TODO: The *kind* of group matters.  LightGroup == good.  LightSource / Luminaire == magical.
   group_format = "%-32s %-2s %s"
   group_fields =  %w(Name ID Lights)
   table("Groups", response["groups"], group_format, group_fields) do |group_id, group_info|

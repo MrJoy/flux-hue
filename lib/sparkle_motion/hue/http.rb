@@ -13,7 +13,7 @@ module SparkleMotion
           @bridge             = bridge
           @action             = action
           @payload            = payload
-          @target, @target_id = target_from(light_id, group_id)
+          @target, @target_id = target_from(action, light_id, group_id)
           @http_method, @uri  = http_params_from(action, @target, @target_id)
           @callback           = callback
           @stopwatch          = StopWatch.new(8) # Num steps we expect to take in `perform`.
@@ -91,7 +91,7 @@ module SparkleMotion
 
         def request_body(http_method, uri, payload, callback)
           command = "#{http_method} #{uri} HTTP/1.0"
-          if http_method == "GET"
+          if http_method == "GET" || http_method == "DELETE"
             message = "#{command}\n\n"
           else
             body    = Oj.dump(payload ? payload : callback.call)
@@ -107,20 +107,27 @@ module SparkleMotion
           http_method = case action
                         when :query              then "GET"
                         when :configure, :update then "PUT"
+                        when :delete             then "DELETE"
+                        when :create             then "POST"
                         else
                           fail "Unknown action '#{action}'!"
                         end
 
-          uri = (action == :update) ? update_uri(target, target_id) : query_uri(target, target_id)
+          uri = case action
+                when :update                     then update_uri(target, target_id)
+                when :query, :configure, :delete then query_uri(target, target_id)
+                when :create                     then query_uri(target, nil)
+                end
 
           [http_method, uri]
         end
 
-        def target_from(light_id, group_id)
+        def target_from(action, light_id, group_id)
           case
           when group_id && light_id then fail "Must specify 0 or 1 of [light_id, group_id]!"
           when group_id             then [:group, group_id]
           when light_id             then [:light, light_id]
+          when action == :create    then [:group]
           else                           [:bridge]
           end
         end
@@ -132,7 +139,7 @@ module SparkleMotion
         def query_uri(target, target_id)
           base = "/api/#{bridge['username']}"
           scope = QUERY_SCOPE[target]
-          scope ? "#{base}/#{scope}/#{target_id}" : base
+          scope ? (target_id ? "#{base}/#{scope}/#{target_id}" : "#{base}/#{scope}") : base
         end
 
         def update_uri(target, target_id)
@@ -159,14 +166,17 @@ module SparkleMotion
         request(bridge, :query, &callback)
       end
 
+      def bridge_modify(bridge, payload: nil, &callback)
+        request(bridge, :configure, payload: payload, &callback)
+      end
+
       def light_update(bridge, light_id, payload: nil, transition: nil, &callback)
         request(bridge, :update, light_id: light_id, payload: payload, transition: transition,
                 &callback)
       end
 
-      def light_modify(bridge, light_id, payload: nil, transition: nil, &callback)
-        request(bridge, :configure, light_id: light_id, payload: payload, transition: transition,
-                &callback)
+      def light_modify(bridge, light_id, payload: nil, &callback)
+        request(bridge, :configure, light_id: light_id, payload: payload, &callback)
       end
 
       def group_update(bridge, group_id, payload: nil, transition: nil, &callback)
@@ -174,9 +184,16 @@ module SparkleMotion
                 &callback)
       end
 
-      def group_modify(bridge, group_id, payload: nil, transition: nil, &callback)
-        request(bridge, :configure, group_id: group_id, payload: payload, transition: transition,
-                &callback)
+      def group_modify(bridge, group_id, payload: nil, &callback)
+        request(bridge, :configure, group_id: group_id, payload: payload, &callback)
+      end
+
+      def group_create(bridge, payload: nil, &callback)
+        request(bridge, :create, payload: payload, &callback)
+      end
+
+      def group_delete(bridge, group_id, &callback)
+        request(bridge, :delete, group_id: group_id, &callback)
       end
 
       def perform_once(requests, &callback)
