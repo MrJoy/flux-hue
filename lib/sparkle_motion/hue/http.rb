@@ -1,12 +1,14 @@
 require "oj"
 require "socket"
+require "net/http"
 
 module SparkleMotion
   module Hue
     # Helpers for interacting with the Philips Hue Bridge.
     module HTTP
-      # Class to encapsulate a request to the Hue Bridge
-      class Request
+      # Class to encapsulate a request to the Hue Bridge, using `TCPSocket` for low-overhead
+      # communication.
+      class TCPSocketRequest
         attr_reader :bridge, :action, :light_id, :group_id, :http_method, :uri, :payload, :callback
 
         def initialize(bridge, action, light_id: nil, group_id: nil, payload: nil, &callback)
@@ -40,7 +42,8 @@ module SparkleMotion
           message = request_body(http_method, uri, payload, @callback)
           @stopwatch.record!(:request_synthesized)
 
-          socket.puts(message)
+          socket.write(message)
+          socket.flush
           @stopwatch.record!(:request_sent)
 
           read_response(socket, response)
@@ -148,6 +151,112 @@ module SparkleMotion
         end
       end
 
+      # Class to enccapsulate a request to the Hue Bridge, using `Net::HTTP` for better
+      # compatibility.
+      class NetHTTPRequest
+        attr_reader :bridge, :action, :light_id, :group_id, :http_method, :uri, :payload, :callback
+
+        def initialize(bridge, action, light_id: nil, group_id: nil, payload: nil, &callback)
+          @bridge             = bridge
+          @action             = action
+          @payload            = payload
+          @target, @target_id = target_from(action, light_id, group_id)
+          @http_method, @uri  = http_params_from(action, @target, @target_id)
+          @callback           = callback
+          @stopwatch          = StopWatch.new(2) # Num steps we expect to take in `perform`.
+        end
+
+        def perform
+          # Hue Bridge generally gives us:
+          #   * 1x Response status line
+          #   * 3x cache-related header
+          #   * 1x Connection close indicator
+          #   * 5x access control header
+          #   * 1x Content type
+          #   * 1x Body separator (blank)
+          #   * 1x Response body, as a one-liner
+          # ... so we allocate 14 entries right off the bat to avoid reallocating any under-the-hood
+          # blocks of memory, etc.
+          @stopwatch.begin!
+          response = Array.new(14)
+          @stopwatch.record!(:allocated)
+
+          url = URI("http://#{bridge['ip']}:#{bridge['port'] || 80}#{uri}")
+          case http_method
+          when "GET"    then response = Net::HTTP.get_response(url)
+          when "DELETE" then response = Net::HTTP.delete(url)
+          when "PUT", "POST"
+            if http_method == "PUT"
+              req = Net::HTTP::Put.new(url)
+            else
+              req = Net::HTTP::Post.new(url)
+            end
+            req.content_type = "application/json"
+            response = Net::HTTP.start(url.hostname, url.port) do |http|
+              req.body = Oj.dump(payload || callback.call)
+              req.content_length = req.body.length
+              http.request(req)
+            end
+          end
+          @stopwatch.record!(:request_sent)
+
+          result = parse_response(response)
+          @stopwatch.record!(:response_parsed)
+
+          result
+        end
+
+      protected
+
+        def parse_response(response)
+          error = true
+          error = false if response.code.to_i == 200 && response.body !~ /error/
+          [error, response.code, response.body.split(/\r?\n/)]
+        end
+
+        def http_params_from(action, target, target_id)
+          http_method = HTTP_METHODS[action]
+
+          uri = case action
+                when :update                     then update_uri(target, target_id)
+                when :query, :configure, :delete then query_uri(target, target_id)
+                when :create                     then query_uri(target, nil)
+                end
+
+          [http_method, uri]
+        end
+
+        def target_from(action, light_id, group_id)
+          case
+          when group_id && light_id then fail "Must specify 0 or 1 of [light_id, group_id]!"
+          when group_id             then [:group, group_id]
+          when light_id             then [:light, light_id]
+          when action == :create    then [:group]
+          else                           [:bridge]
+          end
+        end
+
+        STATUS_EXP      = %r{\AHTTP/(\d+\.\d+) (?<code>\d+)}
+        QUERY_SCOPE     = { light: "lights", group: "groups" }
+        ACTION_ENDPOINT = { light: "state", group: "action" }
+        HTTP_METHODS    = { query:     "GET",
+                            configure: "PUT",
+                            update:    "PUT",
+                            delete:    "DELETE",
+                            create:    "POST" }
+
+        def query_uri(target, target_id)
+          base = "/api/#{bridge['username']}"
+          scope = QUERY_SCOPE[target]
+          scope ? (target_id ? "#{base}/#{scope}/#{target_id}" : "#{base}/#{scope}") : base
+        end
+
+        def update_uri(target, target_id)
+          fail "Can't update a bridge!" if target == :bridge
+          "#{query_uri(target, target_id)}/#{ACTION_ENDPOINT[target]}"
+        end
+      end
+
       def with_transition_time(transition, data)
         # This allows you to specify transition time in seconds, as a float instead of the awkward
         # tenths-of-a-second actually supported by the bridge.
@@ -158,7 +267,7 @@ module SparkleMotion
       def request(bridge, action, group_id: nil, light_id: nil, payload: nil, transition: nil,
                   &callback)
         payload = with_transition_time(transition, payload) if payload && transition
-        Request.new(bridge, action, light_id: light_id, group_id: group_id, payload: payload,
+        NetHTTPRequest.new(bridge, action, light_id: light_id, group_id: group_id, payload: payload,
                     &callback)
       end
 

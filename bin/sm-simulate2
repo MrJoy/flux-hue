@@ -187,9 +187,9 @@ protected
     cbs = command[3]
     cb  = proc { pl.merge(merge_chain(cbs.map(&:invoke))) } if cbs.length > 0
     if command[0] == :group
-      Request.new(@config, :update, group_id: command[1], payload: pl, &cb)
+      NetHTTPRequest.new(@config, :update, group_id: command[1], payload: pl, &cb)
     else
-      Request.new(@config, :update, light_id: command[1], payload: pl, &cb)
+      NetHTTPRequest.new(@config, :update, light_id: command[1], payload: pl, &cb)
     end
   end
 
