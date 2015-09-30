@@ -101,7 +101,7 @@ initial_state:
   # a desired baseline state -- it merely assumes that they're in decent shape.
   hue: <%= base_hue %>
   sat: 255
-  bri: 127
+  bri: 0
 controllers:
   # Specify which controllers you want to use here.  You can refer to them via
   # the hash key later on.  Any field other than `class` is sent as a parameter
