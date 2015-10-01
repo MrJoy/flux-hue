@@ -82,7 +82,18 @@ light_groups:
   # (ultimately) get their own simulation, although updates will be interleaved
   # with the main lights per-bridge.  It should be a positional map affording
   # spatial coherence.
-  dance_lights: []
+  dance_lights:
+  - ["Bridge-01", 41, color]
+  - ["Bridge-01", 42, color]
+
+  - ["Bridge-02", 22, color]
+  - ["Bridge-02", 23, color]
+
+  - ["Bridge-03", 11, color]
+  - ["Bridge-03", 12, color]
+
+  - ["Bridge-04", 13, color]
+  - ["Bridge-04", 14, color]
   # Accent lights are just... other lights in the system.  Not part of any
   # simulation, they get their base color and that's it.
   accent_lights:
