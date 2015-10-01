@@ -6,7 +6,7 @@
 lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "sparkle_motion"
-SparkleMotion.init!("mark_lights")
+SparkleMotion.init!
 SparkleMotion.use_hue!(api: true)
 LOGGER = SparkleMotion.logger
 extend SparkleMotion::Hue::HTTP
@@ -21,7 +21,7 @@ def light_state(hue, index, num_lights)
                   "hue" => hue,
                   "sat" => 255,
                   "bri" => target }
-  with_transition_time(data, 0)
+  with_transition_time(0, data)
 end
 
 # TODO: Speed this up by setting on/hue via group message per bridge...
@@ -29,7 +29,9 @@ CONFIG["light_groups"].keys.each do |group_name|
   config  = SparkleMotion::LightConfig.new(config: CONFIG, group: group_name)
   reqs    = {}
   config.bridges.each do |bridge_name, bridge|
-    light_ids   = config.lights[bridge_name].map(&:last)
+    light_ids   = config.lights[bridge_name]
+                  .select { |ll| ll.last == "color" }
+                  .map { |ll| ll[1] }
     hue         = bridge["debug_hue"]
     index       = 0
     num_lights  = light_ids.length

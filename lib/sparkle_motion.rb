@@ -16,10 +16,10 @@ require "logger-better"
 module SparkleMotion
   def self.logger; @logger; end
 
-  def self.init!(name)
+  def self.init!
     @logger         = Logger::Better.new(STDOUT)
     @logger.level   = (ENV["SPARKLEMOTION_LOGLEVEL"] || "info").downcase.to_sym
-    @logger.progname = name
+    @logger.progname = caller.last.split(":", 2).first.split(%r{/}).last
   end
 
   # Load code for talking to Philips Hue lighting system.

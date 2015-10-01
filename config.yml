@@ -1,5 +1,5 @@
 <%-
-def color_step(steps); ((((120.0 / 360.0) * 65536) * steps) % 65536).round; end
+def color_step(steps); ((((90.0 / 360.0) * 65536) * steps) % 65536).round; end
 def random_color(steps); Random.rand(65536); end
 
 base_hue  = 50_000
@@ -17,19 +17,23 @@ bridges:
   # produced by `sm-discovery` in a comment next to the name so that when you're
   # setting things up on-site and all your bridges get new DHCP-assigned
   # addresses, you can quickly update the IP field here.
-  "Bridge-01": # 0017881226f3
+  "Bridge-01":
+    id: "0017881226f3"
     ip: "192.168.2.10"
     username: *common_username
     debug_hue: <%= color_step(0) %>
-  "Bridge-02": # 001788105eda
+  "Bridge-02":
+    id: "001788105eda"
     ip: "192.168.2.6"
     username: *common_username
     debug_hue: <%= color_step(1) %>
-  "Bridge-03": # 0017881853d0
+  "Bridge-03":
+    id: "0017881853d0"
     ip: "192.168.2.7"
     username: *common_username
     debug_hue: <%= color_step(2) %>
-  "Bridge-04": # 0017881a1d5c
+  "Bridge-04":
+    id: "0017881a1d5c"
     ip: "192.168.2.9"
     username: *common_username
     debug_hue: <%= color_step(3) %>
@@ -41,55 +45,82 @@ light_groups:
   # Main Lights is the group for which the main simulation will be applied.
   # It can be any number of lights from any number of bridges but you'll need to
   # plan groups out for saturation controls.
+  # TODO: Break this into separate simulations per table?
   main_lights:
-  - ["Bridge-01", 37]
-  - ["Bridge-01", 36]
-  - ["Bridge-01", 38]
-  - ["Bridge-01", 39]
-  - ["Bridge-01", 40]
-  - ["Bridge-01", 35]
+  - ["Bridge-01", 26, color]
+  - ["Bridge-01", 37, color]
+  - ["Bridge-01", 36, color]
+  - ["Bridge-01", 38, color]
+  - ["Bridge-01", 39, color]
+  - ["Bridge-01", 40, color]
+  - ["Bridge-01", 35, color]
 
-  - ["Bridge-02", 12]
-  - ["Bridge-02", 21]
-  - ["Bridge-02", 20]
-  - ["Bridge-02", 19]
-  - ["Bridge-02", 15]
-  - ["Bridge-02", 18]
+  - ["Bridge-02", 12, color]
+  - ["Bridge-02", 21, color]
+  - ["Bridge-02", 20, color]
+  - ["Bridge-02", 19, color]
+  - ["Bridge-02", 15, color]
+  - ["Bridge-02", 18, color]
+  - ["Bridge-02", 11, color]
 
-  - ["Bridge-03",  2]
-  - ["Bridge-03",  3]
-  - ["Bridge-03",  8]
-  - ["Bridge-03", 10]
-  - ["Bridge-03",  9]
-  - ["Bridge-03",  6]
+  - ["Bridge-03",  7, color]
+  - ["Bridge-03",  2, color]
+  - ["Bridge-03",  3, color]
+  - ["Bridge-03",  8, color]
+  - ["Bridge-03", 10, color]
+  - ["Bridge-03",  9, color]
+  - ["Bridge-03",  6, color]
 
-  - ["Bridge-04",  7]
-  - ["Bridge-04", 11]
-  - ["Bridge-04", 12]
-  - ["Bridge-04",  1]
-  - ["Bridge-04",  9]
-  - ["Bridge-04",  8]
+  - ["Bridge-04",  5, color]
+  - ["Bridge-04",  7, color]
+  - ["Bridge-04", 11, color]
+  - ["Bridge-04", 12, color]
+  - ["Bridge-04",  1, color]
+  - ["Bridge-04",  9, color]
+  - ["Bridge-04",  8, color]
   # Dance Lights is the group of lights above the dance floor, which will
   # (ultimately) get their own simulation, although updates will be interleaved
   # with the main lights per-bridge.  It should be a positional map affording
   # spatial coherence.
   dance_lights:
-  - ["Bridge-01", 26]
-  - ["Bridge-02", 11]
-  - ["Bridge-03",  7]
-  - ["Bridge-04",  5]
+  - ["Bridge-01", 41, color]
+  - ["Bridge-01", 42, color]
+
+  - ["Bridge-02", 22, color]
+  - ["Bridge-02", 23, color]
+
+  - ["Bridge-03", 11, color]
+  - ["Bridge-03", 12, color]
+
+  - ["Bridge-04", 13, color]
+  - ["Bridge-04", 14, color]
   # Accent lights are just... other lights in the system.  Not part of any
   # simulation, they get their base color and that's it.
   accent_lights:
-  - ["Bridge-01",  9]
-  - ["Bridge-01", 10]
-  - ["Bridge-01", 11]
-  - ["Bridge-01", 12]
-  - ["Bridge-01", 13]
-  - ["Bridge-01", 33]
-  - ["Bridge-01", 34]
-  - ["Bridge-02",  7]
-  - ["Bridge-02",  8]
+  - ["Bridge-01",  9, color]
+  - ["Bridge-01", 10, color]
+  - ["Bridge-01", 11, color]
+  - ["Bridge-01", 12, color]
+  - ["Bridge-01", 13, color]
+  - ["Bridge-01", 33, color]
+  - ["Bridge-01", 34, color]
+
+  - ["Bridge-02",  7, color]
+  - ["Bridge-02",  8, color]
+  food_lights:
+  # TODO: Allow specifying both a group ID and individual light IDs.  While we're at it, break this
+  # TODO: out into a separate file, and use it as a cache -- with a way to regenerate from the
+  # TODO: lights, and/or apply it to the lights.
+  - ["Bridge-01",  3, white]
+  - ["Bridge-01",  4, white]
+  - ["Bridge-01",  5, white]
+  - ["Bridge-01", 16, white]
+  - ["Bridge-01", 24, white]
+  - ["Bridge-01", 25, white]
+
+  - ["Bridge-02",  4, white]
+  - ["Bridge-02",  5, white]
+  - ["Bridge-02",  6, white]
 initial_state:
   # This defines what state the lights will be set to when running `sm-on`.
   # It's important you run `sm-on` *before* running `sparkle-motion`, as the
@@ -261,10 +292,10 @@ simulation:
       values:
       # [Mid-point, delta].  Minimum brightness is `mid-point - delta` and max
       # is `mid-point + delta`.
-      - [0.000, 0.000]
       - [0.150, 0.075]
       - [0.200, 0.100]
       - [0.400, 0.150]
+      - [0.500, 0.175]
       - [0.600, 0.200]
       colors:
         "on":   0x22003F
@@ -335,12 +366,12 @@ simulation:
         "on":   0x032727
         "off":  0x000202
         "down": 0x103F3F
-# TODO: Add one more light to each group.
-# TODO: Allocate accent lights to groups.
-# TODO: Add group for food lights.
-# TODO: Set up explicit groups for lights, and do sweeps / etc over those.
+# TODO: Reallocate these accent lights to bridges 3-4: [Bridge-01, 11], [Bridge-01, 12], [Bridge-01, 13], [Bridge-01, 33], [Bridge-01, 34]
+# TODO: Allow sweepers to address a particular *group or light* at each step.
+# TODO: Allow arbitrary sweeper definitions.
 # TODO: Simulation for dance lights.
 # TODO: Simulation for accent lights.
+# TODO: Either break white lights up across bridges, or consolidate them to Bridge-01 -- I'm... not really sure which.
 # TODO: Intensity/saturation controls for dance lights.
 # TODO: Intensity/saturation controls for accent lights.
 # TODO: Brightness controls for eating lights.

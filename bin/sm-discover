@@ -6,14 +6,17 @@
 lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "sparkle_motion"
-SparkleMotion.init!("discover")
+SparkleMotion.init!
 SparkleMotion.use_hue!(discovery: true)
 
 def ip_atob(ip)
   ip.split(/\./).map(&:to_i).pack("C4")
 end
 
+bridges = CONFIG["bridges"].values
 results = SparkleMotion::Hue::SSDP.new.scan
 results.keys.sort { |a, b| ip_atob(a) <=> ip_atob(b) }.each do |ip|
-  puts "%15s: %s" % [ip, results[ip]]
+  id = results[ip]
+  bridge = bridges.find { |br| br["id"] == id } || { "name" => "<Unknown Bridge>" }
+  puts "%15s: id=%s, name=%s" % [ip, id, bridge["name"]]
 end

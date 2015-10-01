@@ -57,7 +57,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "sparkle_motion"
 require "set"
 
-SparkleMotion.init!("simulate")
+SparkleMotion.init!
 # We load the following unconditionally because so much plugs into the graph
 # we don't currently have a good way of decoupling things gracefully.  So all
 # USE_GRAPH=0 really means is that we don't run the simulation thread.
@@ -187,7 +187,7 @@ LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), id
 end
 
 def sat_req(ival, sat_len, sat_bridge, sat_group)
-  data = with_transition_time({ "sat" => (255 * ival).round }, sat_len)
+  data = with_transition_time(sat_len, "sat" => (255 * ival).round)
   { method:   :put,
     url:      hue_group_endpoint(sat_bridge, sat_group),
     put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
@@ -319,16 +319,6 @@ def clear_board!
   EXIT_BUTTON.blank
 end
 
-def any_in_state(threads, state)
-  threads = Array(threads)
-  threads.find { |th| th.status != state }
-end
-
-def wait_for(threads, state)
-  threads = Array(threads)
-  sleep 0.01 while any_in_state(threads, state)
-end
-
 def without_persistence(&block)
   SKIP_STATE_PERSISTENCE[0] = defined?(LaunchPad) ? true : false
   block.call
@@ -354,10 +344,6 @@ end
 
 def setup_exit_controls!
   EXIT_BUTTON.update(false)
-end
-
-def guarded_thread(name, &block)
-  Thread.new { guard_call(name, &block) }
 end
 
 def launch_input_thread!(name, controller)
@@ -420,7 +406,7 @@ def launch_sweep_thread!(config, hues, sweep_len, sweep_wait)
       before_time = Time.now.to_f
       idx         = ((before_time / sweep_wait) % hues.length).floor
       # TODO: Recycle this hash?
-      add_group_command!(config, with_transition_time({ "hue" => hues[idx] }, sweep_len))
+      add_group_command!(config, with_transition_time(sweep_len, "hue" => hues[idx]))
 
       elapsed = Time.now.to_f - before_time
       sleep sweep_wait - elapsed if elapsed < sweep_wait
@@ -469,7 +455,7 @@ def light_req(idx, lid, transition, config, stats, debug)
   SparkleMotion::Hue::LazyRequestConfig.new(LOGGER, config, url, stats, debug: debug) do
     # TODO: Recycle this hash?
     data = { "bri" => (FINAL_RESULT[idx] * 255).round }
-    with_transition_time(data, transition)
+    with_transition_time(transition, data)
   end
 end
 
