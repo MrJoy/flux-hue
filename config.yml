@@ -19,26 +19,22 @@ bridges:
   # addresses, you can quickly update the IP field here.
   "Bridge-01":
     id: "0017881226f3"
-    ip: "localhost"
-    port: 8000
+    ip: "192.168.2.10"
     username: *common_username
     debug_hue: <%= color_step(0) %>
   "Bridge-02":
     id: "001788105eda"
-    ip: "localhost"
-    port: 8001
+    ip: "192.168.2.6"
     username: *common_username
     debug_hue: <%= color_step(1) %>
   "Bridge-03":
     id: "0017881853d0"
-    ip: "localhost"
-    port: 8002
+    ip: "192.168.2.7"
     username: *common_username
     debug_hue: <%= color_step(2) %>
   "Bridge-04":
     id: "0017881a1d5c"
-    ip: "localhost"
-    port: 8003
+    ip: "192.168.2.9"
     username: *common_username
     debug_hue: <%= color_step(3) %>
 light_groups:
