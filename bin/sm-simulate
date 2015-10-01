@@ -485,7 +485,7 @@ def launch_light_threads!(cfg, global_results, debug)
 
         global_results.add_from(stats) if global_results
         stats.clear! if stats
-        sleep 0.1
+        # sleep 0.04
       end
     end
   end
