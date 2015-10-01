@@ -1,0 +1,495 @@
+{
+  "lights": {
+    "4": {
+      "state": {
+        "on": false,
+        "bri": 23,
+        "hue": 16384,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.3577,
+          0.5590
+        ],
+        "ct": 217,
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Dimmable light",
+      "name": "White-01",
+      "modelid": "LWB004",
+      "swversion": "66012040",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "5": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 16384,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.3577,
+          0.5590
+        ],
+        "ct": 217,
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Dimmable light",
+      "name": "White-02",
+      "modelid": "LWB004",
+      "swversion": "66012040",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "6": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 16384,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.3577,
+          0.5590
+        ],
+        "ct": 217,
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Dimmable light",
+      "name": "White-03",
+      "modelid": "LWB004",
+      "swversion": "66012040",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "7": {
+      "state": {
+        "on": false,
+        "bri": 23,
+        "hue": 16384,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.3577,
+          0.5590
+        ],
+        "ct": 217,
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Extended color light",
+      "name": "Accent-00",
+      "modelid": "LLC020",
+      "swversion": "66014378",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "8": {
+      "state": {
+        "on": false,
+        "bri": 139,
+        "hue": 16384,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.3577,
+          0.5590
+        ],
+        "ct": 217,
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Extended color light",
+      "name": "Accent-01",
+      "modelid": "LLC020",
+      "swversion": "66014378",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "11": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 16384,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.5048,
+          0.4474
+        ],
+        "ct": 451,
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Extended color light",
+      "name": "Main-07",
+      "modelid": "LCT002",
+      "swversion": "66013452",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "12": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 16384,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.5048,
+          0.4474
+        ],
+        "ct": 451,
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Extended color light",
+      "name": "Main-01",
+      "modelid": "LCT002",
+      "swversion": "66013452",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "15": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 16384,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.5048,
+          0.4474
+        ],
+        "ct": 451,
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Extended color light",
+      "name": "Main-05",
+      "modelid": "LCT002",
+      "swversion": "66013452",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "18": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 16384,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.5048,
+          0.4474
+        ],
+        "ct": 451,
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Extended color light",
+      "name": "Main-06",
+      "modelid": "LCT002",
+      "swversion": "66013452",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "19": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 16384,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.5048,
+          0.4474
+        ],
+        "ct": 451,
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Extended color light",
+      "name": "Main-04",
+      "modelid": "LCT001",
+      "swversion": "66013187",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "20": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 16384,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.5048,
+          0.4474
+        ],
+        "ct": 451,
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Extended color light",
+      "name": "Main-03",
+      "modelid": "LCT001",
+      "swversion": "66009663",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "21": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 16384,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.5048,
+          0.4474
+        ],
+        "ct": 451,
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Extended color light",
+      "name": "Main-02",
+      "modelid": "LCT001",
+      "swversion": "66009663",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    }
+  },
+  "groups": {
+    "1": {
+      "name": "Main",
+      "lights": [
+        "12",
+        "21",
+        "20",
+        "19",
+        "15",
+        "18",
+        "11"
+      ],
+      "type": "LightGroup",
+      "action": {
+        "on": true,
+        "bri": 127,
+        "hue": 16384,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.5048,
+          0.4474
+        ],
+        "ct": 451,
+        "alert": "none",
+        "colormode": "hs"
+      }
+    },
+    "2": {
+      "name": "Accent",
+      "lights": [
+        "7",
+        "8"
+      ],
+      "type": "LightGroup",
+      "action": {
+        "on": false,
+        "bri": 139,
+        "hue": 16384,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.3577,
+          0.5590
+        ],
+        "ct": 217,
+        "alert": "none",
+        "colormode": "hs"
+      }
+    },
+    "3": {
+      "name": "White",
+      "lights": [
+        "4",
+        "5",
+        "6"
+      ],
+      "type": "LightGroup",
+      "action": {
+        "on": true,
+        "bri": 127,
+        "alert": "none"
+      }
+    }
+  },
+  "config": {
+    "name": "Bridge-02",
+    "mac": "00:17:88:10:5e:da",
+    "dhcp": true,
+    "ipaddress": "127.0.0.1:8003",
+    "netmask": "255.255.255.0",
+    "gateway": "192.168.2.1",
+    "proxyaddress": "none",
+    "proxyport": 0,
+    "UTC": "2015-09-30T21:34:54",
+    "whitelist": {
+      "1234567890": {
+        "last use date": "2015-09-30T21:34:54",
+        "create date": "2015-07-22T08:31:53",
+        "name": "Ruby"
+      }
+    },
+    "swversion": "01024156",
+    "swupdate": {
+      "updatestate": 2,
+      "url": "",
+      "text": "",
+      "notify": false
+    },
+    "linkbutton": false,
+    "portalservices": true
+  },
+  "schedules": {},
+  "scenes": {
+    "651211010-on-0": {
+      "name": "Green on 0",
+      "lights": [
+        "7",
+        "8",
+        "11",
+        "12",
+        "15",
+        "18"
+      ],
+      "active": true
+    },
+    "168e41b08-on-0": {
+      "name": "Green on 0",
+      "lights": [
+        "7",
+        "8",
+        "11",
+        "12",
+        "15",
+        "18"
+      ],
+      "active": true
+    }
+  }
+}

@@ -1,25 +1,22 @@
 {
   "lights": {
-    "26": {
+    "3": {
       "state": {
         "on": true,
-        "bri": 254,
-        "hue": 4444,
+        "bri": 127,
+        "hue": 5000,
         "sat": 254,
-        "xy": [
-          0.0,
-          0.0
-        ],
-        "ct": 0,
+        "xy": null,
+        "ct": null,
         "alert": "none",
         "effect": "none",
-        "colormode": "hs",
+        "colormode": null,
         "reachable": true
       },
-      "type": "Extended color light",
-      "name": "Main-01",
-      "modelid": "LCT001",
-      "swversion": "65003148",
+      "type": "Dimmable light",
+      "name": "White-01",
+      "modelid": "LWB004",
+      "swversion": "66012040",
       "pointsymbol": {
         "1": "none",
         "2": "none",
@@ -31,26 +28,407 @@
         "8": "none"
       }
     },
-    "37": {
+    "4": {
       "state": {
         "on": true,
-        "bri": 254,
-        "hue": 23536,
-        "sat": 144,
-        "xy": [
-          0.346,
-          0.3568
-        ],
-        "ct": 201,
+        "bri": 127,
+        "hue": 5000,
+        "sat": 254,
+        "xy": null,
+        "ct": null,
         "alert": "none",
         "effect": "none",
+        "colormode": null,
+        "reachable": true
+      },
+      "type": "Dimmable light",
+      "name": "White-02",
+      "modelid": "LWB004",
+      "swversion": "66012040",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "5": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 5000,
+        "sat": 254,
+        "xy": null,
+        "ct": null,
+        "alert": "none",
+        "effect": "none",
+        "colormode": null,
+        "reachable": true
+      },
+      "type": "Dimmable light",
+      "name": "White-03",
+      "modelid": "LWB004",
+      "swversion": "66012040",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "9": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 0,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.7040,
+          0.2960
+        ],
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Color light",
+      "name": "Accent-00",
+      "modelid": "LLC011",
+      "swversion": "66013452",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "10": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 0,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.7040,
+          0.2960
+        ],
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Color light",
+      "name": "Accent-01",
+      "modelid": "LLC011",
+      "swversion": "66013452",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "11": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 0,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.0000,
+          0.0000
+        ],
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": false
+      },
+      "type": "Color light",
+      "name": "Accent-02",
+      "modelid": "LST001",
+      "swversion": "66013452",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "12": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 0,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.0000,
+          0.0000
+        ],
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": false
+      },
+      "type": "Color light",
+      "name": "Accent-03",
+      "modelid": "LST001",
+      "swversion": "66013452",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "13": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 0,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.0000,
+          0.0000
+        ],
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": false
+      },
+      "type": "Color light",
+      "name": "Accent-04",
+      "modelid": "LST001",
+      "swversion": "66013452",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "16": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 5000,
+        "sat": 254,
+        "xy": null,
+        "ct": null,
+        "alert": "none",
+        "effect": "none",
+        "colormode": null,
+        "reachable": true
+      },
+      "type": "Dimmable light",
+      "name": "White-04",
+      "modelid": "LWB004",
+      "swversion": "66012040",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "24": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 5000,
+        "sat": 254,
+        "xy": null,
+        "ct": null,
+        "alert": "none",
+        "effect": "none",
+        "colormode": null,
+        "reachable": true
+      },
+      "type": "Dimmable light",
+      "name": "White-05",
+      "modelid": "LWB004",
+      "swversion": "66012040",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "25": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 5000,
+        "sat": 254,
+        "xy": null,
+        "ct": null,
+        "alert": "none",
+        "effect": "none",
+        "colormode": null,
+        "reachable": true
+      },
+      "type": "Dimmable light",
+      "name": "White-06",
+      "modelid": "LWB004",
+      "swversion": "66012040",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "26": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 0,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.6750,
+          0.3220
+        ],
+        "ct": 500,
+        "alert": "none",
         "colormode": "hs",
         "reachable": true
       },
       "type": "Extended color light",
-      "name": "Main-02",
-      "modelid": "LCT001",
-      "swversion": "65003148",
+      "name": "Main-01",
+      "modelid": "LCT002",
+      "swversion": "66013452",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "33": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 0,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.0000,
+          0.0000
+        ],
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": false
+      },
+      "type": "Color light",
+      "name": "Accent-05",
+      "modelid": "LST001",
+      "swversion": "66013452",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "34": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 0,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.7040,
+          0.2960
+        ],
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Color light",
+      "name": "Accent-06",
+      "modelid": "LST001",
+      "swversion": "66013452",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "35": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 0,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.6750,
+          0.3220
+        ],
+        "ct": 500,
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Extended color light",
+      "name": "Main-07",
+      "modelid": "LCT002",
+      "swversion": "66013452",
       "pointsymbol": {
         "1": "none",
         "2": "none",
@@ -65,23 +443,54 @@
     "36": {
       "state": {
         "on": true,
-        "bri": 254,
-        "hue": 65136,
+        "bri": 127,
+        "hue": 0,
         "sat": 254,
-        "xy": [
-          0.346,
-          0.3568
-        ],
-        "ct": 201,
-        "alert": "none",
         "effect": "none",
+        "xy": [
+          0.6750,
+          0.3220
+        ],
+        "ct": 500,
+        "alert": "none",
         "colormode": "hs",
         "reachable": true
       },
       "type": "Extended color light",
       "name": "Main-03",
-      "modelid": "LCT001",
-      "swversion": "65003148",
+      "modelid": "LCT002",
+      "swversion": "66013452",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
+    },
+    "37": {
+      "state": {
+        "on": true,
+        "bri": 127,
+        "hue": 0,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.6750,
+          0.3220
+        ],
+        "ct": 500,
+        "alert": "none",
+        "colormode": "hs",
+        "reachable": true
+      },
+      "type": "Extended color light",
+      "name": "Main-02",
+      "modelid": "LCT002",
+      "swversion": "66013452",
       "pointsymbol": {
         "1": "none",
         "2": "none",
@@ -96,126 +505,100 @@
     "38": {
       "state": {
         "on": true,
-        "bri": 254,
-        "hue": 5000,
+        "bri": 127,
+        "hue": 0,
         "sat": 254,
-        "xy": null,
-        "ct": null,
-        "alert": "none",
         "effect": "none",
-        "colormode": null,
+        "xy": [
+          0.6750,
+          0.3220
+        ],
+        "ct": 500,
+        "alert": "none",
+        "colormode": "hs",
         "reachable": true
       },
-      "type": null,
+      "type": "Extended color light",
       "name": "Main-04",
       "modelid": "LCT001",
-      "swversion": null,
-      "pointsymbol": null
+      "swversion": "66013452",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
     },
     "39": {
       "state": {
         "on": true,
-        "bri": 254,
-        "hue": 5000,
+        "bri": 127,
+        "hue": 0,
         "sat": 254,
-        "xy": null,
-        "ct": null,
-        "alert": "none",
         "effect": "none",
-        "colormode": null,
+        "xy": [
+          0.6750,
+          0.3220
+        ],
+        "ct": 500,
+        "alert": "none",
+        "colormode": "hs",
         "reachable": true
       },
-      "type": null,
+      "type": "Extended color light",
       "name": "Main-05",
       "modelid": "LCT001",
-      "swversion": null,
-      "pointsymbol": null
+      "swversion": "66009663",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
+      }
     },
     "40": {
       "state": {
         "on": true,
-        "bri": 254,
-        "hue": 5000,
+        "bri": 127,
+        "hue": 0,
         "sat": 254,
-        "xy": null,
-        "ct": null,
-        "alert": "none",
         "effect": "none",
-        "colormode": null,
+        "xy": [
+          0.6750,
+          0.3220
+        ],
+        "ct": 500,
+        "alert": "none",
+        "colormode": "hs",
         "reachable": true
       },
-      "type": null,
+      "type": "Extended color light",
       "name": "Main-06",
       "modelid": "LCT001",
-      "swversion": null,
-      "pointsymbol": null
-    },
-    "35": {
-      "state": {
-        "on": true,
-        "bri": 254,
-        "hue": 5000,
-        "sat": 254,
-        "xy": null,
-        "ct": null,
-        "alert": "none",
-        "effect": "none",
-        "colormode": null,
-        "reachable": true
-      },
-      "type": null,
-      "name": "Main-07",
-      "modelid": "LCT001",
-      "swversion": null,
-      "pointsymbol": null
-    }
-  },
-  "schedules": {},
-  "config": {
-    "portalservices": false,
-    "gateway": "192.168.2.1",
-    "mac": "00:00:88:00:bb:ee",
-    "swversion": "01005215",
-    "linkbutton": false,
-    "ipaddress": "127.0.0.1:8000",
-    "proxyport": 0,
-    "swupdate": {
-      "text": "",
-      "notify": false,
-      "updatestate": 0,
-      "url": ""
-    },
-    "netmask": "255.255.255.0",
-    "name": "Bridge-01",
-    "dhcp": true,
-    "proxyaddress": "",
-    "whitelist": {
-      "1234567890": {
-        "name": "SparkleMotion",
-        "last use date": "2012-10-29T12:00:00",
-        "create date": "2012-10-29T12:00:00"
+      "swversion": "66009663",
+      "pointsymbol": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none"
       }
-    },
-    "UTC": "2012-10-29T12:05:00"
+    }
   },
   "groups": {
     "1": {
       "name": "Main",
-      "action": {
-        "on": true,
-        "bri": 254,
-        "hue": 33536,
-        "sat": 144,
-        "xy": [
-          0.346,
-          0.3568
-        ],
-        "ct": 201,
-        "alert": null,
-        "effect": "none",
-        "colormode": "xy",
-        "reachable": null
-      },
       "lights": [
         "26",
         "37",
@@ -224,8 +607,969 @@
         "39",
         "40",
         "35"
-      ]
+      ],
+      "type": "LightGroup",
+      "action": {
+        "on": true,
+        "bri": 127,
+        "hue": 0,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.6750,
+          0.3220
+        ],
+        "ct": 500,
+        "alert": "none",
+        "colormode": "hs"
+      }
+    },
+    "2": {
+      "name": "Accent",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "33",
+        "34"
+      ],
+      "type": "LightGroup",
+      "action": {
+        "on": true,
+        "bri": 127,
+        "hue": 0,
+        "sat": 254,
+        "effect": "none",
+        "xy": [
+          0.7040,
+          0.2960
+        ],
+        "alert": "none",
+        "colormode": "hs"
+      }
+    },
+    "3": {
+      "name": "White",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "16",
+        "24",
+        "25"
+      ],
+      "type": "LightGroup",
+      "action": {
+        "on": true,
+        "bri": 127,
+        "alert": "none"
+      }
     }
   },
-  "scenes": {}
+  "config": {
+    "portalservices": false,
+    "swupdate": {
+      "text": "",
+      "notify": false,
+      "updatestate": 0,
+      "url": ""
+    },
+    "name": "Bridge-01",
+    "mac": "00:17:88:12:26:f3",
+    "dhcp": true,
+    "ipaddress": "127.0.0.1:8000",
+    "netmask": "255.255.255.0",
+    "gateway": "192.168.2.1",
+    "proxyaddress": "none",
+    "proxyport": 0,
+    "UTC": "2015-09-30T21:34:38",
+    "whitelist": {
+      "1234567890": {
+        "last use date": "2015-09-30T21:34:38",
+        "create date": "2015-05-05T08:01:36",
+        "name": "Ruby"
+      }
+    },
+    "swversion": "01024156",
+    "linkbutton": false
+  },
+  "schedules": {},
+  "scenes": {
+    "OFF-TAP-1": {
+      "name": "Tap scene 1",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "16",
+        "24",
+        "25",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    },
+    "TAP-2": {
+      "name": "Tap scene 2",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "16",
+        "24",
+        "25",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    },
+    "TAP-3": {
+      "name": "Tap scene 3",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "16",
+        "24",
+        "25",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    },
+    "955f66443-on-0": {
+      "name": "Red on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37"
+      ],
+      "active": true
+    },
+    "11b3227b7-on-0": {
+      "name": "Sunset on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "TAP-4": {
+      "name": "Tap scene 4",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "16",
+        "24",
+        "25",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    },
+    "5b18aa468-on-0": {
+      "name": "Red on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37"
+      ],
+      "active": true
+    },
+    "ca2a11352-on-0": {
+      "name": "Ski on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "1142555ff-on-0": {
+      "name": "Red on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37"
+      ],
+      "active": true
+    },
+    "cf51ecc83-on-0": {
+      "name": "Reading on 0",
+      "lights": [
+        "26",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "ca045f124-off-0": {
+      "name": "Deep sea off 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37"
+      ],
+      "active": true
+    },
+    "66722517b-on-0": {
+      "name": "Lux-All on 0",
+      "lights": [
+        "3",
+        "4",
+        "5"
+      ],
+      "active": true
+    },
+    "baeb50859-on-0": {
+      "name": "Ski on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    },
+    "8da0a5b59-on-0": {
+      "name": "Ski on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "68eabe4cc-off-0": {
+      "name": "3 lights off",
+      "lights": [
+        "3",
+        "4",
+        "5"
+      ],
+      "active": true
+    },
+    "2a7a8fb68-on-0": {
+      "name": "Deep sea on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    },
+    "4e748c668-on-0": {
+      "name": "Lux-All on 0",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "16",
+        "24"
+      ],
+      "active": true
+    },
+    "f4d65ef05-on-0": {
+      "name": "Energize on 0",
+      "lights": [
+        "26",
+        "35",
+        "36",
+        "37"
+      ],
+      "active": true
+    },
+    "45a82e070-on-0": {
+      "name": "Virgin America o",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "3fdc84fa3-on-0": {
+      "name": "Beach on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "98d465a6c-on-0": {
+      "name": "Green on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "02e0c2dab-on-0": {
+      "name": "Reading on 0",
+      "lights": [
+        "26",
+        "35",
+        "36",
+        "37"
+      ],
+      "active": true
+    },
+    "bab15d9ce-on-0": {
+      "name": "Relax on 0",
+      "lights": [
+        "26",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "24026e5f0-on-0": {
+      "name": "Beach on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "8e0c39f89-on-0": {
+      "name": "Pencils on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "4699331de-off-0": {
+      "name": "22 lights off",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "16",
+        "24",
+        "25",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    },
+    "921346ff4-off-0": {
+      "name": "20 lights off",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "16",
+        "24",
+        "25",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "6fd0be3b4-on-0": {
+      "name": "Kitchen-Moderate",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "16",
+        "24"
+      ],
+      "active": true
+    },
+    "3ac33c647-on-0": {
+      "name": "Reading on 0",
+      "lights": [
+        "26",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "bd254ec18-on-0": {
+      "name": "Kitchen-Moderate",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "16",
+        "24"
+      ],
+      "active": true
+    },
+    "e68650f23-on-0": {
+      "name": "Kitchen-Low on 0",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "16",
+        "24"
+      ],
+      "active": true
+    },
+    "c9b178e09-on-0": {
+      "name": "Beach on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    },
+    "44d052edc-on-0": {
+      "name": "Concentrate on 0",
+      "lights": [
+        "26",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "6615fa0af-off-0": {
+      "name": "5 lights off",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "16",
+        "24"
+      ],
+      "active": true
+    },
+    "eb368cadf-on-0": {
+      "name": "Ski on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37"
+      ],
+      "active": true
+    },
+    "dac254c69-on-0": {
+      "name": "Energize on 0",
+      "lights": [
+        "26",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "a8ebc57cb-on-0": {
+      "name": "Deep sea on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "a84411c22-on-0": {
+      "name": "Concentrate on 0",
+      "lights": [
+        "26",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "8879e6fcf-on-0": {
+      "name": "Energize on 0",
+      "lights": [
+        "26",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "fcebcc9ef-on-0": {
+      "name": "Kitchen-Bright o",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "16",
+        "24",
+        "25"
+      ],
+      "active": true
+    },
+    "397f8ea25-on-0": {
+      "name": "Kitchen-Moderate",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "16",
+        "24",
+        "25"
+      ],
+      "active": true
+    },
+    "933c023a9-on-0": {
+      "name": "Kitchen-Low on 0",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "16",
+        "24",
+        "25"
+      ],
+      "active": true
+    },
+    "ef01ecf59-off-0": {
+      "name": "6 lights off",
+      "lights": [
+        "3",
+        "4",
+        "5",
+        "16",
+        "24",
+        "25"
+      ],
+      "active": true
+    },
+    "07da27a91-on-0": {
+      "name": "Pencils on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "deeafe384-on-0": {
+      "name": "Relax on 0",
+      "lights": [
+        "26",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "1490663e1-on-0": {
+      "name": "Reading on 0",
+      "lights": [
+        "26",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    },
+    "51eec5a64-on-0": {
+      "name": "Concentrate on 0",
+      "lights": [
+        "26",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    },
+    "751fed604-on-0": {
+      "name": "Relax on 0",
+      "lights": [
+        "26",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    },
+    "b722cbab6-on-0": {
+      "name": "Energize on 0",
+      "lights": [
+        "26",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    },
+    "a102be5c9-on-0": {
+      "name": "Sunset on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "9f24fd19b-on-0": {
+      "name": "Sunset on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    },
+    "4eb524115-on-0": {
+      "name": "Virgin America o",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "158fe1548-on-0": {
+      "name": "Virgin America o",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    },
+    "30808d395-on-0": {
+      "name": "Deep sea on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "active": true
+    },
+    "b2edc69e9-on-0": {
+      "name": "Pencils on 0",
+      "lights": [
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "26",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40"
+      ],
+      "active": true
+    }
+  }
 }
