@@ -350,7 +350,7 @@ simulation:
       # one option that will work.
       position: [0, 0]
       base:     0.9
-      exponent: 3
+      exponent: 2
       mappings:
       # NOTE: Values are indexes into main_lights array.
       #
