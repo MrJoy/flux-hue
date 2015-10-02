@@ -71,13 +71,13 @@ light_groups:
   - ["Bridge-03",  9, color]
   - ["Bridge-03",  6, color]
 
-  - ["Bridge-04",  5, color]
   - ["Bridge-04",  7, color]
   - ["Bridge-04", 11, color]
   - ["Bridge-04", 12, color]
   - ["Bridge-04",  1, color]
   - ["Bridge-04",  9, color]
   - ["Bridge-04",  8, color]
+  - ["Bridge-04",  5, color]
   # Dance Lights is the group of lights above the dance floor, which will
   # (ultimately) get their own simulation, although updates will be interleaved
   # with the main lights per-bridge.  It should be a positional map affording
