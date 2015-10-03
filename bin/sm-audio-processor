@@ -106,8 +106,7 @@ inbufs = ARGV.map do |device_name|
       break unless w
       report[:count] += 1
 
-      # TODO: We get back a 2D matrix.  We're blithely ignoring one dimension.
-      # TODO: Is that about stereo channels, or something else?
+      # TODO: We get back a 2D matrix.  Is that about stereo channels, or something else?
       f = FFTW3.fft(w, 1)
       # Re-assigning this to pick up any changes.
       filter.frequency_range = FREQ_RANGE
