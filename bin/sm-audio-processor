@@ -4,7 +4,8 @@ require "bundler/setup"
 Bundler.setup
 require "thread"
 require "coreaudio"
-require "fftw3"
+require "numru/fftw3"
+include NumRu
 
 # For 300Hz..3kHz:
 #    512 == bins 4..36 (33)
