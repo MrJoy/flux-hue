@@ -67,7 +67,7 @@ inbufs = ARGV.map do |device_name|
   filter        = BandPassFilter
                   .new(FREQ_RANGE, sample_rate, WINDOW) do |bin_start, bin_end, bin_count|
                     puts "#{device.name}: ##{bin_count} bins, from #{bin_start} to #{bin_end}."
-                    report[:min] = [0.0] * num_channels
+                    report[:min] = [Float::INFINITY] * num_channels
                     report[:max] = [0.0] * num_channels
                   end
   reports << report
