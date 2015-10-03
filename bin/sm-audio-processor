@@ -108,9 +108,10 @@ inbufs = ARGV.map do |device_name|
 
       # TODO: We get back a 2D matrix.  Is that about stereo channels, or something else?
       f = FFTW3.fft(w, 1)
+      fail "Mismatch between channel count, and FFT result!" unless f.shape[0] == num_channels
+
       # Re-assigning this to pick up any changes.
       filter.frequency_range = FREQ_RANGE
-      fail "Mismatch between channel count, and FFT result!" unless f.shape[0] == num_channels
 
       (0..(num_channels - 1)).each do |ch|
         # Because of NArray, the `map` leaves magnitude of each `Complex` in the
