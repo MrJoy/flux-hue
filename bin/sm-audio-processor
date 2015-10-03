@@ -28,7 +28,11 @@ inbufs = ARGV.map(&:to_i).map do |device_id|
   fail "No such device ID!" unless device
   inbuf       = device.input_buffer(WINDOW)
   sample_rate = device.actual_rate
-  report      = { name: device.name, min: Float::INFINITY, max: 0.0, current: 0.0, count: 0 }
+  report      = { name:    device.name,
+                  min:     [Float::INFINITY] * 4,
+                  max:     [0.0] * 4,
+                  current: [0.0] * 4,
+                  count:   0 }
   reports << report
 
   puts "#{device.name}: Sampling at #{sample_rate}hz..."
@@ -78,11 +82,14 @@ inbufs = ARGV.map(&:to_i).map do |device_id|
 
       # Because of NArray, the `map` eaves magnitude of each `Complex` in the
       # real component of a new Complex. >.<
-      amplitudes        = f[0, bin_start..bin_end].map(&:magnitude)
-      avg_amplitude     = amplitudes.sum.real / num_bins
-      report[:min]      = avg_amplitude if avg_amplitude < report[:min]
-      report[:max]      = avg_amplitude if avg_amplitude > report[:max]
-      report[:current]  = avg_amplitude
+
+      (0..3).each do |ch|
+        amplitudes            = f[ch, bin_start..bin_end].map(&:magnitude)
+        avg_amplitude         = amplitudes.sum.real / num_bins
+        report[:min][ch]      = avg_amplitude if avg_amplitude < report[:min][ch]
+        report[:max][ch]      = avg_amplitude if avg_amplitude > report[:max][ch]
+        report[:current][ch]  = avg_amplitude
+      end
       # puts "#{device.name}: %0.1f, %0.1f, %0.1f" % [min, max, avg_amplitude]
     end
   end
@@ -100,10 +107,17 @@ reporting_thread = Thread.start do
     sleep 0.5
     reports.each do |report|
       title = "%s[%05d]:" % [report[:name], report[:count]]
-      puts "%30s %10.1f, %10.1f, %10.1f" % [title,
-                                            report[:min],
-                                            report[:max],
-                                            report[:current]]
+      puts "%30s %10.1f <= %10.1f <= %10.1f" % [title,
+                                                report[:min][0],
+                                                report[:current][0],
+                                                report[:max][0]]
+      next unless report[:min].length > 1
+      (1..(report[:min].length - 1)).each do |ch|
+        puts "%30s %10.1f <= %10.1f <= %10.1f" % ["",
+                                                  report[:min][ch],
+                                                  report[:current][ch],
+                                                  report[:max][ch]]
+      end
     end
     puts
   end
