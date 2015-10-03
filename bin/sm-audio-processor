@@ -116,6 +116,7 @@ inbufs = ARGV.map(&:to_i).map do |device_id|
       (0..(num_channels - 1)).each do |ch|
         # Because of NArray, the `map` leaves magnitude of each `Complex` in the
         # real component of a new Complex.
+        # Magnitude here gives us power**0.5, I think?
         amplitudes            = f[ch, filter.bin_start..filter.bin_end].map(&:magnitude)
         avg_amplitude         = amplitudes.sum.real / filter.bin_count
         report[:min][ch]      = avg_amplitude if avg_amplitude < report[:min][ch]
