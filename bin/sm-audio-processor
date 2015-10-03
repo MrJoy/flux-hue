@@ -85,18 +85,6 @@ inbufs = ARGV.map do |device_name|
   #       f[ch, (half+1)...(w.shape[1]-shift)] = f[ch, (half+shift+1)..-1]
   #       f[ch, -shift..-1] = 0
 
-  # Internal Microphone, Noise Reduction:
-  #   No Offset:
-  #      512 Samples: Min=1069.6, Max=1331759.8
-  #     1024 Samples: Min=1477.9, Max=1874171.2
-  #     2048 Samples: Min=1984.8, Max=2620696.1
-  #     4096 Samples: Min=2638.2, Max=3489267.6
-  #   1 offset:
-  #      512 Samples: Min= 986.8, Max=1378807.9
-  #     1024 Samples: Min=1552.5, Max=1930567.0
-  #     2048 Samples: Min=1329.5, Max=2763622.3
-  #     4096 Samples: Min=2697.6, Max=3851381.3
-
   # TODO: Look into this to allow routing AudioHijack output into processor? http://www.ambrosiasw.com/utilities/wta/
   # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
 
