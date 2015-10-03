@@ -52,8 +52,8 @@ input_ths   = []
 filter_ths  = []
 reports     = []
 
-inbufs = ARGV.map(&:to_i).map do |device_id|
-  device = CoreAudio.devices.find { |dev| dev.devid == device_id }
+inbufs = ARGV.map do |device_name|
+  device = CoreAudio.devices.find { |dev| dev.name =~ /#{device_name}/ }
   fail "No such device ID!" unless device
   num_channels  = 4
   inbuf         = device.input_buffer(WINDOW)
