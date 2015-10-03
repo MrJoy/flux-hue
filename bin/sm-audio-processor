@@ -108,7 +108,7 @@ inbufs = ARGV.map do |device_name|
       report[:count] += 1
 
       # TODO: We get back a 2D matrix.  Is that about stereo channels, or something else?
-      f = FFTW3.fft(w, 1)
+      f = FFTW3.fft(w, 1, 0, 1)
       fail "Mismatch between channel count, and FFT result!" unless f.shape[0] == num_channels
 
       # Re-assigning this to pick up any changes.
