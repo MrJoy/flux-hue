@@ -120,7 +120,7 @@ inbufs = ARGV.map do |device_name|
         # Magnitude here gives us power**0.5, I think?
         amplitudes            = f[ch, filter.bin_start..filter.bin_end].map(&:magnitude)
         avg_amplitude         = amplitudes.sum.real / filter.bin_count
-        report[:dc0][ch]      = f[ch, 0].magnitude
+        report[:dc0][ch]      = f[ch, 0]
         report[:min][ch]      = avg_amplitude if avg_amplitude < report[:min][ch]
         report[:max][ch]      = avg_amplitude if avg_amplitude > report[:max][ch]
         report[:current][ch]  = avg_amplitude
