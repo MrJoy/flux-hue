@@ -59,6 +59,7 @@ inbufs = ARGV.map do |device_name|
   inbuf         = device.input_buffer(WINDOW)
   sample_rate   = device.actual_rate
   report        = { name:    device.name,
+                    dc0:     [nil] * num_channels,
                     min:     [Float::INFINITY] * num_channels,
                     max:     [0.0] * num_channels,
                     current: [0.0] * num_channels,
@@ -119,6 +120,7 @@ inbufs = ARGV.map do |device_name|
         # Magnitude here gives us power**0.5, I think?
         amplitudes            = f[ch, filter.bin_start..filter.bin_end].map(&:magnitude)
         avg_amplitude         = amplitudes.sum.real / filter.bin_count
+        report[:dc0][ch]      = f[ch, 0].magnitude
         report[:min][ch]      = avg_amplitude if avg_amplitude < report[:min][ch]
         report[:max][ch]      = avg_amplitude if avg_amplitude > report[:max][ch]
         report[:current][ch]  = avg_amplitude
@@ -139,16 +141,18 @@ reporting_thread = Thread.start do
     sleep 0.5
     reports.each do |report|
       title = "%s[%05d]:" % [report[:name], report[:count]]
-      puts "%30s %10.1f <= %10.1f <= %10.1f" % [title,
-                                                report[:min][0],
-                                                report[:current][0],
-                                                report[:max][0]]
+      puts "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)" % [title,
+                                                         report[:min][0],
+                                                         report[:current][0],
+                                                         report[:max][0],
+                                                         report[:dc0][0]]
       next unless report[:min].length > 1
       (1..(report[:min].length - 1)).each do |ch|
-        puts "%30s %10.1f <= %10.1f <= %10.1f" % ["",
-                                                  report[:min][ch],
-                                                  report[:current][ch],
-                                                  report[:max][ch]]
+        puts "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)" % ["",
+                                                           report[:min][ch],
+                                                           report[:current][ch],
+                                                           report[:max][ch],
+                                                           report[:dc0][ch]]
       end
     end
     puts
