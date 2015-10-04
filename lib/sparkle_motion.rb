@@ -40,6 +40,8 @@ module SparkleMotion
 
   # Load code for graph-structured effect generation.
   def self.use_graph!
+    require "perlin_noise"
+
     # Base classes:
     require "sparkle_motion/node"
     require "sparkle_motion/nodes/generator"

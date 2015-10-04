@@ -1,5 +1,3 @@
-require "perlin_noise"
-
 module SparkleMotion
   module Nodes
     module Generators
