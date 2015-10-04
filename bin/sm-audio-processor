@@ -241,7 +241,7 @@ filter_thread = Thread.new do
 
   loop do
     w = in_stream.pop
-    break unless w
+    break unless w && w.shape[1] == WINDOW
 
     # TODO: We get back a 2D matrix.  It's... *supposed* to be per-channel?  Why aren't we seeing
     # TODO: independent results?
