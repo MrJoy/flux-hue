@@ -76,6 +76,17 @@ protected
   end
 end
 
+def set_nominal_rate(rate)
+  available_rates = CoreAudio.default_output_device.available_sample_rate.flatten.uniq
+  rate = rate.to_f
+  unless rate && available_rates.member?(rate)
+    fail "Can't set default output device to #{rate}hz!"
+  end
+
+  CoreAudio.default_output_device(nominal_rate: rate)
+  puts "Output device sample rate set to #{rate}"
+end
+
 DEVICE_PATTERN = /\A--input-device=/
 FILE_PATTERN = /\A--input-file=/
 input_name = ARGV.find { |arg| arg =~ DEVICE_PATTERN } ||
@@ -120,6 +131,7 @@ play_audio = ARGV.find { |arg| arg =~ /\A--playback=/ }
 if play_audio
   play_audio        = play_audio.sub(/\A--playback=\s*/, "")
   playback_channels = Set.new(play_audio.split(/\s*,\s*/).map(&:to_i))
+  set_nominal_rate(sample_rate)
   output_device     = CoreAudio.default_output_device
   output_rate       = output_device.actual_rate
   puts "#{output_device.name}: Sample rate is #{output_rate}hz."
