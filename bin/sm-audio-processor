@@ -27,6 +27,7 @@ class InputStream
   def dropped_frames; fail "Must be implemented by sub-class!"; end
   def start; @input_thread.run; end
   def pop; @queue.pop; end
+  def finite?; fail "Must be implemented by sub-class!"; end
 
   def stop
     @stop_signal = true
@@ -71,6 +72,7 @@ class DeviceInputStream < InputStream
     @input.stop
   end
 
+  def finite?; false; end
   def dropped_frames; @input.dropped_frame; end
 end
 
@@ -89,6 +91,7 @@ class FileInputStream < InputStream
   end
 
   def dropped_frames; 0; end
+  def finite?; true; end
 end
 
 # Implements a simple band-pass filter.
@@ -279,7 +282,7 @@ filter_thread = Thread.new do
 end
 
 REPORT_FORMAT = "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)"
-def report(title, report, channel)
+def report_channel(title, report, channel)
   puts REPORT_FORMAT % [title,
                         report[:min][channel],
                         report[:current][channel],
@@ -287,32 +290,36 @@ def report(title, report, channel)
                         report[:dc0][channel]]
 end
 
-reporting_thread = Thread.new do
-  Thread.stop
-  last_count = 0
-  loop do
-    new_count = report[:count]
-    next if (new_count == last_count) && !report[:done]
+def report(in_stream, report)
+  title = "%s[%05d, %05d]:" % [in_stream.name, report[:count], in_stream.dropped_frames]
+  report_channel(title, report, 0)
 
-    last_count  = new_count
-    title       = "%s[%05d, %05d]:" % [in_stream.name, new_count, in_stream.dropped_frames]
-    report(title, report, 0)
+  channels = report[:min].length
+  return unless channels > 1
+  (1..(channels - 1)).each do |ch|
+    report_channel("", report, ch)
+  end
+end
 
-    if report[:min].length > 1
-      (1..(report[:min].length - 1)).each do |ch|
-        report("", report, ch)
-      end
+unless in_stream.finite?
+  reporting_thread = Thread.new do
+    Thread.stop
+    last_count = 0
+    loop do
+      new_count = report[:count]
+      next if report[:count] == last_count
+      last_count = new_count
+
+      report(in_stream, report)
+
+      sleep 1.0
     end
-
-    break if report[:done]
-
-    sleep 1.0
   end
 end
 
 in_stream.start
 filter_thread.run
-reporting_thread.run
+reporting_thread.run if reporting_thread
 
 if interactive
   $stdout.puts "Commands:"
@@ -331,5 +338,9 @@ end
 
 in_stream.stop
 filter_thread.join
-reporting_thread.join
+if reporting_thread
+  reporting_thread.join
+else
+  report(in_stream, report)
+end
 outbuf.stop if outbuf
