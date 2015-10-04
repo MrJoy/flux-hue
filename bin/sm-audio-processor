@@ -7,10 +7,8 @@ SparkleMotion.use_cli!
 SparkleMotion.use_audio!
 LOGGER = SparkleMotion.logger
 require "set"
-require "numru/fftw3"
 
-WINDOW      = 4096
-FREQ_RANGE  = [500, 3_000]
+WINDOW = 4096
 
 Thread.abort_on_exception = true
 
@@ -44,14 +42,13 @@ options, leftovers = parser
                          parser.incompatible_args!("input") if result[:in_class]
                          result[:in_class]  = SparkleMotion::Audio::DeviceInputStream
                          result[:in_source] = value
-                                              # .new(value, WINDOW)
                        when :input_file then
                          parser.incompatible_args!("input") if result[:in_class]
                          result[:in_class]  = SparkleMotion::Audio::FileInputStream
                          result[:in_source] = value
-                                              # .new(value, WINDOW)
                        when :play then
-                         result[:play] = Set.new(value.split(/\s*,\s*/).map(&:to_i))
+                         channels = value ? Set.new(value.split(/\s*,\s*/).map(&:to_i)) : [0, 1]
+                         result[:play] = channels
                        when :mode then
                          result[:mode] = value.to_sym
                        end
@@ -62,18 +59,18 @@ if leftovers.length > 0
 end
 
 in_stream = options[:in_class].new(options[:in_source], WINDOW)
+puts "#{in_stream.name}: Sample rate is #{in_stream.sample_rate}hz."
 
 reporter = SparkleMotion::Audio::StreamReporter.new(in_stream.name)
 
 use_low   = options[:low]
 use_high  = options[:high]
+range     = options[:frequency_range]
 filter    = SparkleMotion::Audio::BandPassFilter
-            .new(FREQ_RANGE, in_stream.sample_rate, WINDOW, use_low, use_high) do |ss, ee, cc|
+            .new(range, in_stream.sample_rate, WINDOW, use_low, use_high) do |ss, ee, cc|
               puts "#{in_stream.name}: #{cc} bins, from #{ss} to #{ee}."
               reporter.reset!
             end
-
-puts "#{in_stream.name}: Sample rate is #{in_stream.sample_rate}hz."
 
 if options[:play]
   out_stream = SparkleMotion::Audio::DeviceOutputStream.new(in_stream.sample_rate, WINDOW)
@@ -84,55 +81,26 @@ end
 # TODO: ... or maybe this? http://www.jackosx.com/
 # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
 
-filter_thread = Thread.new do
-  Thread.stop
-
-  loop do
-    w = in_stream.pop
-    break unless w && w.shape[1] == WINDOW
-
-    # Re-assigning this to pick up any changes.
-    filter.frequency_range = FREQ_RANGE
-
-    # TODO: We get back a 2D matrix.  It's... *supposed* to be per-channel?  Why aren't we seeing
-    # TODO: independent results?
-    output = []
-    (0..(w.shape[0] - 1)).each do |ch|
-      f = NumRu::FFTW3.fft(w[ch, 0..-1], -1, 0) / w.shape[1]
-
-      # Now, apply our filter...
-      filter.apply!(f)
-
-      # Because of NArray, the `map` leaves magnitude of each `Complex` in the
-      # real component of a new Complex.
-      # Magnitude here gives us power**0.5, I think?
-      # amplitudes            = f[ch, 1..-1].map(&:magnitude).real
-      # avg_amplitude         = amplitudes.sum / amplitudes.size
-      amplitudes            = f[filter.bin_start..filter.bin_end].map(&:magnitude).real
-      avg_amplitude         = amplitudes.sum / filter.bin_count
-      reporter.record_channel(channel:        ch,
-                              dc0:            f[0],
-                              mean:           avg_amplitude)
-
-      output << NumRu::FFTW3.fft(f[0..-1], 1, 0) if options[:play] && options[:play].include?(ch)
-    end
-
-    reporter.record(dropped_frames: in_stream.dropped_frames,
-                    channels:       w.shape[0])
-    next unless output.length > 0
-
-    # TODO: Sanity-check that the length is sane for the output device...
-    output[0..1].each_with_index do |data, idx|
-      w[idx, 0..-1] = data
-    end
-
-    out_stream.write(w[(output.length > 1) ? 0..1 : 0, 0..-1])
-  end
+processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter) do |snapshot|
+  computed = snapshot
+             .map do |data|
+               # Because of NArray, the `map` leaves magnitude of each `Complex` in the
+               # real component of a new Complex.
+               # Magnitude here gives us power**0.5, I think?
+               # amplitudes            = f[ch, 1..-1].map(&:magnitude).real
+               # avg_amplitude         = amplitudes.sum / amplitudes.size
+               amplitudes    = data[filter.bin_start..filter.bin_end].map(&:magnitude).real
+               avg_amplitude = amplitudes.sum / filter.bin_count
+               { dc0: data[0], mean: avg_amplitude }
+             end
+  reporter.record(dropped_frames: in_stream.dropped_frames,
+                  data:           computed)
 end
 
 out_stream.start if out_stream
 in_stream.start
-filter_thread.run
+processor.send_to(options[:play], out_stream) if out_stream
+processor.start
 reporter.start unless in_stream.finite?
 
 if options[:mode] == :interactive
@@ -151,7 +119,7 @@ if options[:mode] == :interactive
 end
 
 in_stream.stop
-filter_thread.join
+processor.await
 if in_stream.finite?
   reporter.print_report(LOGGER)
 else

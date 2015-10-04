@@ -81,6 +81,7 @@ module SparkleMotion
   def self.use_audio!
     require "thread"
     require "coreaudio"
+    require "numru/fftw3"
 
     require "sparkle_motion/audio/input_stream"
     require "sparkle_motion/audio/device_input_stream"
@@ -92,11 +93,14 @@ module SparkleMotion
     require "sparkle_motion/audio/band_pass_filter"
 
     require "sparkle_motion/audio/stream_reporter"
+
+    require "sparkle_motion/audio/stream_filter"
   end
 end
 
 require "sparkle_motion/version"
 require "sparkle_motion/flow_control"
+require "sparkle_motion/task"
 require "sparkle_motion/config"
 require "sparkle_motion/light_config"
 require "sparkle_motion/env"

@@ -14,12 +14,11 @@ module SparkleMotion
       end
 
       def frequency_range=(val)
-        return if @frequency_range == val
         @frequency_range = val.dup
-        compute_bins!
       end
 
       def apply!(fft)
+        compute_bins!
         # Example code demonstrating a pitch-shift, from here:
         # https://github.com/nagachika/ruby-coreaudio/blob/master/examples/fft_shift_pitch.rb
         #   shift = 12
@@ -62,10 +61,13 @@ module SparkleMotion
       def freq_bin(hz); (((hz * @window) / @sample_rate).round / 2) + 1; end
 
       def compute_bins!
+        old_end     = @bin_end
+        old_start   = @bin_start
         @bin_end    = min(freq_bin(@frequency_range.last), @half)
         @bin_start  = min(freq_bin(@frequency_range.first), bin_end)
         @bin_count  = bin_end - bin_start + 1
-        @callback.call(bin_start, bin_end, @bin_count) if @callback
+        changed     = old_end != bin_end || old_start != bin_start
+        @callback.call(bin_start, bin_end, @bin_count) if changed && @callback
       end
 
       def min(a, b); a < b ? a : b; end

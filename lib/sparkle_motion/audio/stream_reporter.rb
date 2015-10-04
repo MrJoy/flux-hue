@@ -2,13 +2,13 @@ module SparkleMotion
   module Audio
     # Class to track signal processing info, and report on it in a readable way.
     class StreamReporter
-      attr_reader :name, :dc0, :min, :max, :mean, :count, :dropped_frames
+      attr_reader :name, :dc0, :minima, :maxima, :mean, :count, :dropped_frames
 
       def initialize(stream_name)
         @name           = stream_name
         @dc0            = []
-        @min            = []
-        @max            = []
+        @minima         = []
+        @maxima         = []
         @mean           = []
         @count          = 0
         @dropped_frames = 0
@@ -24,19 +24,21 @@ module SparkleMotion
         end
       end
 
-      def record_channel(channel:, dc0:, mean:)
-        @dc0[channel]     = dc0
-        @min[channel]   ||= Float::INFINITY
-        @min[channel]     = mean if mean < min[channel]
-        @max[channel]   ||= 0.0
-        @max[channel]     = mean if mean > max[channel]
-        @mean[channel]    = mean
+      def record_channel(channel:, datum:)
+        ensure_size(channel)
+        @dc0[channel]     = datum[:dc0]
+        @minima[channel]  = min(datum[:mean], @minima[channel])
+        @maxima[channel]  = max(datum[:mean], @maxima[channel])
+        @mean[channel]    = datum[:mean]
       end
 
-      def record(dropped_frames:, channels:)
+      def record(dropped_frames:, data:)
         @dropped_frames   = dropped_frames
-        @max_channel      = channels - 1
-        @count           += 1
+        @max_channel      = data.length - 1
+        data.each_with_index do |datum, index|
+          record_channel(channel: index, datum: datum)
+        end
+        @count += 1
       end
 
       def start((logger, interval))
@@ -52,14 +54,22 @@ module SparkleMotion
       def reset!
         @count       = 0
         @max_channel = 0
-        @min         = []
-        @max         = []
+        @minima      = []
+        @maxima      = []
       end
 
     protected
 
+      def min(a, b); (a < b) ? a : b; end
+      def max(a, b); (a > b) ? a : b; end
+
+      def ensure_size(channel)
+        @minima[channel] ||= Float::INFINITY
+        @maxima[channel] ||= 0.0
+      end
+
       def print_channel(logger, prefix, chan)
-        logger.info { REPORT_FORMAT % [prefix, min[chan], mean[chan], max[chan], dc0[chan]] }
+        logger.info { REPORT_FORMAT % [prefix, minima[chan], mean[chan], maxima[chan], dc0[chan]] }
       end
 
       def create_thread(logger, interval)
