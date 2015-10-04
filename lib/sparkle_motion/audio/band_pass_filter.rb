@@ -17,8 +17,8 @@ module SparkleMotion
         @frequency_range = val.dup
       end
 
-      def bin_start; @enable_low ? @bin_start : 1; end
-      def bin_end; @enable_high ? @bin_end : (@window / 2) - 2; end
+      def bin_start; @enable_high ? @bin_start : 1; end
+      def bin_end; @enable_low ? @bin_end : (@window / 2) - 2; end
 
       def apply!(fft)
         compute_bins!
@@ -42,21 +42,21 @@ module SparkleMotion
       def apply_low_pass!(fft)
         return unless @enable_low
 
-        # $stdout.puts ">>> 1..#{bin_start - 1}"
-        # $stdout.puts "    #{-(bin_start - 1)}..-1"
-        # $stdout.flush
-        fft[1..(bin_start - 1)]   = 0
-        fft[-(bin_start - 1)..-1] = 0
-      end
-
-      def apply_high_pass!(fft)
-        return unless @enable_high
-
         # $stdout.puts ">>> #{((bin_end + 1)...@half).inspect}"
         # $stdout.puts "    #{((@half + 1)..-(bin_end + 1)).inspect}"
         # $stdout.flush
         fft[(bin_end + 1)...@half]       = 0
         fft[(@half + 1)..-(bin_end + 1)] = 0
+      end
+
+      def apply_high_pass!(fft)
+        return unless @enable_high
+
+        # $stdout.puts ">>> 1..#{bin_start - 1}"
+        # $stdout.puts "    #{-(bin_start - 1)}..-1"
+        # $stdout.flush
+        fft[1..(bin_start - 1)]   = 0
+        fft[-(bin_start - 1)..-1] = 0
       end
 
       # def bin_freq(idx); ((idx - 1) * @sample_rate) / @window; end
