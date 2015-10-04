@@ -252,6 +252,8 @@ if input_device
 else
   input_thread.join
   filter_thread.join
+  # TODO: Still winding up not showing output sometimes.  WAT.
+  sleep 0.5
 end
 
 reporting_thread.kill.join
