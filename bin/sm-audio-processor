@@ -175,7 +175,7 @@ freq_min = ARGV.find { |arg| arg =~ /\A--freq-min=/ }
 freq_max = ARGV.find { |arg| arg =~ /\A--freq-max=/ }
 
 freq_min = freq_min.sub(/\A--freq-min=/, "").strip.to_i if freq_min
-freq_max = freq_max.sub(/\A--freq-ax=/, "").strip.to_i if freq_max
+freq_max = freq_max.sub(/\A--freq-max=/, "").strip.to_i if freq_max
 
 FREQ_RANGE[0] = freq_min if freq_min
 FREQ_RANGE[1] = freq_max if freq_max
