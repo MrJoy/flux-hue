@@ -81,6 +81,13 @@ def configure_output_device(rate)
   CoreAudio.default_output_device(nominal_rate: rate)
 end
 
+# Example of how to save data:
+#   wav = CoreAudio::AudioFile.new("sample.wav", :write, format:  :wav,
+#                                                        rate:     dev.nominal_rate,
+#                                                        channels: dev.input_stream.channels)
+#   wav.write(w)
+#   wav.close
+
 DEVICE_PATTERN = /\A--input-device=/
 FILE_PATTERN = /\A--input-file=/
 input_name = ARGV.find { |arg| arg =~ DEVICE_PATTERN } ||
