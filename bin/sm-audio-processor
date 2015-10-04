@@ -111,7 +111,6 @@ filter_thread = Thread.start do
     # Re-assigning this to pick up any changes.
     filter.frequency_range = FREQ_RANGE
 
-    # If we want to normalize the FFT, we need to divide by `(f.shape[0] * f.shape[1])`.
     (0..(f.shape[0] - 1)).each do |ch|
       # Example code demonstrating a pitch-shift:
       # shift = 12
