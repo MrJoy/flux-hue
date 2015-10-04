@@ -119,7 +119,7 @@ filter_thread = Thread.start do
       report[:current][ch]  = avg_amplitude
     end
 
-    outbuf << NumRu::FFTW3.fft(f[0..1, 0..-1], 1, 0, 1) / f.shape[1] if outbuf
+    outbuf << NumRu::FFTW3.fft(f[0..1, 0..-1], 1, 0, 1) / (f.shape[0] * f.shape[1]) if outbuf
   end
 end
 
