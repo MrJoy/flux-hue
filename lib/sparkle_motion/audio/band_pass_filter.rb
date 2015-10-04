@@ -23,8 +23,8 @@ module SparkleMotion
         compute_bins!
       end
 
-      def nominal_bin_start; @bin_start; end
-      def nominal_bin_end; @bin_end; end
+      def nominal_bin_start; @bin_start + 1; end
+      def nominal_bin_end; @bin_end - 1; end
 
       def bin_start; @enable_high ? @bin_start : 1; end
       def bin_end; @enable_low ? @bin_end : (@half - 1); end
