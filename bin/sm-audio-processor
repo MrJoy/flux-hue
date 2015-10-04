@@ -159,7 +159,6 @@ filter_thread = Thread.start do
   loop do
     w = queue.pop
     break unless w
-    report[:count] += 1
 
     # TODO: We get back a 2D matrix.  It's... *supposed* to be per-channel?  Why aren't we seeing
     # TODO: independent results?
@@ -188,6 +187,7 @@ filter_thread = Thread.start do
       output << NumRu::FFTW3.fft(f[0..-1], 1, 0) if outbuf && playback_channels.include?(ch)
     end
 
+    report[:count] += 1
     next unless output.length > 0
 
     # TODO: Sanity-check that the length is sane for the output device...
