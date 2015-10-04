@@ -84,6 +84,17 @@ if play_audio
   outbuf.start
 end
 
+# wav = CoreAudio::AudioFile.new("sample.wav", :read)
+# m4a = CoreAudio::AudioFile.new("sample.m4a", :write, :format => :m4a,
+#                                :rate => wav.rate,
+#                                :channels => wav.channels)
+# loop do
+#   buf = wav.read(1024)
+#   break if buf.nil?
+#   m4a.write(buf)
+# end
+# wav.close
+# m4a.close
 
 # TODO: Look into this to allow routing AudioHijack output into processor? http://www.ambrosiasw.com/utilities/wta/
 # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
