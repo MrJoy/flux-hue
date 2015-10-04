@@ -125,6 +125,7 @@ filter_thread = Thread.start do
         f[ch, 1..(filter.bin_start - 1)] = 0
         f[ch, -(filter.bin_start - 1)..-1] = 0
       end
+
       # Because of NArray, the `map` leaves magnitude of each `Complex` in the
       # real component of a new Complex.
       # Magnitude here gives us power**0.5, I think?
