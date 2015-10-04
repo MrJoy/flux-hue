@@ -17,8 +17,8 @@ module SparkleMotion
         @frequency_range = val.dup
       end
 
-      def bin_start; @enable_high ? @bin_start : 1; end
-      def bin_end; @enable_low ? @bin_end : (@window / 2) - 1; end
+      def bin_start; @enable_low ? @bin_start : 1; end
+      def bin_end; @enable_high ? @bin_end : (@window / 2) - 2; end
 
       def apply!(fft)
         compute_bins!
