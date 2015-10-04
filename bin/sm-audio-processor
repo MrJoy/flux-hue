@@ -83,7 +83,7 @@ input_name = input_name.sub(/\A--input-device=/, "")
 input_device  = CoreAudio.devices.find { |dev| dev.name =~ /#{input_name}/ }
 fail "No such device ID!" unless input_device
 
-# TODO: Coerce device to 44.1kHz?
+# TODO: Coerce devices to nominal rate?
 queue         = Queue.new
 inbuf         = input_device.input_buffer(WINDOW)
 sample_rate   = input_device.actual_rate
