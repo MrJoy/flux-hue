@@ -54,7 +54,7 @@ module SparkleMotion
         reset!
 
         super("StreamReporter", logger) do
-          next if count == 0
+          next if @count == 0
 
           print_report
 
