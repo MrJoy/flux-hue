@@ -53,6 +53,12 @@ input_name = input_name.sub(/\A--input=/, "")
 input_device  = CoreAudio.devices.find { |dev| dev.name =~ /#{input_name}/ }
 fail "No such device ID!" unless input_device
 
+play_audio = !!ARGV.find { |arg| arg == "--playback" }
+if play_audio
+  outbuf = CoreAudio.default_output_device.output_buffer(1024)
+  outbuf.start
+end
+
 # TODO: Coerce device to 44.1kHz?
 queue         = Queue.new
 inbuf         = input_device.input_buffer(WINDOW)
@@ -93,7 +99,7 @@ filter_thread = Thread.start do
     report[:count] += 1
 
     # TODO: We get back a 2D matrix.  Is that about stereo channels, or something else?
-    f = NumRu::FFTW3.fft(w, 1, 0, 1)
+    f = NumRu::FFTW3.fft(w, -1, 0, 1)
 
     # Re-assigning this to pick up any changes.
     filter.frequency_range = FREQ_RANGE
@@ -112,6 +118,8 @@ filter_thread = Thread.start do
       report[:max][ch]      = avg_amplitude if avg_amplitude > report[:max][ch]
       report[:current][ch]  = avg_amplitude
     end
+
+    outbuf << NumRu::FFTW3.fft(f[0..1, 0..-1], 1, 0, 1) / f.shape[1] if outbuf
   end
 end
 
@@ -166,5 +174,6 @@ inbuf.stop
 queue.push(nil)
 filter_thread.kill.join
 reporting_thread.kill.join
+outbuf.stop if outbuf
 
 puts "#{inbuf.dropped_frame} frames dropped at input buffer."
