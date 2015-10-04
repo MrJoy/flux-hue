@@ -8,6 +8,13 @@
 source "https://rubygems.org"
 ruby "2.2.3"
 
+# http://masa16.github.io/ruby-pgplot/
+# http://masa16.github.io/narray/mdary.html
+# http://hans.fugal.net/src/ruby-audio/doc/
+# http://gridflow.ca/
+# http://rb-gsl.rubyforge.org/
+# http://ruby.gfd-dennou.org/
+
 # See:
 #   https://github.com/junegunn/perlin_noise
 #   https://gist.github.com/EmmanuelOga/264060

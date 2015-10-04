@@ -67,6 +67,31 @@ module SparkleMotion
         (0..(frame.shape[0] - 1)).each do |channel|
           data = normalize(fft_forward(frame[channel, 0..-1]))
 
+          # $stdout.puts "<<<<<"
+          # $stdout.puts [data[0], data[0].magnitude].join(" / ")
+          # # half = f.length / 2
+          # # tmp = f[1..half].map(&:magnitude).real.to_a.map(&:round)
+          # # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
+          # # tmp = f[(half + 1)..-1].map(&:magnitude).real.to_a.map(&:round).reverse
+          # # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
+
+          # tmp = data[1..10].map(&:magnitude).real.round.to_a
+          # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
+          # tmp = data[-10..-1].map(&:magnitude).real.round.to_a.reverse
+          # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
+
+          # tmp = data[66...2048].map(&:magnitude).real.round.to_a
+          # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
+          # tmp = data[2049..-66].map(&:magnitude).real.round.to_a.reverse
+          # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
+
+          # tmp = data[11..65].map(&:magnitude).real.round.to_a
+          # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
+          # tmp = data[-65..-11].map(&:magnitude).real.round.to_a.reverse
+          # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
+
+          # $stdout.puts ">>>>>"
+          # $stdout.flush
           @filter.apply!(data)
 
           snapshot << data

@@ -2,6 +2,10 @@ module SparkleMotion
   module Audio
     # Implements a simple band-pass filter.
     class BandPassFilter
+      # https://en.wikipedia.org/wiki/Gibbs_phenomenon
+      # https://en.wikipedia.org/wiki/Sigma_approximation
+      # https://groups.google.com/forum/#!search/%22Frequency$20domain$20filtering$20%28rectangular$20window$20question%29%22/comp.dsp/__gS8i1kOfQ/zDbNIvdqN6EJ
+      #   '... the "overlap-add" or "overlap-save" methods.'
       attr_reader :frequency_range, :bin_start, :bin_end, :bin_count
       def initialize(freq_range, sample_rate, window, enable_low, enable_high, &callback)
         @sample_rate          = sample_rate
