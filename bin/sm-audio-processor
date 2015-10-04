@@ -62,7 +62,7 @@ report        = { name:    input_device.name,
                   count:   0 }
 filter        = BandPassFilter
                 .new(FREQ_RANGE, sample_rate, WINDOW) do |bin_start, bin_end, bin_count|
-                  puts "#{input_device.name}: ##{bin_count} bins, from #{bin_start} to #{bin_end}."
+                  puts "#{input_device.name}: #{bin_count} bins, from #{bin_start} to #{bin_end}."
                   report[:min] = [Float::INFINITY] * report[:min].length
                   report[:max] = [0.0] * report[:max].length
                 end
