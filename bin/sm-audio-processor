@@ -99,7 +99,7 @@ filter_thread = Thread.start do
     report[:count] += 1
 
     # TODO: We get back a 2D matrix.  Is that about stereo channels, or something else?
-    f = NumRu::FFTW3.fft(w, -1, 0, 1)
+    f = NumRu::FFTW3.fft(w, -1, 0, 1) / (w.shape[0] * w.shape[1])
 
     # Re-assigning this to pick up any changes.
     filter.frequency_range = FREQ_RANGE
@@ -119,7 +119,7 @@ filter_thread = Thread.start do
       report[:current][ch]  = avg_amplitude
     end
 
-    outbuf << NumRu::FFTW3.fft(f[0..1, 0..-1], 1, 0, 1) / (f.shape[0] * f.shape[1]) if outbuf
+    outbuf << NumRu::FFTW3.fft(f[0..1, 0..-1], 1, 0, 1) if outbuf
   end
 end
 
