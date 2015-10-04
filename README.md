@@ -70,7 +70,7 @@ After cloning this repo, run:
 ```bash
 brew install portmidi fftw
 gem install sparkle_motion
-sm-discover # Find all available bridges using SSDP.
+sm-discover-bridges # Find all available bridges using SSDP.
 # Create `config.yml`, and register the username(s) in it with the relevant bridges.
 # You probably want to start with the one in this project's source repo as a baseline.
 sm-mark-lights # Ensure your lights are physically arranged properly.
@@ -83,12 +83,15 @@ __TODO: Document how to register user with hub(s).__
 
 ## Usage
 
-* `bin/sm-discover`: Discover all Philips Hue bridges on your network.
+* `bin/sm-audio-processor`: Listens to an input device, and applies filtering.  Can output to default output device.
+* `bin/sm-discover-bridges`: Discover all Philips Hue bridges on your network.
+* `bin/sm-discover-misc`: Enumerate audio devices.
 * `bin/sm-mark-lights`: Mark the lights distinctively to help ensure they're physically arranged properly.
 * `bin/sm-off`: Turn all configured lights off.
 * `bin/sm-on`: Turn all configured lights on, and set them to the base color.
 * `bin/sm-simulate`: Run the effect system directly.  You probably want `sparkle-motion` instead.
 * `bin/sparkle-motion`: Runs the effect system with configuration settings for debugging, and restarts it if the kick-in-the-head button is pressed.  See source for details.
+
 
 ## Using the Code
 
