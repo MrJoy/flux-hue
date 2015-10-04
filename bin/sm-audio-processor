@@ -97,11 +97,13 @@ end
 # Implements a simple band-pass filter.
 class BandPassFilter
   attr_reader :frequency_range, :bin_start, :bin_end, :bin_count
-  def initialize(freq_range, sample_rate, window, &callback)
+  def initialize(freq_range, sample_rate, window, enable_low, enable_high, &callback)
     @sample_rate          = sample_rate
     @window               = window
     @half                 = window / 2
     @callback             = callback
+    @enable_low           = enable_low
+    @enable_high          = enable_high
     self.frequency_range  = freq_range
   end
 
@@ -130,14 +132,14 @@ class BandPassFilter
 protected
 
   def apply_low_pass!(fft)
-    return unless bin_start >= 1
+    return unless @enable_low
 
     fft[1..(bin_start - 1)]   = 0
     fft[-(bin_start - 1)..-1] = 0
   end
 
   def apply_high_pass!(fft)
-    return unless bin_end <= @half
+    return unless @enable_high
 
     fft[(bin_end + 1)...@half]        = 0
     fft[(@half + 1)...-(bin_end + 1)] = 0
@@ -150,7 +152,7 @@ protected
     @bin_start = (freq_bin(@frequency_range.first) / 2) + 1
     @bin_end   = (freq_bin(@frequency_range.last) / 2) + 1
     @bin_count = bin_end - bin_start + 1
-    @callback.call(@bin_start, @bin_end, @bin_count) if @callback
+    @callback.call(bin_start, bin_end, @bin_count) if @callback
   end
 end
 
@@ -171,8 +173,10 @@ end
 #   wav.write(w)
 #   wav.close
 
-freq_min = ARGV.find { |arg| arg =~ /\A--freq-min=/ }
-freq_max = ARGV.find { |arg| arg =~ /\A--freq-max=/ }
+enable_low  = !ARGV.find { |arg| arg =~ /\A--skip-low\z/ }
+enable_high = !ARGV.find { |arg| arg =~ /\A--skip-high\z/ }
+freq_min  = ARGV.find { |arg| arg =~ /\A--freq-min=/ }
+freq_max  = ARGV.find { |arg| arg =~ /\A--freq-max=/ }
 
 freq_min = freq_min.sub(/\A--freq-min=/, "").strip.to_i if freq_min
 freq_max = freq_max.sub(/\A--freq-max=/, "").strip.to_i if freq_max
@@ -192,19 +196,19 @@ elsif input_name =~ FILE_PATTERN
 end
 
 # TODO: Coerce devices to nominal rate?
-report        = { dc0:     [],
-                  min:     [],
-                  max:     [],
-                  current: [],
-                  count:   0,
-                  done:    false }
-filter        = BandPassFilter
-                .new(FREQ_RANGE, in_stream.sample_rate, WINDOW) do |bin_start, bin_end, bin_count|
-                  puts "#{in_stream.name}: #{bin_count} bins, from #{bin_start} to #{bin_end}."
-                  report[:count]  = 0
-                  report[:min]    = []
-                  report[:max]    = []
-                end
+report = { dc0:     [],
+           min:     [],
+           max:     [],
+           current: [],
+           count:   0,
+           done:    false }
+filter = BandPassFilter
+         .new(FREQ_RANGE, in_stream.sample_rate, WINDOW, enable_low, enable_high) do |ss, ee, cc|
+           puts "#{in_stream.name}: #{cc} bins, from #{ss} to #{ee}."
+           report[:count]  = 0
+           report[:min]    = []
+           report[:max]    = []
+         end
 
 puts "#{in_stream.name}: Sample rate is #{in_stream.sample_rate}hz."
 
