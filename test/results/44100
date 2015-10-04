@@ -1,112 +1,112 @@
 125Hz/44100Hz, Window=8192, Unfiltered:
 StreamReporter[00053, 00000]:
->        Smallest Bin:        0.5 <=        7.8 <=       12.0
->         Largest Bin:       18.2 <=       51.0 <=       74.4
->        Mean of Bins:        3.0 <=       17.0 <=       25.9
->      Median of Bins:        1.5 <=       13.3 <=       20.5
->         Sum of Bins:     1398.8 <=     7890.7 <=    12014.1
->                 RMS:        4.7 <=       19.7 <=       29.7
+>        Smallest Bin:        0.5 <=       11.5 <=       12.0
+>         Largest Bin:       18.2 <=       71.5 <=       74.4
+>        Mean of Bins:        3.0 <=       24.9 <=       25.9
+>      Median of Bins:        1.5 <=       19.7 <=       20.5
+>         Sum of Bins:     1398.8 <=    11529.5 <=    12014.1
+>                 RMS:        4.7 <=       28.5 <=       29.7
 125Hz/44100Hz, Window=8192, Filtered:
 StreamReporter[00053, 00000]:
->        Smallest Bin:        0.5 <=        7.8 <=       12.0
->         Largest Bin:       18.2 <=       51.0 <=       74.4
->        Mean of Bins:        3.0 <=       17.0 <=       25.9
->      Median of Bins:        1.5 <=       13.3 <=       20.5
->         Sum of Bins:     1398.8 <=     7890.7 <=    12014.1
->                 RMS:        4.7 <=       19.7 <=       29.7
+>        Smallest Bin:        0.5 <=       11.5 <=       12.0
+>         Largest Bin:       18.2 <=       71.5 <=       74.4
+>        Mean of Bins:        3.0 <=       24.9 <=       25.9
+>      Median of Bins:        1.5 <=       19.7 <=       20.5
+>         Sum of Bins:     1398.8 <=    11529.5 <=    12014.1
+>                 RMS:        4.7 <=       28.5 <=       29.7
 250Hz/44100Hz, Window=8192, Unfiltered:
 StreamReporter[00053, 00000]:
->        Smallest Bin:        1.6 <=       11.9 <=       18.7
->         Largest Bin:       53.4 <=      107.7 <=      141.7
->        Mean of Bins:       10.1 <=       28.6 <=       42.3
->      Median of Bins:        4.6 <=       20.9 <=       32.1
->         Sum of Bins:     4673.7 <=    13257.3 <=    19596.2
->                 RMS:       13.4 <=       34.9 <=       49.9
+>        Smallest Bin:        1.6 <=       15.6 <=       18.7
+>         Largest Bin:       53.4 <=      124.4 <=      141.7
+>        Mean of Bins:       10.1 <=       35.9 <=       42.3
+>      Median of Bins:        4.6 <=       27.0 <=       32.1
+>         Sum of Bins:     4673.7 <=    16634.3 <=    19596.2
+>                 RMS:       13.4 <=       42.7 <=       49.9
 250Hz/44100Hz, Window=8192, Filtered:
 StreamReporter[00053, 00000]:
->        Smallest Bin:        1.6 <=       11.9 <=       18.7
->         Largest Bin:       53.4 <=      107.7 <=      141.7
->        Mean of Bins:       10.1 <=       28.6 <=       42.3
->      Median of Bins:        4.6 <=       20.9 <=       32.1
->         Sum of Bins:     4673.7 <=    13257.3 <=    19596.2
->                 RMS:       13.4 <=       34.9 <=       49.9
+>        Smallest Bin:        1.6 <=       15.6 <=       18.7
+>         Largest Bin:       53.4 <=      124.4 <=      141.7
+>        Mean of Bins:       10.1 <=       35.9 <=       42.3
+>      Median of Bins:        4.6 <=       27.0 <=       32.1
+>         Sum of Bins:     4673.7 <=    16634.3 <=    19596.2
+>                 RMS:       13.4 <=       42.7 <=       49.9
 500Hz/44100Hz, Window=8192, Unfiltered:
 StreamReporter[00053, 00000]:
->        Smallest Bin:        1.2 <=        4.7 <=        7.2
->         Largest Bin:      709.0 <=      902.8 <=      917.0
->        Mean of Bins:       18.3 <=       23.9 <=       28.6
->      Median of Bins:        3.7 <=        8.9 <=       12.9
->         Sum of Bins:     8455.0 <=    11059.7 <=    13251.1
->                 RMS:       50.3 <=       68.8 <=       72.0
+>        Smallest Bin:        1.2 <=        3.1 <=        7.2
+>         Largest Bin:      709.0 <=      899.8 <=      917.0
+>        Mean of Bins:       18.3 <=       20.8 <=       28.6
+>      Median of Bins:        3.7 <=        6.1 <=       12.9
+>         Sum of Bins:     8455.0 <=     9618.0 <=    13251.1
+>                 RMS:       50.3 <=       67.4 <=       72.0
 500Hz/44100Hz, Window=8192, Filtered:
 StreamReporter[00053, 00000]:
->        Smallest Bin:        1.2 <=        4.7 <=        7.2
->         Largest Bin:      709.0 <=      902.8 <=      917.0
->        Mean of Bins:       18.3 <=       23.9 <=       28.6
->      Median of Bins:        3.7 <=        8.9 <=       12.9
->         Sum of Bins:     8455.0 <=    11059.7 <=    13251.1
->                 RMS:       50.3 <=       68.8 <=       72.0
+>        Smallest Bin:        1.2 <=        3.1 <=        7.2
+>         Largest Bin:      709.0 <=      899.8 <=      917.0
+>        Mean of Bins:       18.3 <=       20.8 <=       28.6
+>      Median of Bins:        3.7 <=        6.1 <=       12.9
+>         Sum of Bins:     8455.0 <=     9618.0 <=    13251.1
+>                 RMS:       50.3 <=       67.4 <=       72.0
 1000Hz/44100Hz, Window=8192, Unfiltered:
 StreamReporter[00053, 00000]:
->        Smallest Bin:        4.8 <=       10.3 <=       14.5
->         Largest Bin:    14712.8 <=    14867.7 <=    14880.4
->        Mean of Bins:      111.9 <=      123.0 <=      125.9
->      Median of Bins:       18.5 <=       25.7 <=       31.0
->         Sum of Bins:    51824.2 <=    56932.6 <=    58304.7
->                 RMS:      754.4 <=      761.1 <=      761.6
+>        Smallest Bin:        4.8 <=       10.5 <=       14.5
+>         Largest Bin:    14712.8 <=    14870.1 <=    14880.4
+>        Mean of Bins:      111.9 <=      123.4 <=      125.9
+>      Median of Bins:       18.5 <=       26.0 <=       31.0
+>         Sum of Bins:    51824.2 <=    57134.9 <=    58304.7
+>                 RMS:      754.4 <=      761.2 <=      761.6
 1000Hz/44100Hz, Window=8192, Filtered:
 StreamReporter[00053, 00000]:
->        Smallest Bin:        4.8 <=       10.3 <=       14.5
->         Largest Bin:    14712.8 <=    14867.7 <=    14880.4
->        Mean of Bins:      111.9 <=      123.0 <=      125.9
->      Median of Bins:       18.5 <=       25.7 <=       31.0
->         Sum of Bins:    51824.2 <=    56932.6 <=    58304.7
->                 RMS:      754.4 <=      761.1 <=      761.6
+>        Smallest Bin:        4.8 <=       10.5 <=       14.5
+>         Largest Bin:    14712.8 <=    14870.1 <=    14880.4
+>        Mean of Bins:      111.9 <=      123.4 <=      125.9
+>      Median of Bins:       18.5 <=       26.0 <=       31.0
+>         Sum of Bins:    51824.2 <=    57134.9 <=    58304.7
+>                 RMS:      754.4 <=      761.2 <=      761.6
 2000Hz/44100Hz, Window=8192, Unfiltered:
 StreamReporter[00053, 00000]:
->        Smallest Bin:        7.7 <=       18.7 <=       25.9
->         Largest Bin:    10808.0 <=    10828.3 <=    10835.8
->        Mean of Bins:      134.0 <=      166.1 <=      169.0
->      Median of Bins:       23.1 <=       45.5 <=       47.3
->         Sum of Bins:    62055.4 <=    76881.2 <=    78226.8
->                 RMS:      754.5 <=      761.0 <=      761.2
+>        Smallest Bin:        7.7 <=       22.4 <=       25.9
+>         Largest Bin:    10808.0 <=    10821.6 <=    10835.8
+>        Mean of Bins:      134.0 <=      168.9 <=      169.0
+>      Median of Bins:       23.1 <=       47.3 <=       47.3
+>         Sum of Bins:    62055.4 <=    78222.9 <=    78226.8
+>                 RMS:      754.5 <=      761.2 <=      761.2
 2000Hz/44100Hz, Window=8192, Filtered:
 StreamReporter[00053, 00000]:
->        Smallest Bin:        7.7 <=       18.7 <=       25.9
->         Largest Bin:    10808.0 <=    10828.3 <=    10835.8
->        Mean of Bins:      134.0 <=      166.1 <=      169.0
->      Median of Bins:       23.1 <=       45.5 <=       47.3
->         Sum of Bins:    62055.4 <=    76881.2 <=    78226.8
->                 RMS:      754.5 <=      761.0 <=      761.2
+>        Smallest Bin:        7.7 <=       22.4 <=       25.9
+>         Largest Bin:    10808.0 <=    10821.6 <=    10835.8
+>        Mean of Bins:      134.0 <=      168.9 <=      169.0
+>      Median of Bins:       23.1 <=       47.3 <=       47.3
+>         Sum of Bins:    62055.4 <=    78222.9 <=    78226.8
+>                 RMS:      754.5 <=      761.2 <=      761.2
 4000Hz/44100Hz, Window=8192, Unfiltered:
 StreamReporter[00053, 00000]:
->        Smallest Bin:        0.3 <=        1.3 <=        7.2
->         Largest Bin:        2.9 <=        3.6 <=       16.1
->        Mean of Bins:        1.1 <=        1.9 <=        9.6
->      Median of Bins:        0.9 <=        1.7 <=        8.7
->         Sum of Bins:      513.3 <=      891.2 <=     4443.0
->                 RMS:        1.3 <=        2.0 <=        9.9
+>        Smallest Bin:        0.3 <=        0.3 <=        7.2
+>         Largest Bin:        2.9 <=        2.9 <=       16.1
+>        Mean of Bins:        1.1 <=        1.1 <=        9.6
+>      Median of Bins:        0.9 <=        0.9 <=        8.7
+>         Sum of Bins:      513.3 <=      526.4 <=     4443.0
+>                 RMS:        1.3 <=        1.3 <=        9.9
 4000Hz/44100Hz, Window=8192, Filtered:
 StreamReporter[00053, 00000]:
->        Smallest Bin:        0.3 <=        1.3 <=        7.2
->         Largest Bin:        2.9 <=        3.6 <=       16.1
->        Mean of Bins:        1.1 <=        1.9 <=        9.6
->      Median of Bins:        0.9 <=        1.7 <=        8.7
->         Sum of Bins:      513.3 <=      891.2 <=     4443.0
->                 RMS:        1.3 <=        2.0 <=        9.9
+>        Smallest Bin:        0.3 <=        0.3 <=        7.2
+>         Largest Bin:        2.9 <=        2.9 <=       16.1
+>        Mean of Bins:        1.1 <=        1.1 <=        9.6
+>      Median of Bins:        0.9 <=        0.9 <=        8.7
+>         Sum of Bins:      513.3 <=      526.4 <=     4443.0
+>                 RMS:        1.3 <=        1.3 <=        9.9
 8000Hz/44100Hz, Window=8192, Unfiltered:
 StreamReporter[00053, 00000]:
->        Smallest Bin:        0.1 <=        1.2 <=        3.7
->         Largest Bin:        0.7 <=        1.5 <=        4.3
->        Mean of Bins:        0.4 <=        1.3 <=        3.9
->      Median of Bins:        0.4 <=        1.3 <=        3.9
->         Sum of Bins:      177.5 <=      607.1 <=     1809.9
->                 RMS:        0.4 <=        1.3 <=        3.9
+>        Smallest Bin:        0.1 <=        0.5 <=        3.7
+>         Largest Bin:        0.7 <=        0.9 <=        4.3
+>        Mean of Bins:        0.4 <=        0.6 <=        3.9
+>      Median of Bins:        0.4 <=        0.6 <=        3.9
+>         Sum of Bins:      177.5 <=      292.8 <=     1809.9
+>                 RMS:        0.4 <=        0.6 <=        3.9
 8000Hz/44100Hz, Window=8192, Filtered:
 StreamReporter[00053, 00000]:
->        Smallest Bin:        0.1 <=        1.2 <=        3.7
->         Largest Bin:        0.7 <=        1.5 <=        4.3
->        Mean of Bins:        0.4 <=        1.3 <=        3.9
->      Median of Bins:        0.4 <=        1.3 <=        3.9
->         Sum of Bins:      177.5 <=      607.1 <=     1809.9
->                 RMS:        0.4 <=        1.3 <=        3.9
+>        Smallest Bin:        0.1 <=        0.5 <=        3.7
+>         Largest Bin:        0.7 <=        0.9 <=        4.3
+>        Mean of Bins:        0.4 <=        0.6 <=        3.9
+>      Median of Bins:        0.4 <=        0.6 <=        3.9
+>         Sum of Bins:      177.5 <=      292.8 <=     1809.9
+>                 RMS:        0.4 <=        0.6 <=        3.9

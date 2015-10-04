@@ -108,7 +108,7 @@ module SparkleMotion
         @logger.info { "> Channel ##{chan}:" }
         @metrics.each do |name, mm|
           label = @labels[name]
-          @logger.info { REPORT_FORMAT % [">", label, mm.min[chan], mm.mean[chan], mm.max[chan]] }
+          @logger.info { REPORT_FORMAT % [">", label, mm.min[chan], mm.current[chan], mm.max[chan]] }
         end
       end
     end

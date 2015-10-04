@@ -1,7 +1,7 @@
 #!/bin/bash
 
 WINDOW=8192
-SPAN=32
+SPAN=1
 for FREQ in 44100 96k; do
   FNAME="test/results/${FREQ}"
   if [ -e "${FNAME}" ]; then
