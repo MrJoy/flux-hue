@@ -58,6 +58,7 @@ module SparkleMotion
     require "sparkle_motion/nodes/transforms/spotlight"
   end
 
+  # Load code/widgets for Novation LaunchPad and Numark Orbit.
   def self.use_widgets!
     require "ostruct"
     require "sparkle_motion/launch_pad/widget"
@@ -68,7 +69,6 @@ module SparkleMotion
     require "sparkle_motion/launch_pad/widgets/button"
   end
 
-  # Load code/widgets for Novation LaunchPad and Numark Orbit.
   def self.use_input!
     require "surface_master"
   end
