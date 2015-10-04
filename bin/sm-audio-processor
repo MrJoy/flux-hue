@@ -87,14 +87,14 @@ filter_thread = Thread.new do
     w = in_stream.pop
     break unless w && w.shape[1] == WINDOW
 
+    # Re-assigning this to pick up any changes.
+    filter.frequency_range = FREQ_RANGE
+
     # TODO: We get back a 2D matrix.  It's... *supposed* to be per-channel?  Why aren't we seeing
     # TODO: independent results?
     output = []
     (0..(w.shape[0] - 1)).each do |ch|
       f = NumRu::FFTW3.fft(w[ch, 0..-1], -1, 0) / w.shape[1]
-
-      # Re-assigning this to pick up any changes.
-      filter.frequency_range = FREQ_RANGE
 
       # Now, apply our filter...
       filter.apply!(f)
