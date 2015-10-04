@@ -196,7 +196,6 @@ input_thread = Thread.start do
   end
 end
 
-has_reported = false
 reporting_thread = Thread.start do
   last_count = 0
   loop do
@@ -219,8 +218,6 @@ reporting_thread = Thread.start do
                                                            report[:dc0][ch]]
       end
     end
-    has_reported = true
-    puts if input_device
     sleep 1.0
   end
 end
@@ -240,7 +237,6 @@ if input_device
   end
 else
   input_thread.join
-  sleep 0.1 until has_reported
 end
 
 input_thread.kill.join
