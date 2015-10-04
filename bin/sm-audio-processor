@@ -147,6 +147,8 @@ filter_thread = Thread.start do
       # Because of NArray, the `map` leaves magnitude of each `Complex` in the
       # real component of a new Complex.
       # Magnitude here gives us power**0.5, I think?
+      # amplitudes            = f[ch, 1..-1].map(&:magnitude)
+      # avg_amplitude         = amplitudes.sum.real / amplitudes.size
       amplitudes            = f[ch, filter.bin_start..filter.bin_end].map(&:magnitude)
       avg_amplitude         = amplitudes.sum.real / filter.bin_count
       report[:dc0][ch]      = f[ch, 0]
