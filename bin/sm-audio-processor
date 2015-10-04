@@ -1,162 +1,17 @@
 #!/usr/bin/env ruby
-require "rubygems"
-require "bundler/setup"
-Bundler.setup
+lib = File.expand_path("../../lib", __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require "sparkle_motion"
+SparkleMotion.init!
+SparkleMotion.use_audio!
+LOGGER = SparkleMotion.logger
 require "set"
-require "thread"
-require "coreaudio"
 require "numru/fftw3"
 
 WINDOW      = 4096
 FREQ_RANGE  = [500, 3_000]
 
 Thread.abort_on_exception = true
-
-# Abstract base class for input stream reader that pushes data into a `Queue`.
-#
-# When data is finished, `nil` is pushed onto the queue.
-class InputStream
-  attr_reader :queue, :name, :sample_rate, :window
-  def initialize(window)
-    @queue        = Queue.new
-    @stop_signal  = false
-    @window       = window
-    @input_thread = create_input_thread
-  end
-
-  def dropped_frames; fail "Must be implemented by sub-class!"; end
-  def start; @input_thread.run; end
-  def pop; @queue.pop; end
-  def finite?; fail "Must be implemented by sub-class!"; end
-
-  def stop
-    @stop_signal = true
-    @input_thread.join
-  end
-
-protected
-
-  def create_input_thread
-    Thread.new do
-      Thread.stop
-      loop do
-        data = @input.read(window)
-        break if @stop_signal || data.nil?
-        queue.push(data)
-      end
-
-      queue.push(nil)
-    end
-  end
-end
-
-# Input stream class to read from an input device using CoreAudio.
-class DeviceInputStream < InputStream
-  def initialize(device_name, window)
-    @input_device = CoreAudio.devices.find { |dev| dev.name =~ /#{device_name}/ }
-    fail "No such device ID!" unless @input_device
-
-    @name         = @input_device.name
-    @input        = @input_device.input_buffer(window)
-    @sample_rate  = @input_device.actual_rate
-    super(window)
-  end
-
-  def start
-    @input.start
-    super
-  end
-
-  def stop
-    super
-    @input.stop
-  end
-
-  def finite?; false; end
-  def dropped_frames; @input.dropped_frame; end
-end
-
-# Input stream class to read from a file using CoreAudio.
-class FileInputStream < InputStream
-  def initialize(file_name, window)
-    @name         = file_name
-    @input        = CoreAudio::AudioFile.new(file_name, :read)
-    @sample_rate  = @input.rate # TODO: Do we want `inner_rate` instead?
-    super(window)
-  end
-
-  def stop
-    super
-    @input.close
-  end
-
-  def dropped_frames; 0; end
-  def finite?; true; end
-end
-
-# Implements a simple band-pass filter.
-class BandPassFilter
-  attr_reader :frequency_range, :bin_start, :bin_end, :bin_count
-  def initialize(freq_range, sample_rate, window, enable_low, enable_high, &callback)
-    @sample_rate          = sample_rate
-    @window               = window
-    @half                 = window / 2
-    @callback             = callback
-    @enable_low           = enable_low
-    @enable_high          = enable_high
-    self.frequency_range  = freq_range
-  end
-
-  def frequency_range=(val)
-    return if @frequency_range == val
-    @frequency_range = val.dup
-    compute_bins!
-  end
-
-  def apply!(fft)
-    # Example code demonstrating a pitch-shift, from here:
-    # https://github.com/nagachika/ruby-coreaudio/blob/master/examples/fft_shift_pitch.rb
-    #   shift = 12
-    #   f[ch, (shift + 1)...half] = f[ch, 1...(half - shift)]
-    #   f[ch, 1..shift] = 0
-    #   f[ch, (half + 1)...(w.shape[1] - shift)] = f[ch, (half + shift + 1)..-1]
-    #   f[ch, -shift..-1] = 0
-
-    # Low-pass portion of filter:
-    apply_low_pass!(fft)
-
-    # High-pass portion of filter:
-    apply_high_pass!(fft)
-  end
-
-protected
-
-  def apply_low_pass!(fft)
-    return unless @enable_low
-
-    fft[(bin_end + 1)...@half]        = 0
-    fft[(@half + 1)...-(bin_end + 1)] = 0
-  end
-
-  def apply_high_pass!(fft)
-    return unless @enable_high
-
-    fft[1..(bin_start - 1)]   = 0
-    fft[-(bin_start - 1)..-1] = 0
-  end
-
-  # def bin_freq(idx); ((idx - 1) * @sample_rate) / @window; end
-  def freq_bin(hz); (((hz * @window) / @sample_rate).round / 2) + 1; end
-
-  def compute_bins!
-    @bin_end    = min(freq_bin(@frequency_range.last), @half)
-    @bin_start  = min(freq_bin(@frequency_range.first), bin_end)
-    @bin_count  = bin_end - bin_start + 1
-    @callback.call(bin_start, bin_end, @bin_count) if @callback
-  end
-
-  def min(a, b); a < b ? a : b; end
-end
 
 def configure_output_device(rate)
   available_rates = CoreAudio.default_output_device.available_sample_rate.flatten.uniq
@@ -192,9 +47,11 @@ input_name = ARGV.find { |arg| arg =~ DEVICE_PATTERN } ||
              ARGV.find { |arg| arg =~ FILE_PATTERN }
 fail "Must specify --input-device, or --input-file parameter!" unless input_name
 if input_name =~ DEVICE_PATTERN
-  in_stream = DeviceInputStream.new(input_name.sub(DEVICE_PATTERN, ""), WINDOW)
+  input_name = input_name.sub(DEVICE_PATTERN, "")
+  in_stream = SparkleMotion::Audio::DeviceInputStream.new(input_name, WINDOW)
 elsif input_name =~ FILE_PATTERN
-  in_stream = FileInputStream.new(input_name.sub(FILE_PATTERN, ""), WINDOW)
+  input_name = input_name.sub(FILE_PATTERN, "")
+  in_stream = SparkleMotion::Audio::FileInputStream.new(input_name, WINDOW)
 end
 
 # TODO: Coerce devices to nominal rate?
@@ -204,7 +61,7 @@ report = { dc0:     [],
            current: [],
            count:   0,
            done:    false }
-filter = BandPassFilter
+filter = SparkleMotion::Audio::BandPassFilter
          .new(FREQ_RANGE, in_stream.sample_rate, WINDOW, enable_low, enable_high) do |ss, ee, cc|
            puts "#{in_stream.name}: #{cc} bins, from #{ss} to #{ee}."
            report[:count]  = 0
@@ -228,7 +85,7 @@ if play_audio
 end
 
 interactive = ARGV.find { |arg| arg =~ /\A--interactive\z/ }
-batch = ARGV.find { |arg| arg =~ /\A--batch\z/ }
+batch       = ARGV.find { |arg| arg =~ /\A--batch\z/ }
 if (interactive && batch) || (!interactive && !batch)
   fail "Must specify one of --batch or --interactive"
 end

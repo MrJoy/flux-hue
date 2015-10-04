@@ -61,9 +61,17 @@ module SparkleMotion
     require "sparkle_motion/launch_pad/widgets/button"
   end
 
-  # Load code/widgets for Novation LaunchPad.
+  # Load code/widgets for Novation LaunchPad and Numark Orbit.
   def self.use_input!
     require "surface_master"
+  end
+
+  # Load code/widgets for processing audio data and interacting with audio devices.
+  def self.use_audio!
+    require "sparkle_motion/audio/input_stream"
+    require "sparkle_motion/audio/device_input_stream"
+    require "sparkle_motion/audio/file_input_stream"
+    require "sparkle_motion/audio/band_pass_filter"
   end
 end
 
