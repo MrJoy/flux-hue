@@ -19,6 +19,7 @@ Thread.abort_on_exception = true
 #   wav.write(w)
 #   wav.close
 
+ALLOWED_MODES = Set.new(%i(interactive batch))
 parser = SparkleMotion::CLI::ArgumentParser
          .new(defaults: { low:             true,
                           high:            true,
@@ -50,7 +51,9 @@ options, leftovers = parser
                          channels = value ? Set.new(value.split(/\s*,\s*/).map(&:to_i)) : [0, 1]
                          result[:play] = channels
                        when :mode then
-                         result[:mode] = value.to_sym
+                         value = value.to_sym
+                         result[:mode] = value
+                         parser.invalid_value!(name, value) unless ALLOWED_MODES.include?(value)
                        end
                      end
 if leftovers.length > 0

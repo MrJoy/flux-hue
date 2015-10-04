@@ -36,6 +36,11 @@ module SparkleMotion
         LOGGER.error { "Must specify only one #{kind} parameter!" }
       end
 
+      def invalid_value!(name, value)
+        @errors = true
+        LOGGER.error { "Got invalid value ('#{value}') for #{name}!" }
+      end
+
     protected
 
       def check_arg(arg, name, kind)
