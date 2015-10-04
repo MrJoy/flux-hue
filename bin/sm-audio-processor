@@ -87,12 +87,16 @@ end
 processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter, LOGGER) do |snapshot, dc|
   computed = snapshot
              .map do |data|
+               # mean, stddev, rms, rmsdev, median
+               # NMath.covariance
+
                # Because of NArray, the `map` leaves magnitude of each `Complex` in the
                # real component of a new Complex.
                # Magnitude here gives us power**0.5, I think?
                # amplitudes            = f[ch, 1..-1].map(&:magnitude).real
                # avg_amplitude         = amplitudes.sum / amplitudes.size
                amplitudes = data[filter.bin_start..filter.bin_end].map(&:magnitude).real
+               #.map { |n| Math.log(n) }
                { dc0:    data[0],
                  min:    amplitudes.min,
                  max:    amplitudes.max,
