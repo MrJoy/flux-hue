@@ -122,8 +122,8 @@ filter_thread = Thread.start do
 
       # Low-pass portion of filter:
       if filter.bin_start > 1
-        f[ch, 1..(filter.bin_start - 1)] = 0
-        f[ch, -(filter.bin_start - 1)..-1] = 0
+        f[ch, 1..(filter.bin_start - 1)]    = 0
+        f[ch, -(filter.bin_start - 1)..-1]  = 0
       end
 
       # Because of NArray, the `map` leaves magnitude of each `Complex` in the
