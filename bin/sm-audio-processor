@@ -159,8 +159,8 @@ $stdout.flush
 while line = $stdin.gets.strip
   break if line =~ /\Aquit\z/
 
-  FREQ_RANGE[0] = $1.to_i if line =~ />\s*(\d+)/
-  FREQ_RANGE[1] = $1.to_i if line =~ /<\s*(\d+)/
+  FREQ_RANGE[0] = Regexp.last_match(1).to_i if line =~ />\s*(\d+)/
+  FREQ_RANGE[1] = Regexp.last_match(1).to_i if line =~ /<\s*(\d+)/
 end
 
 queues.each { |q| q.push(nil) }

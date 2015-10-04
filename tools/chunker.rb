@@ -201,7 +201,7 @@ perform_with_timing "Writing PNG" do
         # if alt_y_max <= y_max_target
           # Perfect timing if they're equal.  So very unlikely...
           # If they're not equal: Overlap -- we cut ourselves off before the transition finished.
-          y_max = alt_y_max
+        y_max = alt_y_max
         # else
         #   # We have a gap where the transition time finished, but we haven't
         #   # received a new command yet.
