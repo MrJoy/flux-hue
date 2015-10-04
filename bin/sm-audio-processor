@@ -84,16 +84,6 @@ if play_audio
   outbuf.start
 end
 
-# Only care about frequencies from 300hz to 3khz...
-# Do we need to go around the mid-point a la the pitch-shifting code did?
-#     half = w.shape[1] / 2
-#     f = FFTW3.fft(w, 1)
-#     shift = 12
-#     f.shape[0].times do |ch|
-#       f[ch, (shift+1)...half] = f[ch, 1...(half-shift)]
-#       f[ch, 1..shift] = 0
-#       f[ch, (half+1)...(w.shape[1]-shift)] = f[ch, (half+shift+1)..-1]
-#       f[ch, -shift..-1] = 0
 
 # TODO: Look into this to allow routing AudioHijack output into processor? http://www.ambrosiasw.com/utilities/wta/
 # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
