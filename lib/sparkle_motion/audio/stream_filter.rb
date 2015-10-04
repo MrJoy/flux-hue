@@ -90,7 +90,6 @@ module SparkleMotion
         (0..(frame.shape[0] - 1)).each do |channel|
           channel_data = frame[channel, 0..-1]
           next unless add_stretch!(@comp_channel_data, channel, channel_data, top)
-
           data = normalize(fft_forward(@comp_channel_data[channel]))
 
           debug_filter("Before", channel, @comp_channel_data[channel], data)

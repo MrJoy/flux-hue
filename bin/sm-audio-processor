@@ -149,7 +149,9 @@ processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter, LOGGER, sp
                 # Magnitude here gives us power**0.5, I think?
                 # amplitudes            = f[ch, 1..-1].map(&:magnitude).real
                 # avg_amplitude         = amplitudes.sum / amplitudes.size
-                amplitudes = data[filter.nominal_bin_start..filter.nominal_bin_end].map(&:magnitude).real
+                amplitudes = data[filter.nominal_bin_start..filter.nominal_bin_end]
+                             .map(&:magnitude)
+                             .real
                 # .map { |n| Math.log(n) }
                 { dc0:    data[0],
                   min:    amplitudes.min,
