@@ -61,7 +61,7 @@ end
 in_stream = options[:in_class].new(options[:in_source], WINDOW)
 puts "#{in_stream.name}: Sample rate is #{in_stream.sample_rate}hz."
 
-reporter = SparkleMotion::Audio::StreamReporter.new(in_stream.name)
+reporter = SparkleMotion::Audio::StreamReporter.new(in_stream.name, 1.0, LOGGER)
 
 use_low   = options[:low]
 use_high  = options[:high]
@@ -81,7 +81,7 @@ end
 # TODO: ... or maybe this? http://www.jackosx.com/
 # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
 
-processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter) do |snapshot|
+processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter, LOGGER) do |snapshot|
   computed = snapshot
              .map do |data|
                # Because of NArray, the `map` leaves magnitude of each `Complex` in the
@@ -103,7 +103,8 @@ processor.send_to(options[:play], out_stream) if out_stream
 processor.start
 reporter.start unless in_stream.finite?
 
-if options[:mode] == :interactive
+case options[:mode]
+when :interactive
   $stdout.puts "Commands:"
   $stdout.puts "  >X      Filter for frequencies above X, defaults to #{FREQ_RANGE.first}."
   $stdout.puts "  <X      Filter for frequencies below X, defaults to #{FREQ_RANGE.last}."
@@ -116,12 +117,24 @@ if options[:mode] == :interactive
     FREQ_RANGE[0] = Regexp.last_match(1).to_i if line =~ />\s*(\d+)/
     FREQ_RANGE[1] = Regexp.last_match(1).to_i if line =~ /<\s*(\d+)/
   end
+when :batch
+  unless in_stream.finite?
+    end_signal = false
+    trap("INT") do
+      end_signal = true
+      # If we hit ctrl-c, it'll show up on the terminal, mucking with log output right when we're
+      # about to produce reports.  This annoys me, so I'm working around it:
+      puts
+    end
+
+    sleep 0.1 until end_signal
+  end
 end
 
 in_stream.stop
 processor.await
 if in_stream.finite?
-  reporter.print_report(LOGGER)
+  reporter.print_report
 else
   reporter.stop
 end
