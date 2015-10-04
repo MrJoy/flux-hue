@@ -86,26 +86,43 @@ end
 # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
 
 processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter, LOGGER) do |snapshot, dc|
-  computed = snapshot
-             .map do |data|
-               # mean, stddev, rms, rmsdev, median
-               # NMath.covariance
+  computed =  snapshot
+              .map do |data|
+                # mean, stddev, rms, rmsdev, median
+                # NMath.covariance
 
-               # Because of NArray, the `map` leaves magnitude of each `Complex` in the
-               # real component of a new Complex.
-               # Magnitude here gives us power**0.5, I think?
-               # amplitudes            = f[ch, 1..-1].map(&:magnitude).real
-               # avg_amplitude         = amplitudes.sum / amplitudes.size
-               amplitudes = data[filter.bin_start..filter.bin_end].map(&:magnitude).real
-               #.map { |n| Math.log(n) }
-               { dc0:    data[0],
-                 min:    amplitudes.min,
-                 max:    amplitudes.max,
-                 median: amplitudes.median,
-                 mean:   amplitudes.mean,
-                 sum:    amplitudes.sum,
-                 rms:    amplitudes.rms }
-             end
+                #   self.sum(dim,..)     Summation
+                #   self.cumsum          Cumulative Summation (for 1-d array)
+                #   self.prod(dim,..)    Product (Multiply elements)
+                #   self.cumprod         Cumulative Produce (for 1-d array)
+                #   self.mean(dim,..)    Mean
+                #   self.stddev(dim,..)  Standard deviation
+                #   self.rms(dim,..)     Root mean square
+                #   self.rmsdev(dim,..)  Root mean square deviation
+                #   self.min(dim,..)     Minimum
+                #   self.max(dim,..)     Maximum
+                # note: * If dimensions are specified, statistics are performed
+                #         on those dimensions and the rest dimensions are kept.
+                #       * Range can be used.
+                #       * If dimension is not specified, statistics are performed
+                #         for all the elements.
+                #   self.median(dim)   Median in 0..dim (All dimensions if omitted)
+
+                # Because of NArray, the `map` leaves magnitude of each `Complex` in the
+                # real component of a new Complex.
+                # Magnitude here gives us power**0.5, I think?
+                # amplitudes            = f[ch, 1..-1].map(&:magnitude).real
+                # avg_amplitude         = amplitudes.sum / amplitudes.size
+                amplitudes = data[filter.bin_start..filter.bin_end].map(&:magnitude).real
+                # .map { |n| Math.log(n) }
+                { dc0:    data[0],
+                  min:    amplitudes.min,
+                  max:    amplitudes.max,
+                  median: amplitudes.median,
+                  mean:   amplitudes.mean,
+                  sum:    amplitudes.sum,
+                  rms:    amplitudes.rms }
+              end
 
   reporter.record(dropped_frames: dc,
                   data:           computed)
