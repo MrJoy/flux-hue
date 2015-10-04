@@ -96,9 +96,9 @@ report        = { name:    input_device.name,
 filter        = BandPassFilter
                 .new(FREQ_RANGE, sample_rate, WINDOW) do |bin_start, bin_end, bin_count|
                   puts "#{input_device.name}: #{bin_count} bins, from #{bin_start} to #{bin_end}."
-                  report[:count] = 0
-                  report[:min] = []
-                  report[:max] = []
+                  report[:count]  = 0
+                  report[:min]    = []
+                  report[:max]    = []
                 end
 
 puts "#{input_device.name}: Sample rate is #{sample_rate}hz."\
