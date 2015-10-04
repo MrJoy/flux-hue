@@ -11,7 +11,7 @@ require "numru/fftw3"
 #   1024 == bins 8..71 (64)
 #   2048 == bins 15..140 (126)
 #   4096 == bins 29..280 (252)
-WINDOW      = 1024
+WINDOW      = 4096
 FREQ_RANGE  = [300, 3_000]
 
 Thread.abort_on_exception = true
