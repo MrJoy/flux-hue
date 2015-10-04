@@ -6,6 +6,16 @@ module SparkleMotion
       # https://en.wikipedia.org/wiki/Sigma_approximation
       # https://groups.google.com/forum/#!search/%22Frequency$20domain$20filtering$20%28rectangular$20window$20question%29%22/comp.dsp/__gS8i1kOfQ/zDbNIvdqN6EJ
       #   '... the "overlap-add" or "overlap-save" methods.'
+      # http://stackoverflow.com/questions/4364823/how-do-i-obtain-the-frequencies-of-each-value-in-a-fft
+      #
+      # Any signal "between the bins" gets smeared out among all the other
+      # bins, not just the closest bin.  Try it: fft a single sine wave
+      # with a frequency that is between the fft bins.  Also note the phases
+      # of the resulting fft on opposite sides of your center frequency.
+      #
+      # A true "Brick wall" is infinitely long. Without a window, even that
+      # rings. (OK: all bets are off when passing to infinity. Infinity - 1
+      # rings. :-)
       attr_reader :frequency_range, :bin_start, :bin_end, :bin_count
       def initialize(freq_range, sample_rate, window, enable_low, enable_high, &callback)
         @sample_rate          = sample_rate
