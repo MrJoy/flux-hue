@@ -19,13 +19,13 @@ module SparkleMotion
 
       def frequency_range=(val)
         @frequency_range = val.dup
+        @low_pass_ranges = @high_pass_ranges = nil
       end
 
       def bin_start; @enable_high ? @bin_start : 1; end
-      def bin_end; @enable_low ? @bin_end : (@window / 2) - 2; end
+      def bin_end; @enable_low ? @bin_end : (@window / 2) - 1; end
 
       def apply!(fft)
-        compute_bins!
         # Example code demonstrating a pitch-shift, from here:
         # https://github.com/nagachika/ruby-coreaudio/blob/master/examples/fft_shift_pitch.rb
         #   shift = 12
@@ -43,24 +43,28 @@ module SparkleMotion
 
     protected
 
+      def low_pass_ranges
+        compute_bins! unless @low_pass_ranges
+        @low_pass_ranges
+      end
+
+      def high_pass_ranges
+        compute_bins! unless @high_pass_ranges
+        @high_pass_ranges
+      end
+
       def apply_low_pass!(fft)
         return unless @enable_low
 
-        # $stdout.puts ">>> #{((bin_end + 1)...@half).inspect}"
-        # $stdout.puts "    #{((@half + 1)..-(bin_end + 1)).inspect}"
-        # $stdout.flush
-        fft[(bin_end + 1)...@half]       = 0
-        fft[(@half + 1)..-(bin_end + 1)] = 0
+        fft[@low_pass_ranges[0]] = 0
+        fft[@low_pass_ranges[1]] = 0
       end
 
       def apply_high_pass!(fft)
         return unless @enable_high
 
-        # $stdout.puts ">>> 1..#{bin_start - 1}"
-        # $stdout.puts "    #{-(bin_start - 1)}..-1"
-        # $stdout.flush
-        fft[1..(bin_start - 1)]   = 0
-        fft[-(bin_start - 1)..-1] = 0
+        fft[@high_pass_ranges[0]] = 0
+        fft[@high_pass_ranges[1]] = 0
       end
 
       # def bin_freq(idx); ((idx - 1) * @sample_rate) / @window; end
@@ -73,7 +77,11 @@ module SparkleMotion
         @bin_start  = min(freq_bin(@frequency_range.first), bin_end)
         @bin_count  = bin_end - bin_start + 1
         changed     = old_end != @bin_end || old_start != @bin_start
-        @callback.call(bin_start, bin_end, @bin_count) if changed && @callback
+        return unless changed
+        @low_pass_ranges  = [(bin_end + 1)..@half, (@half + 1)..-(bin_end + 1)]
+        @high_pass_ranges = [1..(bin_start - 1), -(bin_start - 1)..-1]
+
+        @callback.call(bin_start, bin_end, @bin_count) if @callback
       end
 
       def min(a, b); a < b ? a : b; end

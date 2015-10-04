@@ -65,33 +65,43 @@ module SparkleMotion
       def process_frame(frame, drop_count)
         snapshot = []
         (0..(frame.shape[0] - 1)).each do |channel|
-          data = normalize(fft_forward(frame[channel, 0..-1]))
+          channel_data  = frame[channel, 0..-1]
+          data          = normalize(fft_forward(channel_data))
 
           # $stdout.puts "<<<<<"
-          # $stdout.puts [data[0], data[0].magnitude].join(" / ")
+          # high_pass_ranges  = @filter.send(:high_pass_ranges)
+          # low_pass_ranges   = @filter.send(:low_pass_ranges)
+          # # mask = NArray.new(channel_data.typecode, channel_data.length)
+          # # mask[0]                   = 1.0
+          # # mask[1..-1]               = 1000.0
+          # # mask[high_pass_ranges[0]] = 0
+          # # # mask[high_pass_ranges[1]] = 0
+          # # # mask[low_pass_ranges[0]]  = 0
+          # # # mask[low_pass_ranges[1]]  = 0
+          # # mask_signal = fft_backward(mask).real.to_a.map { |n| n.magnitude.round(1) }
+          # # $stdout.puts mask_signal.join(", ")
+
           # # half = f.length / 2
           # # tmp = f[1..half].map(&:magnitude).real.to_a.map(&:round)
           # # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
           # # tmp = f[(half + 1)..-1].map(&:magnitude).real.to_a.map(&:round).reverse
           # # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
 
-          # tmp = data[1..10].map(&:magnitude).real.round.to_a
-          # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
-          # tmp = data[-10..-1].map(&:magnitude).real.round.to_a.reverse
-          # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
+          # $stdout.puts [data[0], data[0].magnitude].join(" / ")
+          # $stdout.puts "#{high_pass_ranges.inspect}:"
+          # tmp = data[high_pass_ranges[0]].map(&:magnitude).real.round.to_a
+          # $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
+          # tmp = data[high_pass_ranges[1]].map(&:magnitude).real.round.to_a.reverse
+          # $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
 
-          # tmp = data[66...2048].map(&:magnitude).real.round.to_a
-          # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
-          # tmp = data[2049..-66].map(&:magnitude).real.round.to_a.reverse
-          # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
-
-          # tmp = data[11..65].map(&:magnitude).real.round.to_a
-          # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
-          # tmp = data[-65..-11].map(&:magnitude).real.round.to_a.reverse
-          # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
-
+          # $stdout.puts "#{low_pass_ranges.inspect}:"
+          # tmp = data[low_pass_ranges[0]].map(&:magnitude).real.round.to_a
+          # $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
+          # tmp = data[low_pass_ranges[1]].map(&:magnitude).real.round.to_a.reverse
+          # $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
           # $stdout.puts ">>>>>"
           # $stdout.flush
+
           @filter.apply!(data)
 
           snapshot << data
