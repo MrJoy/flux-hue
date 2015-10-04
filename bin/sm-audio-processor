@@ -126,6 +126,12 @@ filter_thread = Thread.start do
         f[ch, -(filter.bin_start - 1)..-1]  = 0
       end
 
+      # High-pass portion of filter:
+      if filter.bin_end < half
+        f[ch, (filter.bin_end + 1)...half]  = 0
+        f[ch, half...-(filter.bin_end + 1)] = 0
+      end
+
       # Because of NArray, the `map` leaves magnitude of each `Complex` in the
       # real component of a new Complex.
       # Magnitude here gives us power**0.5, I think?
