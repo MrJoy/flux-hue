@@ -3,6 +3,7 @@ lib = File.expand_path("../../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "sparkle_motion"
 SparkleMotion.init!
+SparkleMotion.use_cli!
 SparkleMotion.use_audio!
 LOGGER = SparkleMotion.logger
 require "set"
@@ -20,54 +21,64 @@ Thread.abort_on_exception = true
 #   wav.write(w)
 #   wav.close
 
-enable_low  = !ARGV.find { |arg| arg =~ /\A--skip-low\z/ }
-enable_high = !ARGV.find { |arg| arg =~ /\A--skip-high\z/ }
-freq_min  = ARGV.find { |arg| arg =~ /\A--freq-min=/ }
-freq_max  = ARGV.find { |arg| arg =~ /\A--freq-max=/ }
-
-freq_min = freq_min.sub(/\A--freq-min=/, "").strip.to_i if freq_min
-freq_max = freq_max.sub(/\A--freq-max=/, "").strip.to_i if freq_max
-
-FREQ_RANGE[0] = freq_min if freq_min
-FREQ_RANGE[1] = freq_max if freq_max
-
-DEVICE_PATTERN = /\A--input-device=/
-FILE_PATTERN = /\A--input-file=/
-input_name = ARGV.find { |arg| arg =~ DEVICE_PATTERN } ||
-             ARGV.find { |arg| arg =~ FILE_PATTERN }
-fail "Must specify --input-device, or --input-file parameter!" unless input_name
-if input_name =~ DEVICE_PATTERN
-  input_name = input_name.sub(DEVICE_PATTERN, "")
-  in_stream = SparkleMotion::Audio::DeviceInputStream.new(input_name, WINDOW)
-elsif input_name =~ FILE_PATTERN
-  input_name = input_name.sub(FILE_PATTERN, "")
-  in_stream = SparkleMotion::Audio::FileInputStream.new(input_name, WINDOW)
+parser = SparkleMotion::CLI::ArgumentParser
+         .new(defaults: { enable_low:      true,
+                          enable_high:     true,
+                          in_class:        nil,
+                          in_source:       nil,
+                          mode:            :batch,
+                          play:            nil,
+                          frequency_range: [500, 3_000] },
+              kinds:    { input: %i(input_device input_file) },
+              required: %i(input),
+              allowed:  %i(skip_low skip_high freq_start freq_end input_device
+                           input_file play mode))
+options, leftovers = parser
+                     .parse!(ARGV) do |name, value, result|
+                       case name
+                       when :skip_low   then result[:low] = false
+                       when :skip_high  then result[:high] = false
+                       when :freq_start then result[:frequency_range][0] = value.to_i
+                       when :freq_end   then result[:frequency_range][1] = value.to_i
+                       when :input_device
+                         parser.incompatible_args!("input") if result[:in_class]
+                         result[:in_class]  = SparkleMotion::Audio::DeviceInputStream
+                         result[:in_source] = value
+                                              # .new(value, WINDOW)
+                       when :input_file then
+                         parser.incompatible_args!("input") if result[:in_class]
+                         result[:in_class]  = SparkleMotion::Audio::FileInputStream
+                         result[:in_source] = value
+                                              # .new(value, WINDOW)
+                       when :play then
+                         result[:play] = Set.new(value.split(/\s*,\s*/).map(&:to_i))
+                       when :mode then
+                         result[:mode] = value.to_sym
+                       end
+                     end
+if leftovers.length > 0
+  LOGGER.error { "Unexpected arguments: #{leftovers.inspect}" }
+  exit 1
 end
+
+in_stream = options[:in_class].new(options[:in_source], WINDOW)
 
 reporter = SparkleMotion::Audio::StreamReporter.new(in_stream.name)
 
-filter = SparkleMotion::Audio::BandPassFilter
-         .new(FREQ_RANGE, in_stream.sample_rate, WINDOW, enable_low, enable_high) do |ss, ee, cc|
-           puts "#{in_stream.name}: #{cc} bins, from #{ss} to #{ee}."
-           reporter.reset!
-         end
+use_low   = options[:low]
+use_high  = options[:high]
+filter    = SparkleMotion::Audio::BandPassFilter
+            .new(FREQ_RANGE, in_stream.sample_rate, WINDOW, use_low, use_high) do |ss, ee, cc|
+              puts "#{in_stream.name}: #{cc} bins, from #{ss} to #{ee}."
+              reporter.reset!
+            end
 
 puts "#{in_stream.name}: Sample rate is #{in_stream.sample_rate}hz."
 
-play_audio = ARGV.find { |arg| arg =~ /\A--playback=/ }
-if play_audio
-  play_audio        = play_audio.sub(/\A--playback=\s*/, "")
-  playback_channels = Set.new(play_audio.split(/\s*,\s*/).map(&:to_i))
+if options[:play]
   out_stream = SparkleMotion::Audio::DeviceOutputStream.new(in_stream.sample_rate, WINDOW)
   puts "#{out_stream.name}: Sample rate is #{out_stream.sample_rate}hz."
 end
-
-interactive = ARGV.find { |arg| arg =~ /\A--interactive\z/ }
-batch       = ARGV.find { |arg| arg =~ /\A--batch\z/ }
-if (interactive && batch) || (!interactive && !batch)
-  fail "Must specify one of --batch or --interactive"
-end
-interactive = false if batch
 
 # TODO: Look into this to allow routing AudioHijack output into processor? http://www.ambrosiasw.com/utilities/wta/
 # TODO: ... or maybe this? http://www.jackosx.com/
@@ -103,7 +114,7 @@ filter_thread = Thread.new do
                               dc0:            f[0],
                               mean:           avg_amplitude)
 
-      output << NumRu::FFTW3.fft(f[0..-1], 1, 0) if out_stream && playback_channels.include?(ch)
+      output << NumRu::FFTW3.fft(f[0..-1], 1, 0) if options[:play] && options[:play].include?(ch)
     end
 
     reporter.record(dropped_frames: in_stream.dropped_frames,
@@ -124,7 +135,7 @@ in_stream.start
 filter_thread.run
 reporter.start unless in_stream.finite?
 
-if interactive
+if options[:mode] == :interactive
   $stdout.puts "Commands:"
   $stdout.puts "  >X      Filter for frequencies above X, defaults to #{FREQ_RANGE.first}."
   $stdout.puts "  <X      Filter for frequencies below X, defaults to #{FREQ_RANGE.last}."

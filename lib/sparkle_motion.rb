@@ -73,6 +73,10 @@ module SparkleMotion
     require "surface_master"
   end
 
+  def self.use_cli!
+    require "sparkle_motion/cli/argument_parser"
+  end
+
   # Load code/widgets for processing audio data and interacting with audio devices.
   def self.use_audio!
     require "thread"
