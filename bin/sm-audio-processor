@@ -2,6 +2,7 @@
 require "rubygems"
 require "bundler/setup"
 Bundler.setup
+require "set"
 require "thread"
 require "coreaudio"
 require "numru/fftw3"
@@ -101,10 +102,12 @@ filter        = BandPassFilter
 puts "#{input_device.name}: Sample rate is #{sample_rate}hz."\
   " Nominal rate is #{input_device.nominal_rate}."
 
-play_audio = !!ARGV.find { |arg| arg == "--playback" }
+play_audio = ARGV.find { |arg| arg =~ /\A--playback=/ }
 if play_audio
-  output_device = CoreAudio.default_output_device
-  output_rate   = output_device.actual_rate
+  play_audio        = play_audio.sub(/\A--playback=\s*/, "")
+  playback_channels = Set.new(play_audio.split(/\s*,\s*/).map(&:to_i))
+  output_device     = CoreAudio.default_output_device
+  output_rate       = output_device.actual_rate
   puts "#{output_device.name}: Sample rate is #{output_rate}hz."\
     " Nominal rate is #{output_device.nominal_rate}."
   fail "Input device and output device have different sample rates!" if output_rate != sample_rate
@@ -135,6 +138,7 @@ filter_thread = Thread.start do
 
     # TODO: We get back a 2D matrix.  It's... *supposed* to be per-channel?  Why aren't we seeing
     # TODO: independent results?
+    output = []
     (0..(w.shape[0] - 1)).each do |ch|
       f = NumRu::FFTW3.fft(w[ch, 0..-1], -1, 0) / w.shape[1]
 
@@ -156,8 +160,16 @@ filter_thread = Thread.start do
       report[:max][ch]      = avg_amplitude if avg_amplitude > report[:max][ch]
       report[:current][ch]  = avg_amplitude
 
-      outbuf << NumRu::FFTW3.fft(f[0..-1], 1, 0) if outbuf && ch == 0
+      output << NumRu::FFTW3.fft(f[0..-1], 1, 0) if outbuf && playback_channels.include?(ch)
     end
+
+    next unless output.length > 0
+
+    # TODO: Sanity-check that the length is sane for the output device...
+    output.each_with_index do |data, idx|
+      w[idx, 0..-1] = data
+    end
+    outbuf << w[0..1, 0..-1]
   end
 end
 
