@@ -53,12 +53,6 @@ input_name = input_name.sub(/\A--input=/, "")
 input_device  = CoreAudio.devices.find { |dev| dev.name =~ /#{input_name}/ }
 fail "No such device ID!" unless input_device
 
-play_audio = !!ARGV.find { |arg| arg == "--playback" }
-if play_audio
-  outbuf = CoreAudio.default_output_device.output_buffer(1024)
-  outbuf.start
-end
-
 # TODO: Coerce device to 44.1kHz?
 queue         = Queue.new
 inbuf         = input_device.input_buffer(WINDOW)
@@ -76,7 +70,19 @@ filter        = BandPassFilter
                   report[:max] = [0.0] * report[:max].length
                 end
 
-puts "#{input_device.name}: Sampling at #{sample_rate}hz..."
+puts "#{input_device.name}: Sample rate is #{sample_rate}hz."\
+  " Nominal rate is #{input_device.nominal_rate}."
+
+play_audio = !!ARGV.find { |arg| arg == "--playback" }
+if play_audio
+  output_device = CoreAudio.default_output_device
+  output_rate   = output_device.actual_rate
+  puts "#{output_device.name}: Sample rate is #{output_rate}hz."\
+    " Nominal rate is #{output_device.nominal_rate}."
+  fail "Input device and output device have different sample rates!" if output_rate != sample_rate
+  outbuf = output_device.output_buffer(WINDOW)
+  outbuf.start
+end
 
 # Only care about frequencies from 300hz to 3khz...
 # Do we need to go around the mid-point a la the pitch-shifting code did?
