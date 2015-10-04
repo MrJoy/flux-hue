@@ -81,7 +81,7 @@ end
 # TODO: ... or maybe this? http://www.jackosx.com/
 # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
 
-processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter, LOGGER) do |snapshot|
+processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter, LOGGER) do |snapshot, dc|
   computed = snapshot
              .map do |data|
                # Because of NArray, the `map` leaves magnitude of each `Complex` in the
@@ -93,7 +93,8 @@ processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter, LOGGER) do
                avg_amplitude = amplitudes.sum / filter.bin_count
                { dc0: data[0], mean: avg_amplitude }
              end
-  reporter.record(dropped_frames: in_stream.dropped_frames,
+
+  reporter.record(dropped_frames: dc,
                   data:           computed)
 end
 
@@ -118,17 +119,7 @@ when :interactive
     FREQ_RANGE[1] = Regexp.last_match(1).to_i if line =~ /<\s*(\d+)/
   end
 when :batch
-  unless in_stream.finite?
-    end_signal = false
-    trap("INT") do
-      end_signal = true
-      # If we hit ctrl-c, it'll show up on the terminal, mucking with log output right when we're
-      # about to produce reports.  This annoys me, so I'm working around it:
-      puts
-    end
-
-    sleep 0.1 until end_signal
-  end
+  loop { sleep 0.1 } unless in_stream.finite?
 end
 
 in_stream.stop

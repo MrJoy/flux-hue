@@ -30,7 +30,7 @@ module SparkleMotion
           loop do
             data = @input.read(window)
             break if @stop_signal || data.nil?
-            queue.push(data)
+            queue.push([data, dropped_frames])
           end
 
           queue.push(nil)

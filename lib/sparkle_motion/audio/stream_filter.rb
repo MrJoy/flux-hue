@@ -7,7 +7,7 @@ module SparkleMotion
         @stream   = stream
         @window   = stream.window
         @handler  = handler
-        super("StreamFilter", logger) { |frame| process_frame(frame) }
+        super("StreamFilter", logger) { |frame, drop_count| process_frame(frame, drop_count) }
       end
 
       def send_to(channels, target)
@@ -18,9 +18,9 @@ module SparkleMotion
     protected
 
       def read_frame
-        frame = @stream.pop
+        frame, drop_count = @stream.pop
         return false unless frame && frame.shape[1] == @window
-        frame
+        [frame, drop_count]
       end
 
       def normalize(frame); frame / frame.length; end
@@ -30,9 +30,9 @@ module SparkleMotion
 
       def task_loop(&handler)
         loop do
-          frame = read_frame
+          frame, drop_count = read_frame
           break unless frame
-          handler.call(frame)
+          handler.call(frame, drop_count)
           break if @end_signal
         end
       end
@@ -62,7 +62,7 @@ module SparkleMotion
         @target.write(frame)
       end
 
-      def process_frame(frame)
+      def process_frame(frame, drop_count)
         snapshot = []
         (0..(frame.shape[0] - 1)).each do |channel|
           data = normalize(fft_forward(frame[channel, 0..-1]))
@@ -72,7 +72,7 @@ module SparkleMotion
           snapshot << data
         end
 
-        @handler.call(snapshot) if @handler
+        @handler.call(snapshot, drop_count) if @handler
 
         send(snapshot)
       end
