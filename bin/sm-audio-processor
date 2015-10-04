@@ -35,12 +35,13 @@ class BandPassFilter
   end
 
   def apply!(fft)
-    # Example code demonstrating a pitch-shift:
-    # shift = 12
-    # f[ch, (shift + 1)...half] = f[ch, 1...(half - shift)]
-    # f[ch, 1..shift] = 0
-    # f[ch, (half + 1)...(w.shape[1] - shift)] = f[ch, (half + shift + 1)..-1]
-    # f[ch, -shift..-1] = 0
+    # Example code demonstrating a pitch-shift, from here:
+    # https://github.com/nagachika/ruby-coreaudio/blob/master/examples/fft_shift_pitch.rb
+    #   shift = 12
+    #   f[ch, (shift + 1)...half] = f[ch, 1...(half - shift)]
+    #   f[ch, 1..shift] = 0
+    #   f[ch, (half + 1)...(w.shape[1] - shift)] = f[ch, (half + shift + 1)..-1]
+    #   f[ch, -shift..-1] = 0
 
     # Low-pass portion of filter:
     apply_low_pass!(fft)
