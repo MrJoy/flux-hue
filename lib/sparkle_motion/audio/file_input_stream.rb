@@ -3,7 +3,7 @@ module SparkleMotion
     # Input stream class to read from a file using CoreAudio.
     class FileInputStream < InputStream
       def initialize(file_name, window)
-        @name         = file_name
+        @name         = File.basename(file_name)
         @input        = CoreAudio::AudioFile.new(file_name, :read)
         @sample_rate  = @input.rate # TODO: Do we want `inner_rate` instead?
         super(window)
