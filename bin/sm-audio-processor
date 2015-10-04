@@ -115,6 +115,7 @@ elsif input_name =~ FILE_PATTERN
   input_name = input_name.sub(FILE_PATTERN, "")
   input_file = CoreAudio::AudioFile.new(input_name, :read)
 
+  input_name  = File.basename(input_name)
   sample_rate = input_file.rate # Do we want `inner_rate` instead?
   inbuf       = input_file
 end
