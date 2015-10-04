@@ -7,11 +7,6 @@ require "thread"
 require "coreaudio"
 require "numru/fftw3"
 
-# For 300Hz..3kHz:
-#    512 == bins 4..36 (33)
-#   1024 == bins 8..71 (64)
-#   2048 == bins 15..140 (126)
-#   4096 == bins 29..280 (252)
 WINDOW      = 4096
 FREQ_RANGE  = [300, 3_000]
 
@@ -84,7 +79,6 @@ def set_nominal_rate(rate)
   end
 
   CoreAudio.default_output_device(nominal_rate: rate)
-  puts "Output device sample rate set to #{rate}"
 end
 
 DEVICE_PATTERN = /\A--input-device=/
