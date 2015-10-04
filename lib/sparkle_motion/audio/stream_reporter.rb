@@ -50,6 +50,7 @@ module SparkleMotion
       def initialize(stream_name, interval, logger)
         @name           = stream_name
         @interval       = interval
+        @dropped_frames = 0
 
         reset!
 
@@ -78,7 +79,7 @@ module SparkleMotion
       end
 
       def record(dropped_frames:, data:)
-        @dropped_frames = dropped_frames
+        @dropped_frames += dropped_frames
         data.each_with_index do |datum, index|
           record_channel(channel: index, datum: datum)
         end
@@ -96,7 +97,7 @@ module SparkleMotion
                       rms:    "RMS" }
         @metrics  = Hash[@labels.keys.map { |name| [name, Metric.new] }]
 
-        @count = @dropped_frames = @max_channel = 0
+        @count = @max_channel = 0
       end
 
     protected

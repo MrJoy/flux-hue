@@ -18,9 +18,13 @@ module SparkleMotion
       end
 
       def frequency_range=(val)
+        return if @frequency_range == val
         @frequency_range = val.dup
-        @low_pass_ranges = @high_pass_ranges = nil
+        compute_bins!
       end
+
+      def nominal_bin_start; @bin_start; end
+      def nominal_bin_end; @bin_end; end
 
       def bin_start; @enable_high ? @bin_start : 1; end
       def bin_end; @enable_low ? @bin_end : (@half - 1); end
@@ -43,15 +47,8 @@ module SparkleMotion
 
     protected
 
-      def low_pass_ranges
-        compute_bins! unless @low_pass_ranges
-        @low_pass_ranges
-      end
-
-      def high_pass_ranges
-        compute_bins! unless @high_pass_ranges
-        @high_pass_ranges
-      end
+      def low_pass_ranges; @low_pass_ranges; end
+      def high_pass_ranges; @high_pass_ranges; end
 
       def apply_low_pass!(fft)
         return unless @enable_low
