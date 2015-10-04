@@ -23,8 +23,9 @@ module SparkleMotion
 
       def print_report
         title = "%s[%05d, %05d]:" % [@name, @count, @dropped_frames]
+        alt   = "%-29s" % [">>>"]
         (0..@max_channel).each do |ch|
-          print_channel((ch == 0) ? title : "", ch)
+          print_channel((ch == 0) ? title : alt, ch)
         end
       end
 
