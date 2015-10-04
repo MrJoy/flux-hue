@@ -250,6 +250,8 @@ filter_thread = Thread.new do
 
       # Re-assigning this to pick up any changes.
       filter.frequency_range = FREQ_RANGE
+
+      # Now, apply our filter...
       filter.apply!(f)
 
       # Because of NArray, the `map` leaves magnitude of each `Complex` in the
