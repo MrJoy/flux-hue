@@ -63,27 +63,35 @@ module SparkleMotion
         @target.write(frame)
       end
 
+      def slide_window!(buffer, channel, new_data, top)
+        if @span > 1
+          buffer[channel]     ||= NArray.new(new_data.typecode, @span * @window)
+          c_buf                 = buffer[channel]
+          c_buf[0..top]         = c_buf[@window..-1]
+          c_buf[(top + 1)..-1]  = new_data
+        else
+          buffer[channel] = new_data
+        end
+      end
+
+      def add_stretch!(buffer, channel, new_data, top)
+        @stretches += 1 if @stretches <= @span
+
+        slide_window!(buffer, channel, new_data, top)
+
+        (@stretches < @span)
+      end
+
       def process_frame(frame, drop_count)
         snapshot             = []
         @comp_channel_data ||= []
         @stretches         ||= 0
-        top = ((@span - 1) * @window) - 1
+        top                  = ((@span - 1) * @window) - 1
         (0..(frame.shape[0] - 1)).each do |channel|
           channel_data = frame[channel, 0..-1]
-          @stretches += 1 if @stretches <= @span
+          next unless add_stretch!(@comp_channel_data, channel, channel_data, top)
 
-          if @span > 1
-            @comp_channel_data[channel] ||= NArray.new(channel_data.typecode, @span * @window)
-            @comp_channel_data[channel][0..top] = @comp_channel_data[channel][@window..-1]
-            @comp_channel_data[channel][(top + 1)..-1] = channel_data
-          else
-            @comp_channel_data[channel] = channel_data
-          end
-
-          next if @stretches < @span
-
-          data                    = normalize(fft_forward(@comp_channel_data[channel]))
-
+          data = normalize(fft_forward(@comp_channel_data[channel]))
 
           debug_filter("Before", channel, @comp_channel_data[channel], data)
           @filter.apply!(data)
