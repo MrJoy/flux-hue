@@ -167,7 +167,7 @@ filter_thread = Thread.start do
     next unless output.length > 0
 
     # TODO: Sanity-check that the length is sane for the output device...
-    output.each_with_index do |data, idx|
+    output[0..1].each_with_index do |data, idx|
       w[idx, 0..-1] = data
     end
     outbuf << w[0..1, 0..-1]
