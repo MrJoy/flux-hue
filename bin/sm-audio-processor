@@ -44,19 +44,12 @@ elsif input_name =~ FILE_PATTERN
   in_stream = SparkleMotion::Audio::FileInputStream.new(input_name, WINDOW)
 end
 
-# TODO: Coerce devices to nominal rate?
-report = { dc0:     [],
-           min:     [],
-           max:     [],
-           current: [],
-           count:   0,
-           done:    false }
+reporter = SparkleMotion::Audio::StreamReporter.new(in_stream.name)
+
 filter = SparkleMotion::Audio::BandPassFilter
          .new(FREQ_RANGE, in_stream.sample_rate, WINDOW, enable_low, enable_high) do |ss, ee, cc|
            puts "#{in_stream.name}: #{cc} bins, from #{ss} to #{ee}."
-           report[:count]  = 0
-           report[:min]    = []
-           report[:max]    = []
+           reporter.reset!
          end
 
 puts "#{in_stream.name}: Sample rate is #{in_stream.sample_rate}hz."
@@ -106,17 +99,15 @@ filter_thread = Thread.new do
       # avg_amplitude         = amplitudes.sum / amplitudes.size
       amplitudes            = f[filter.bin_start..filter.bin_end].map(&:magnitude).real
       avg_amplitude         = amplitudes.sum / filter.bin_count
-      report[:dc0][ch]      = f[0]
-      report[:min][ch]    ||= Float::INFINITY
-      report[:min][ch]      = avg_amplitude if avg_amplitude < report[:min][ch]
-      report[:max][ch]    ||= 0.0
-      report[:max][ch]      = avg_amplitude if avg_amplitude > report[:max][ch]
-      report[:current][ch]  = avg_amplitude
+      reporter.record_channel(channel:        ch,
+                              dc0:            f[0],
+                              mean:           avg_amplitude)
 
       output << NumRu::FFTW3.fft(f[0..-1], 1, 0) if out_stream && playback_channels.include?(ch)
     end
 
-    report[:count] += 1
+    reporter.record(dropped_frames: in_stream.dropped_frames,
+                    channels:       w.shape[0])
     next unless output.length > 0
 
     # TODO: Sanity-check that the length is sane for the output device...
@@ -128,46 +119,10 @@ filter_thread = Thread.new do
   end
 end
 
-REPORT_FORMAT = "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)"
-def report_channel(title, report, channel)
-  puts REPORT_FORMAT % [title,
-                        report[:min][channel],
-                        report[:current][channel],
-                        report[:max][channel],
-                        report[:dc0][channel]]
-end
-
-def report(in_stream, report)
-  title = "%s[%05d, %05d]:" % [in_stream.name, report[:count], in_stream.dropped_frames]
-  report_channel(title, report, 0)
-
-  channels = report[:min].length
-  return unless channels > 1
-  (1..(channels - 1)).each do |ch|
-    report_channel("", report, ch)
-  end
-end
-
-unless in_stream.finite?
-  reporting_thread = Thread.new do
-    Thread.stop
-    last_count = 0
-    loop do
-      new_count = report[:count]
-      next if report[:count] == last_count
-      last_count = new_count
-
-      report(in_stream, report)
-
-      sleep 1.0
-    end
-  end
-end
-
 out_stream.start if out_stream
 in_stream.start
 filter_thread.run
-reporting_thread.run if reporting_thread
+reporter.start unless in_stream.finite?
 
 if interactive
   $stdout.puts "Commands:"
@@ -186,9 +141,9 @@ end
 
 in_stream.stop
 filter_thread.join
-if reporting_thread
-  reporting_thread.join
+if in_stream.finite?
+  reporter.print_report(LOGGER)
 else
-  report(in_stream, report)
+  reporter.stop
 end
 out_stream.stop if out_stream

@@ -86,6 +86,8 @@ module SparkleMotion
     require "sparkle_motion/audio/device_output_stream"
 
     require "sparkle_motion/audio/band_pass_filter"
+
+    require "sparkle_motion/audio/stream_reporter"
   end
 end
 
