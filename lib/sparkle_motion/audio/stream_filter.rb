@@ -55,10 +55,20 @@ module SparkleMotion
         # TODO: Sanity-check that the number of output channels is sane for the output device,
         # TODO: that we're throwing acceptable data at it, etc.
         frame = NArray.new(snapshot.first.typecode, output_channels.size, @window)
+        if @span > 1
+          mid_point = (@window * @span) / 2
+          base      = mid_point - (@window / 2) + 1
+          top       = mid_point + (@window / 2)
+          # base  = -@window
+          # top   = -1
+        else
+          base  = 0
+          top   = @window - 1
+        end
         collect_data_for_output(snapshot)
           .map { |data| fft_backward(data) }
           .each_with_index do |data, channel|
-            frame[channel, 0..-1] = data[0..(@window - 1)]
+            frame[channel, 0..-1] = data[base..top]
           end
         @target.write(frame)
       end
