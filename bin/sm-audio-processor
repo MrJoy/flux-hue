@@ -147,8 +147,6 @@ processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter, LOGGER, sp
                 # Because of NArray, the `map` leaves magnitude of each `Complex` in the
                 # real component of a new Complex.
                 # Magnitude here gives us power**0.5, I think?
-                # amplitudes            = f[ch, 1..-1].map(&:magnitude).real
-                # avg_amplitude         = amplitudes.sum / amplitudes.size
                 amplitudes = data[filter.nominal_bin_start..filter.nominal_bin_end]
                              .map(&:magnitude)
                              .real
@@ -175,16 +173,16 @@ reporter.start unless in_stream.finite?
 case options[:mode]
 when :interactive
   $stdout.puts "Commands:"
-  $stdout.puts "  >X      Filter for frequencies above X, defaults to #{FREQ_RANGE.first}."
-  $stdout.puts "  <X      Filter for frequencies below X, defaults to #{FREQ_RANGE.last}."
+  $stdout.puts "  >X      Filter for frequencies above X, defaults to #{options[:frequency_range].first}."
+  $stdout.puts "  <X      Filter for frequencies below X, defaults to #{options[:frequency_range].last}."
   $stdout.puts "  quit    Exit the program."
   $stdout.flush
   loop do
     line = $stdin.gets.strip
     break if line =~ /\Aquit\z/
 
-    FREQ_RANGE[0] = Regexp.last_match(1).to_i if line =~ />\s*(\d+)/
-    FREQ_RANGE[1] = Regexp.last_match(1).to_i if line =~ /<\s*(\d+)/
+    options[:frequency_range][0] = Regexp.last_match(1).to_i if line =~ />\s*(\d+)/
+    options[:frequency_range][1] = Regexp.last_match(1).to_i if line =~ /<\s*(\d+)/
   end
 when :batch
   loop { sleep 0.1 } unless in_stream.finite?
