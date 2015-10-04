@@ -20,6 +20,7 @@ Thread.abort_on_exception = true
 ALLOWED_MODES = Set.new(%i(interactive batch))
 parser = SparkleMotion::CLI::ArgumentParser
          .new(defaults: { window:          512,
+                          span:            4,
                           low:             true,
                           high:            true,
                           in_class:        nil,
@@ -30,7 +31,7 @@ parser = SparkleMotion::CLI::ArgumentParser
               kinds:    { input: %i(input_device input_file) },
               required: %i(input),
               allowed:  %i(skip_low skip_high freq_start freq_end input_device
-                           input_file play mode window))
+                           input_file play mode window span))
 options, leftovers = parser
                      .parse!(ARGV) do |name, value, result|
                        case name
@@ -54,7 +55,14 @@ options, leftovers = parser
                          result[:mode] = value
                          parser.invalid_value!(name, value) unless ALLOWED_MODES.include?(value)
                        when :window then
+                         value  = value.to_i
+                         pot    = value.to_s(2).split(//).sort.map(&:to_i).inject(:+) == 1
                          result[:window] = value.to_i
+                         parser.invalid_value!(name, value) unless value >= 32 && pot
+                       when :span then
+                         value          = value.to_i
+                         result[:span]  = value
+                         parser.invalid_value!(name, value) unless value >= 1 && value <= 1024
                        end
                      end
 if leftovers.length > 0
@@ -85,7 +93,8 @@ end
 # TODO: ... or maybe this? http://www.jackosx.com/
 # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
 
-processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter, LOGGER) do |snapshot, dc|
+span      = options[:span]
+processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter, LOGGER, span) do |snapshot, dc|
   computed =  snapshot
               .map do |data|
                 # mean, stddev, rms, rmsdev, median

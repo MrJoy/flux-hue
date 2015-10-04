@@ -2,11 +2,12 @@ module SparkleMotion
   module Audio
     # Applies a filter to a stream, and optionally allows chaining the output to another stream.
     class StreamFilter < SparkleMotion::Task
-      def initialize(stream, filter, logger, &handler)
+      def initialize(stream, filter, logger, span, &handler)
         @filter   = filter
         @stream   = stream
         @window   = stream.window
         @handler  = handler
+        @span     = span
         super("StreamFilter", logger) { |frame, drop_count| process_frame(frame, drop_count) }
       end
 
@@ -64,20 +65,28 @@ module SparkleMotion
 
       def process_frame(frame, drop_count)
         snapshot = []
+        @stretches ||= []
         (0..(frame.shape[0] - 1)).each do |channel|
-          channel_data  = frame[channel, 0..-1]
-          data          = normalize(fft_forward(channel_data))
+          channel_data = frame[channel, 0..-1]
+          @stretches[channel] ||= []
+          @stretches[channel] << channel_data
 
-          debug_filter("Before", channel, channel_data, data)
+          next if @stretches[channel].length < @span
+          @stretches[channel].shift if @stretches[channel].length > @span
+
+          composite_channel_data  = @stretches[channel].inject(:+)
+          data                    = normalize(fft_forward(composite_channel_data))
+
+          debug_filter("Before", channel, composite_channel_data, data)
           @filter.apply!(data)
-          debug_filter("After", channel, channel_data, data)
+          debug_filter("After", channel, composite_channel_data, data)
 
           snapshot << data
         end
 
         @handler.call(snapshot, drop_count) if @handler
 
-        send(snapshot)
+        send(snapshot) if snapshot.length == frame.shape[0]
       end
 
     private
