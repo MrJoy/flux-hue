@@ -47,129 +47,122 @@ protected
   end
 end
 
-queues      = []
-input_ths   = []
-filter_ths  = []
-reports     = []
+input_name    = ARGV.shift
+input_device  = CoreAudio.devices.find { |dev| dev.name =~ /#{input_name}/ }
+fail "No such device ID!" unless input_device
 
-inbufs = ARGV.map do |device_name|
-  device = CoreAudio.devices.find { |dev| dev.name =~ /#{device_name}/ }
-  fail "No such device ID!" unless device
-  inbuf         = device.input_buffer(WINDOW)
-  sample_rate   = device.actual_rate
-  report        = { name:    device.name,
-                    dc0:     [nil],
-                    min:     [Float::INFINITY],
-                    max:     [0.0],
-                    current: [0.0],
-                    count:   0 }
-  filter        = BandPassFilter
-                  .new(FREQ_RANGE, sample_rate, WINDOW) do |bin_start, bin_end, bin_count|
-                    puts "#{device.name}: ##{bin_count} bins, from #{bin_start} to #{bin_end}."
-                    report[:min] = [Float::INFINITY] * report[:min].length
-                    report[:max] = [0.0] * report[:max].length
-                  end
-  reports << report
+# TODO: Coerce device to 44.1kHz?
+queue         = Queue.new
+inbuf         = input_device.input_buffer(WINDOW)
+sample_rate   = input_device.actual_rate
+report        = { name:    input_device.name,
+                  dc0:     [nil],
+                  min:     [Float::INFINITY],
+                  max:     [0.0],
+                  current: [0.0],
+                  count:   0 }
+filter        = BandPassFilter
+                .new(FREQ_RANGE, sample_rate, WINDOW) do |bin_start, bin_end, bin_count|
+                  puts "#{input_device.name}: ##{bin_count} bins, from #{bin_start} to #{bin_end}."
+                  report[:min] = [Float::INFINITY] * report[:min].length
+                  report[:max] = [0.0] * report[:max].length
+                end
 
-  puts "#{device.name}: Sampling at #{sample_rate}hz..."
+puts "#{input_device.name}: Sampling at #{sample_rate}hz..."
 
-  # Only care about frequencies from 300hz to 3khz...
-  # Do we need to go around the mid-point a la the pitch-shifting code did?
-  #     half = w.shape[1] / 2
-  #     f = FFTW3.fft(w, 1)
-  #     shift = 12
-  #     f.shape[0].times do |ch|
-  #       f[ch, (shift+1)...half] = f[ch, 1...(half-shift)]
-  #       f[ch, 1..shift] = 0
-  #       f[ch, (half+1)...(w.shape[1]-shift)] = f[ch, (half+shift+1)..-1]
-  #       f[ch, -shift..-1] = 0
+# Only care about frequencies from 300hz to 3khz...
+# Do we need to go around the mid-point a la the pitch-shifting code did?
+#     half = w.shape[1] / 2
+#     f = FFTW3.fft(w, 1)
+#     shift = 12
+#     f.shape[0].times do |ch|
+#       f[ch, (shift+1)...half] = f[ch, 1...(half-shift)]
+#       f[ch, 1..shift] = 0
+#       f[ch, (half+1)...(w.shape[1]-shift)] = f[ch, (half+shift+1)..-1]
+#       f[ch, -shift..-1] = 0
 
-  # TODO: Look into this to allow routing AudioHijack output into processor? http://www.ambrosiasw.com/utilities/wta/
-  # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
+# TODO: Look into this to allow routing AudioHijack output into processor? http://www.ambrosiasw.com/utilities/wta/
+# http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
 
-  queues << (queue = Queue.new)
-  filter_ths << Thread.start do
-    loop do
-      w = queue.pop
-      break unless w
-      report[:count] += 1
+filter_thread = Thread.start do
+  loop do
+    w = queue.pop
+    break unless w
+    report[:count] += 1
 
-      # TODO: We get back a 2D matrix.  Is that about stereo channels, or something else?
-      f = FFTW3.fft(w, 1, 0, 1)
+    # TODO: We get back a 2D matrix.  Is that about stereo channels, or something else?
+    f = FFTW3.fft(w, 1, 0, 1)
 
-      # Re-assigning this to pick up any changes.
-      filter.frequency_range = FREQ_RANGE
+    # Re-assigning this to pick up any changes.
+    filter.frequency_range = FREQ_RANGE
 
-      # If we want to normalize the FFT, we need to divide by `(f.shape[0] * f.shape[1])`.
-      (0..(f.shape[0] - 1)).each do |ch|
-        # Because of NArray, the `map` leaves magnitude of each `Complex` in the
-        # real component of a new Complex.
-        # Magnitude here gives us power**0.5, I think?
-        amplitudes            = f[ch, filter.bin_start..filter.bin_end].map(&:magnitude)
-        avg_amplitude         = amplitudes.sum.real / filter.bin_count
-        report[:dc0][ch]      = f[ch, 0]
-        report[:min][ch]    ||= Float::INFINITY
-        report[:min][ch]      = avg_amplitude if avg_amplitude < report[:min][ch]
-        report[:max][ch]    ||= 0.0
-        report[:max][ch]      = avg_amplitude if avg_amplitude > report[:max][ch]
-        report[:current][ch]  = avg_amplitude
-      end
+    # If we want to normalize the FFT, we need to divide by `(f.shape[0] * f.shape[1])`.
+    (0..(f.shape[0] - 1)).each do |ch|
+      # Because of NArray, the `map` leaves magnitude of each `Complex` in the
+      # real component of a new Complex.
+      # Magnitude here gives us power**0.5, I think?
+      amplitudes            = f[ch, filter.bin_start..filter.bin_end].map(&:magnitude)
+      avg_amplitude         = amplitudes.sum.real / filter.bin_count
+      report[:dc0][ch]      = f[ch, 0]
+      report[:min][ch]    ||= Float::INFINITY
+      report[:min][ch]      = avg_amplitude if avg_amplitude < report[:min][ch]
+      report[:max][ch]    ||= 0.0
+      report[:max][ch]      = avg_amplitude if avg_amplitude > report[:max][ch]
+      report[:current][ch]  = avg_amplitude
     end
   end
+end
 
-  input_ths << Thread.start do
-    loop do
-      queue.push(inbuf.read(WINDOW))
-    end
+input_thread = Thread.start do
+  loop do
+    queue.push(inbuf.read(WINDOW))
   end
-  inbuf
 end
 
 reporting_thread = Thread.start do
+  last_count = 0
   loop do
     sleep 1.0
-    reports.each do |report|
-      next unless report[:count] > 0
-      title = "%s[%05d]:" % [report[:name], report[:count]]
-      puts "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)" % [title,
-                                                         report[:min][0],
-                                                         report[:current][0],
-                                                         report[:max][0],
-                                                         report[:dc0][0]]
-      next unless report[:min].length > 1
-      (1..(report[:min].length - 1)).each do |ch|
-        puts "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)" % ["",
-                                                           report[:min][ch],
-                                                           report[:current][ch],
-                                                           report[:max][ch],
-                                                           report[:dc0][ch]]
-      end
+    next unless report[:count] > last_count
+    last_count = report[:count]
+    title = "%s[%05d]:" % [report[:name], report[:count]]
+    puts "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)" % [title,
+                                                       report[:min][0],
+                                                       report[:current][0],
+                                                       report[:max][0],
+                                                       report[:dc0][0]]
+    next unless report[:min].length > 1
+    (1..(report[:min].length - 1)).each do |ch|
+      puts "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)" % ["",
+                                                         report[:min][ch],
+                                                         report[:current][ch],
+                                                         report[:max][ch],
+                                                         report[:dc0][ch]]
     end
     puts
   end
 end
 
-inbufs.map(&:start)
 $stdout.puts "Commands:"
 $stdout.puts "  >X      Filter for frequencies above X, defaults to #{FREQ_RANGE.first}."
 $stdout.puts "  <X      Filter for frequencies below X, defaults to #{FREQ_RANGE.last}."
 $stdout.puts "  quit    Exit the program."
 $stdout.flush
 
-while line = $stdin.gets.strip
+inbuf.start
+
+loop do
+  line = $stdin.gets.strip
   break if line =~ /\Aquit\z/
 
   FREQ_RANGE[0] = Regexp.last_match(1).to_i if line =~ />\s*(\d+)/
   FREQ_RANGE[1] = Regexp.last_match(1).to_i if line =~ /<\s*(\d+)/
 end
 
-queues.each { |q| q.push(nil) }
-inbufs.map(&:stop)
+input_thread.kill.join
+inbuf.stop
+queue.push(nil)
+filter_thread.kill.join
 reporting_thread.kill.join
-input_ths.map(&:kill).map(&:join)
-filter_ths.map(&:kill).map(&:join)
 
-inbufs.each do |inbuf|
-  # TODO: Specify *which* input buffer!
-  puts "#{inbuf.dropped_frame} frame dropped at input buffer."
-end
+puts "#{inbuf.dropped_frame} frames dropped at input buffer."
