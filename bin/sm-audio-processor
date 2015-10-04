@@ -241,10 +241,7 @@ filter_thread = Thread.new do
 
   loop do
     w = in_stream.pop
-    unless w
-      report[:done] = true
-      break
-    end
+    break unless w
 
     # TODO: We get back a 2D matrix.  It's... *supposed* to be per-channel?  Why aren't we seeing
     # TODO: independent results?
