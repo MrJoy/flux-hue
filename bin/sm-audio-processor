@@ -19,7 +19,7 @@ Thread.abort_on_exception = true
 # Represents parameters of a simple band-pass filter, and computes which buckets of an FFT are
 # relevant.
 class BandPassFilter
-  attr_reader :frequency_range, :bin_start, :bin_end, :bin_count
+  attr_reader :frequency_range, :bin_start, :bin_end
   def initialize(freq_range, sample_rate, window, &callback)
     @sample_rate          = sample_rate
     @window               = window
@@ -69,8 +69,7 @@ protected
   def compute_bins!
     @bin_start = (freq_bin(@frequency_range.first) / 2) + 1
     @bin_end   = (freq_bin(@frequency_range.last) / 2) + 1
-    @bin_count = bin_end - bin_start + 1
-    @callback.call(@bin_start, @bin_end, @bin_count) if @callback
+    @callback.call(@bin_start, @bin_end) if @callback
   end
 end
 
@@ -92,8 +91,8 @@ report        = { name:    input_device.name,
                   current: [],
                   count:   0 }
 filter        = BandPassFilter
-                .new(FREQ_RANGE, sample_rate, WINDOW) do |bin_start, bin_end, bin_count|
-                  puts "#{input_device.name}: #{bin_count} bins, from #{bin_start} to #{bin_end}."
+                .new(FREQ_RANGE, sample_rate, WINDOW) do |bin_start, bin_end|
+                  puts "#{input_device.name}: Using bins from #{bin_start} to #{bin_end}."
                   report[:count]  = 0
                   report[:min]    = []
                   report[:max]    = []
