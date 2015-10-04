@@ -23,7 +23,7 @@ module SparkleMotion
       end
 
       def bin_start; @enable_high ? @bin_start : 1; end
-      def bin_end; @enable_low ? @bin_end : (@window / 2) - 1; end
+      def bin_end; @enable_low ? @bin_end : (@half - 1); end
 
       def apply!(fft)
         # Example code demonstrating a pitch-shift, from here:
@@ -69,23 +69,23 @@ module SparkleMotion
 
       def clear(data, range); data[range] = 0; end
 
-      # def bin_freq(idx); ((idx - 1) * @sample_rate) / @window; end
-      def freq_bin(hz); (((hz * @window) / @sample_rate).round / 2); end
+      # def bin_freq(idx); (idx.to_f / @sample_rate / @half.to_f); end
+      def freq_bin(hz); (hz / (@sample_rate.to_f / @window.to_f)).round + 1; end
 
       def compute_bins!
         old_end     = @bin_end
         old_start   = @bin_start
         @bin_end    = min(freq_bin(@frequency_range.last), @half - 1)
         @bin_start  = min(freq_bin(@frequency_range.first), bin_end)
-        @bin_count  = bin_end - bin_start + 1
+        @bin_count  = (bin_end - 1) - (bin_start + 1) + 1
         changed     = old_end != @bin_end || old_start != @bin_start
         return unless changed || @low_pass_ranges.nil? || @high_pass_ranges.nil?
         @low_pass_ranges = @high_pass_ranges = nil
 
-        @low_pass_ranges  = [bin_end...@half, (@half + 1)..-bin_end] if @enable_low
-        @high_pass_ranges = [1..bin_start, -bin_start..-1] if @enable_high
+        @low_pass_ranges  = [@bin_end...@half, (@half + 1)...-@bin_end] if @enable_low
+        @high_pass_ranges = [1..@bin_start, -@bin_start..-1] if @enable_high
 
-        @callback.call(bin_start, bin_end, @bin_count) if @callback
+        @callback.call(bin_start + 1, bin_end - 1, @bin_count) if @callback
       end
 
       def min(a, b); a < b ? a : b; end
