@@ -76,18 +76,31 @@ protected
   end
 end
 
-input_name = ARGV.find { |arg| arg =~ /\A--input-device=/ }
-fail "Must specify --input-device parameter!" unless input_name
-input_name = input_name.sub(/\A--input-device=/, "")
+DEVICE_PATTERN = /\A--input-device=/
+FILE_PATTERN = /\A--input-file=/
+input_name = ARGV.find { |arg| arg =~ DEVICE_PATTERN } ||
+             ARGV.find { |arg| arg =~ FILE_PATTERN }
+fail "Must specify --input-device, or --input-file parameter!" unless input_name
+if input_name =~ DEVICE_PATTERN
+  input_name    = input_name.sub(DEVICE_PATTERN, "")
+  input_device  = CoreAudio.devices.find { |dev| dev.name =~ /#{input_name}/ }
+  fail "No such device ID!" unless input_device
 
-input_device  = CoreAudio.devices.find { |dev| dev.name =~ /#{input_name}/ }
-fail "No such device ID!" unless input_device
+  input_name    = input_device.name
+  sample_rate   = input_device.actual_rate
+  inbuf         = input_device.input_buffer(WINDOW)
+  inbuf.start
+elsif input_name =~ FILE_PATTERN
+  input_name = input_name.sub(FILE_PATTERN, "")
+  input_file = CoreAudio::AudioFile.new(input_name, :read)
+
+  sample_rate = input_file.rate # Do we want `inner_rate` instead?
+  inbuf       = input_file
+end
 
 # TODO: Coerce devices to nominal rate?
 queue         = Queue.new
-inbuf         = input_device.input_buffer(WINDOW)
-sample_rate   = input_device.actual_rate
-report        = { name:    input_device.name,
+report        = { name:    input_name,
                   dc0:     [],
                   min:     [],
                   max:     [],
@@ -95,14 +108,13 @@ report        = { name:    input_device.name,
                   count:   0 }
 filter        = BandPassFilter
                 .new(FREQ_RANGE, sample_rate, WINDOW) do |bin_start, bin_end, bin_count|
-                  puts "#{input_device.name}: #{bin_count} bins, from #{bin_start} to #{bin_end}."
+                  puts "#{input_name}: #{bin_count} bins, from #{bin_start} to #{bin_end}."
                   report[:count]  = 0
                   report[:min]    = []
                   report[:max]    = []
                 end
 
-puts "#{input_device.name}: Sample rate is #{sample_rate}hz."\
-  " Nominal rate is #{input_device.nominal_rate}."
+puts "#{input_name}: Sample rate is #{sample_rate}hz."
 
 play_audio = ARGV.find { |arg| arg =~ /\A--playback=/ }
 if play_audio
@@ -110,8 +122,7 @@ if play_audio
   playback_channels = Set.new(play_audio.split(/\s*,\s*/).map(&:to_i))
   output_device     = CoreAudio.default_output_device
   output_rate       = output_device.actual_rate
-  puts "#{output_device.name}: Sample rate is #{output_rate}hz."\
-    " Nominal rate is #{output_device.nominal_rate}."
+  puts "#{output_device.name}: Sample rate is #{output_rate}hz."
   fail "Input device and output device have different sample rates!" if output_rate != sample_rate
   outbuf = output_device.output_buffer(WINDOW)
   outbuf.start
@@ -172,61 +183,69 @@ filter_thread = Thread.start do
     output[0..1].each_with_index do |data, idx|
       w[idx, 0..-1] = data
     end
-    outbuf << w[0..1, 0..-1]
+
+    outbuf << w[(output.length > 1) ? 0..1 : 0, 0..-1]
   end
 end
 
 input_thread = Thread.start do
   loop do
-    queue.push(inbuf.read(WINDOW))
+    data = inbuf.read(WINDOW)
+    queue.push(data)
+    break unless data
   end
 end
 
+has_reported = false
 reporting_thread = Thread.start do
   last_count = 0
   loop do
-    sleep 1.0
     next if report[:count] == last_count
     last_count = report[:count]
-    title = "%s[%05d]:" % [report[:name], report[:count]]
+    title = "%s[%05d, %05d]:" % [report[:name],
+                                 report[:count],
+                                 input_device ? inbuf.dropped_frame : 0]
     puts "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)" % [title,
                                                        report[:min][0],
                                                        report[:current][0],
                                                        report[:max][0],
                                                        report[:dc0][0]]
-    next unless report[:min].length > 1
-    (1..(report[:min].length - 1)).each do |ch|
-      puts "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)" % ["",
-                                                         report[:min][ch],
-                                                         report[:current][ch],
-                                                         report[:max][ch],
-                                                         report[:dc0][ch]]
+    if report[:min].length > 1
+      (1..(report[:min].length - 1)).each do |ch|
+        puts "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)" % ["",
+                                                           report[:min][ch],
+                                                           report[:current][ch],
+                                                           report[:max][ch],
+                                                           report[:dc0][ch]]
+      end
     end
-    puts
+    has_reported = true
+    puts if input_device
+    sleep 1.0
   end
 end
 
-$stdout.puts "Commands:"
-$stdout.puts "  >X      Filter for frequencies above X, defaults to #{FREQ_RANGE.first}."
-$stdout.puts "  <X      Filter for frequencies below X, defaults to #{FREQ_RANGE.last}."
-$stdout.puts "  quit    Exit the program."
-$stdout.flush
+if input_device
+  $stdout.puts "Commands:"
+  $stdout.puts "  >X      Filter for frequencies above X, defaults to #{FREQ_RANGE.first}."
+  $stdout.puts "  <X      Filter for frequencies below X, defaults to #{FREQ_RANGE.last}."
+  $stdout.puts "  quit    Exit the program."
+  $stdout.flush
+  loop do
+    line = $stdin.gets.strip
+    break if line =~ /\Aquit\z/
 
-inbuf.start
-
-loop do
-  line = $stdin.gets.strip
-  break if line =~ /\Aquit\z/
-
-  FREQ_RANGE[0] = Regexp.last_match(1).to_i if line =~ />\s*(\d+)/
-  FREQ_RANGE[1] = Regexp.last_match(1).to_i if line =~ /<\s*(\d+)/
+    FREQ_RANGE[0] = Regexp.last_match(1).to_i if line =~ />\s*(\d+)/
+    FREQ_RANGE[1] = Regexp.last_match(1).to_i if line =~ /<\s*(\d+)/
+  end
+else
+  input_thread.join
+  sleep 0.1 until has_reported
 end
 
 input_thread.kill.join
-inbuf.stop
+inbuf.stop if input_device # ... otherwise we have a file, which doesn't need to be stopped.
 queue.push(nil)
 filter_thread.kill.join
 reporting_thread.kill.join
 outbuf.stop if outbuf
-
-puts "#{inbuf.dropped_frame} frames dropped at input buffer."
