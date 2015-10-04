@@ -88,16 +88,17 @@ queue         = Queue.new
 inbuf         = input_device.input_buffer(WINDOW)
 sample_rate   = input_device.actual_rate
 report        = { name:    input_device.name,
-                  dc0:     [nil],
-                  min:     [Float::INFINITY],
-                  max:     [0.0],
-                  current: [0.0],
+                  dc0:     [],
+                  min:     [],
+                  max:     [],
+                  current: [],
                   count:   0 }
 filter        = BandPassFilter
                 .new(FREQ_RANGE, sample_rate, WINDOW) do |bin_start, bin_end, bin_count|
                   puts "#{input_device.name}: #{bin_count} bins, from #{bin_start} to #{bin_end}."
-                  report[:min] = [Float::INFINITY] * report[:min].length
-                  report[:max] = [0.0] * report[:max].length
+                  report[:count] = 0
+                  report[:min] = []
+                  report[:max] = []
                 end
 
 puts "#{input_device.name}: Sample rate is #{sample_rate}hz."\
@@ -173,7 +174,7 @@ reporting_thread = Thread.start do
   last_count = 0
   loop do
     sleep 1.0
-    next unless report[:count] > last_count
+    next if report[:count] == last_count
     last_count = report[:count]
     title = "%s[%05d]:" % [report[:name], report[:count]]
     puts "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)" % [title,
