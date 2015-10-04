@@ -132,8 +132,8 @@ protected
   def apply_low_pass!(fft)
     return unless bin_start >= 1
 
-    fft[1..(bin_start - 1)]    = 0
-    fft[-(bin_start - 1)..-1]  = 0
+    fft[1..(bin_start - 1)]   = 0
+    fft[-(bin_start - 1)..-1] = 0
   end
 
   def apply_high_pass!(fft)
