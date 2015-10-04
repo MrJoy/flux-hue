@@ -79,7 +79,7 @@ module SparkleMotion
 
         slide_window!(buffer, channel, new_data, top)
 
-        (@stretches < @span)
+        (@stretches >= @span)
       end
 
       def process_frame(frame, drop_count)
