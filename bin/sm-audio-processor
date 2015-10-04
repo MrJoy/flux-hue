@@ -8,8 +8,6 @@ SparkleMotion.use_audio!
 LOGGER = SparkleMotion.logger
 require "set"
 
-WINDOW = 4096
-
 Thread.abort_on_exception = true
 
 # Example of how to save data:
@@ -21,7 +19,8 @@ Thread.abort_on_exception = true
 
 ALLOWED_MODES = Set.new(%i(interactive batch))
 parser = SparkleMotion::CLI::ArgumentParser
-         .new(defaults: { low:             true,
+         .new(defaults: { window:          512,
+                          low:             true,
                           high:            true,
                           in_class:        nil,
                           in_source:       nil,
@@ -31,7 +30,7 @@ parser = SparkleMotion::CLI::ArgumentParser
               kinds:    { input: %i(input_device input_file) },
               required: %i(input),
               allowed:  %i(skip_low skip_high freq_start freq_end input_device
-                           input_file play mode))
+                           input_file play mode window))
 options, leftovers = parser
                      .parse!(ARGV) do |name, value, result|
                        case name
@@ -54,6 +53,8 @@ options, leftovers = parser
                          value = value.to_sym
                          result[:mode] = value
                          parser.invalid_value!(name, value) unless ALLOWED_MODES.include?(value)
+                       when :window then
+                         result[:window] = value.to_i
                        end
                      end
 if leftovers.length > 0
@@ -61,7 +62,7 @@ if leftovers.length > 0
   exit 1
 end
 
-in_stream = options[:in_class].new(options[:in_source], WINDOW)
+in_stream = options[:in_class].new(options[:in_source], options[:window])
 puts "#{in_stream.name}: Sample rate is #{in_stream.sample_rate}hz."
 
 reporter = SparkleMotion::Audio::StreamReporter.new(in_stream.name, 1.0, LOGGER)
@@ -70,13 +71,13 @@ use_low   = options[:low]
 use_high  = options[:high]
 range     = options[:frequency_range]
 filter    = SparkleMotion::Audio::BandPassFilter
-            .new(range, in_stream.sample_rate, WINDOW, use_low, use_high) do |ss, ee, cc|
+            .new(range, in_stream.sample_rate, options[:window], use_low, use_high) do |ss, ee, cc|
               puts "#{in_stream.name}: #{cc} bins, from #{ss} to #{ee}."
               reporter.reset!
             end
 
 if options[:play]
-  out_stream = SparkleMotion::Audio::DeviceOutputStream.new(in_stream.sample_rate, WINDOW)
+  out_stream = SparkleMotion::Audio::DeviceOutputStream.new(in_stream.sample_rate, options[:window])
   puts "#{out_stream.name}: Sample rate is #{out_stream.sample_rate}hz."
 end
 
