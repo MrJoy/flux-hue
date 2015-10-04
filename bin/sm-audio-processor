@@ -20,8 +20,8 @@ Thread.abort_on_exception = true
 #   wav.close
 
 parser = SparkleMotion::CLI::ArgumentParser
-         .new(defaults: { enable_low:      true,
-                          enable_high:     true,
+         .new(defaults: { low:             true,
+                          high:            true,
                           in_class:        nil,
                           in_source:       nil,
                           mode:            :batch,

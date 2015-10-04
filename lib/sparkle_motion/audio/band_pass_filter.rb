@@ -17,6 +17,9 @@ module SparkleMotion
         @frequency_range = val.dup
       end
 
+      def bin_start; @enable_high ? @bin_start : 1; end
+      def bin_end; @enable_low ? @bin_end : (@window / 2) - 1; end
+
       def apply!(fft)
         compute_bins!
         # Example code demonstrating a pitch-shift, from here:
@@ -66,7 +69,7 @@ module SparkleMotion
         @bin_end    = min(freq_bin(@frequency_range.last), @half)
         @bin_start  = min(freq_bin(@frequency_range.first), bin_end)
         @bin_count  = bin_end - bin_start + 1
-        changed     = old_end != bin_end || old_start != bin_start
+        changed     = old_end != @bin_end || old_start != @bin_start
         @callback.call(bin_start, bin_end, @bin_count) if changed && @callback
       end
 
