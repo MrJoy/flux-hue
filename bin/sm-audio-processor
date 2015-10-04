@@ -78,8 +78,10 @@ reporter = SparkleMotion::Audio::StreamReporter.new(in_stream.name, 1.0, LOGGER)
 use_low   = options[:low]
 use_high  = options[:high]
 range     = options[:frequency_range]
+span      = options[:span]
+window    = options[:window]
 filter    = SparkleMotion::Audio::BandPassFilter
-            .new(range, in_stream.sample_rate, options[:window], use_low, use_high) do |ss, ee, cc|
+            .new(range, in_stream.sample_rate, window * span, use_low, use_high) do |ss, ee, cc|
               puts "#{in_stream.name}: #{cc} bins, from #{ss} to #{ee}."
               reporter.reset!
             end
@@ -93,7 +95,6 @@ end
 # TODO: ... or maybe this? http://www.jackosx.com/
 # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
 
-span      = options[:span]
 processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter, LOGGER, span) do |snapshot, dc|
   computed =  snapshot
               .map do |data|

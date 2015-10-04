@@ -58,28 +58,36 @@ module SparkleMotion
         collect_data_for_output(snapshot)
           .map { |data| fft_backward(data) }
           .each_with_index do |data, channel|
-            frame[channel, 0..-1] = data
+            frame[channel, 0..-1] = data[0..(@window - 1)]
           end
         @target.write(frame)
       end
 
       def process_frame(frame, drop_count)
-        snapshot = []
-        @stretches ||= []
+        snapshot             = []
+        @comp_channel_data ||= []
+        @stretches         ||= 0
+        top = ((@span - 1) * @window) - 1
         (0..(frame.shape[0] - 1)).each do |channel|
           channel_data = frame[channel, 0..-1]
-          @stretches[channel] ||= []
-          @stretches[channel] << channel_data
+          @stretches += 1 if @stretches <= @span
 
-          next if @stretches[channel].length < @span
-          @stretches[channel].shift if @stretches[channel].length > @span
+          if @span > 1
+            @comp_channel_data[channel] ||= NArray.new(channel_data.typecode, @span * @window)
+            @comp_channel_data[channel][0..top] = @comp_channel_data[channel][@window..-1]
+            @comp_channel_data[channel][(top + 1)..-1] = channel_data
+          else
+            @comp_channel_data[channel] = channel_data
+          end
 
-          composite_channel_data  = @stretches[channel].inject(:+)
-          data                    = normalize(fft_forward(composite_channel_data))
+          next if @stretches < @span
 
-          debug_filter("Before", channel, composite_channel_data, data)
+          data                    = normalize(fft_forward(@comp_channel_data[channel]))
+
+
+          debug_filter("Before", channel, @comp_channel_data[channel], data)
           @filter.apply!(data)
-          debug_filter("After", channel, composite_channel_data, data)
+          debug_filter("After", channel, @comp_channel_data[channel], data)
 
           snapshot << data
         end
