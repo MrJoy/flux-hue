@@ -1,5 +1,3 @@
-require "ostruct"
-
 module SparkleMotion
   module LaunchPad
     # Base class for Launchpad UI widgets.

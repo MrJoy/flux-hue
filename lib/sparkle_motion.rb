@@ -31,6 +31,9 @@ module SparkleMotion
     end
 
     if discovery
+      require "frisky/ssdp"
+      Frisky.logging_enabled = false # Frisky is super verbose
+
       require "sparkle_motion/hue/ssdp"
     end
   end
@@ -54,7 +57,9 @@ module SparkleMotion
   end
 
   def self.use_widgets!
+    require "ostruct"
     require "sparkle_motion/launch_pad/widget"
+    require "sparkle_motion/launch_pad/widget/toggle"
     require "sparkle_motion/launch_pad/widgets/horizontal_slider"
     require "sparkle_motion/launch_pad/widgets/vertical_slider"
     require "sparkle_motion/launch_pad/widgets/radio_group"
@@ -68,9 +73,16 @@ module SparkleMotion
 
   # Load code/widgets for processing audio data and interacting with audio devices.
   def self.use_audio!
+    require "thread"
+    require "coreaudio"
+
     require "sparkle_motion/audio/input_stream"
     require "sparkle_motion/audio/device_input_stream"
     require "sparkle_motion/audio/file_input_stream"
+
+    require "sparkle_motion/audio/output_stream"
+    require "sparkle_motion/audio/device_output_stream"
+
     require "sparkle_motion/audio/band_pass_filter"
   end
 end

@@ -1,6 +1,3 @@
-require "frisky/ssdp"
-Frisky.logging_enabled = false # Frisky is super verbose
-
 module SparkleMotion
   module Hue
     # Helpers for SSDP discovery of bridges.

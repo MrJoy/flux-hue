@@ -1,6 +1,3 @@
-require "thread"
-require "coreaudio"
-
 module SparkleMotion
   module Audio
     # Abstract base class for input stream reader that pushes data into a `Queue`.

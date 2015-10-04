@@ -1,5 +1,3 @@
-require_relative "./toggle"
-
 module SparkleMotion
   module LaunchPad
     module Widgets

@@ -13,16 +13,6 @@ FREQ_RANGE  = [500, 3_000]
 
 Thread.abort_on_exception = true
 
-def configure_output_device(rate)
-  available_rates = CoreAudio.default_output_device.available_sample_rate.flatten.uniq
-  rate = rate.to_f
-  unless rate && available_rates.member?(rate)
-    fail "Can't set default output device to #{rate}hz!"
-  end
-
-  CoreAudio.default_output_device(nominal_rate: rate)
-end
-
 # Example of how to save data:
 #   wav = CoreAudio::AudioFile.new("sample.wav", :write, format:  :wav,
 #                                                        rate:     dev.nominal_rate,
@@ -75,13 +65,8 @@ play_audio = ARGV.find { |arg| arg =~ /\A--playback=/ }
 if play_audio
   play_audio        = play_audio.sub(/\A--playback=\s*/, "")
   playback_channels = Set.new(play_audio.split(/\s*,\s*/).map(&:to_i))
-  configure_output_device(in_stream.sample_rate)
-  output_device     = CoreAudio.default_output_device
-  output_rate       = output_device.actual_rate
-  puts "#{output_device.name}: Sample rate is #{output_rate}hz."
-  fail "Input and output have different sample rates!" if output_rate != in_stream.sample_rate
-  outbuf = output_device.output_buffer(WINDOW)
-  outbuf.start
+  out_stream = SparkleMotion::Audio::DeviceOutputStream.new(in_stream.sample_rate, WINDOW)
+  puts "#{out_stream.name}: Sample rate is #{out_stream.sample_rate}hz."
 end
 
 interactive = ARGV.find { |arg| arg =~ /\A--interactive\z/ }
@@ -128,7 +113,7 @@ filter_thread = Thread.new do
       report[:max][ch]      = avg_amplitude if avg_amplitude > report[:max][ch]
       report[:current][ch]  = avg_amplitude
 
-      output << NumRu::FFTW3.fft(f[0..-1], 1, 0) if outbuf && playback_channels.include?(ch)
+      output << NumRu::FFTW3.fft(f[0..-1], 1, 0) if out_stream && playback_channels.include?(ch)
     end
 
     report[:count] += 1
@@ -139,7 +124,7 @@ filter_thread = Thread.new do
       w[idx, 0..-1] = data
     end
 
-    outbuf << w[(output.length > 1) ? 0..1 : 0, 0..-1]
+    out_stream.write(w[(output.length > 1) ? 0..1 : 0, 0..-1])
   end
 end
 
@@ -179,6 +164,7 @@ unless in_stream.finite?
   end
 end
 
+out_stream.start if out_stream
 in_stream.start
 filter_thread.run
 reporting_thread.run if reporting_thread
@@ -205,4 +191,4 @@ if reporting_thread
 else
   report(in_stream, report)
 end
-outbuf.stop if outbuf
+out_stream.stop if out_stream
