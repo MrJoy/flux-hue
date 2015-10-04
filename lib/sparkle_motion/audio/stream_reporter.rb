@@ -33,7 +33,6 @@ module SparkleMotion
         def length; @currents.length; end
 
         def []=(channel, val)
-          @currents[channel] = val
           @mins[channel]   ||= Float::INFINITY
           @mins[channel]     = val if val < @mins[channel]
           @maxes[channel]  ||= 0.0
@@ -42,6 +41,7 @@ module SparkleMotion
           @sums[channel]    += val
           @counts[channel] ||= 0.0
           @counts[channel]  += 1
+          @currents[channel] = val
         end
       end
 
@@ -79,10 +79,10 @@ module SparkleMotion
 
       def record(dropped_frames:, data:)
         @dropped_frames = dropped_frames
-        @max_channel    = data.length - 1
         data.each_with_index do |datum, index|
           record_channel(channel: index, datum: datum)
         end
+        @max_channel = data.length - 1
         @count += 1
       end
 
