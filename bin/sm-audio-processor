@@ -5,7 +5,6 @@ Bundler.setup
 require "thread"
 require "coreaudio"
 require "numru/fftw3"
-include NumRu
 
 # For 300Hz..3kHz:
 #    512 == bins 4..36 (33)
@@ -91,7 +90,7 @@ filter_thread = Thread.start do
     report[:count] += 1
 
     # TODO: We get back a 2D matrix.  Is that about stereo channels, or something else?
-    f = FFTW3.fft(w, 1, 0, 1)
+    f = NumRu::FFTW3.fft(w, 1, 0, 1)
 
     # Re-assigning this to pick up any changes.
     filter.frequency_range = FREQ_RANGE
