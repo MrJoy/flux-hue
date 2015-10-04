@@ -149,8 +149,14 @@ protected
   def freq_bin(hz); ((hz * @window) / @sample_rate).round; end
 
   def compute_bins!
-    @bin_start = (freq_bin(@frequency_range.first) / 2) + 1
-    @bin_end   = (freq_bin(@frequency_range.last) / 2) + 1
+    tmp        = (freq_bin(@frequency_range.last) / 2) + 1
+    tmp        = @half if tmp > @half
+    @bin_end   = tmp
+
+    tmp = (freq_bin(@frequency_range.first) / 2) + 1
+    tmp = bin_end if tmp > bin_end
+    @bin_start = tmp
+
     @bin_count = bin_end - bin_start + 1
     @callback.call(bin_start, bin_end, @bin_count) if @callback
   end
