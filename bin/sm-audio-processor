@@ -122,8 +122,7 @@ end
 
 # TODO: Coerce devices to nominal rate?
 queue         = Queue.new
-report        = { name:    input_name,
-                  dc0:     [],
+report        = { dc0:     [],
                   min:     [],
                   max:     [],
                   current: [],
@@ -212,7 +211,7 @@ reporting_thread = Thread.start do
   loop do
     next if report[:count] == last_count
     last_count = report[:count]
-    title = "%s[%05d, %05d]:" % [report[:name],
+    title = "%s[%05d, %05d]:" % [input_name,
                                  report[:count],
                                  input_device ? inbuf.dropped_frame : 0]
     puts "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)" % [title,
