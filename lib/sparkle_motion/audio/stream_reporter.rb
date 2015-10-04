@@ -88,19 +88,26 @@ module SparkleMotion
 
       def reset!
         @dc0      = []
-        @metrics  = Hash[%i(min max mean median sum rms).map { |name| [name, Metric.new] }]
+        @labels   = { min:    "Smallest Bin",
+                      max:    "Largest Bin",
+                      mean:   "Mean of Bins",
+                      median: "Median of Bins",
+                      sum:    "Sum of Bins",
+                      rms:    "RMS" }
+        @metrics  = Hash[@labels.keys.map { |name| [name, Metric.new] }]
 
         @count = @dropped_frames = @max_channel = 0
       end
 
     protected
 
-      REPORT_FORMAT = "%-5s %10s: %10.1f <= %10.1f <= %10.1f"
+      REPORT_FORMAT = "%-5s %15s: %10.1f <= %10.1f <= %10.1f"
 
       def print_channel(chan)
         @logger.info { "> Channel ##{chan}:" }
         @metrics.each do |name, mm|
-          @logger.info { REPORT_FORMAT % [">", name, mm.min[chan], mm.mean[chan], mm.max[chan]] }
+          label = @labels[name]
+          @logger.info { REPORT_FORMAT % [">", label, mm.min[chan], mm.mean[chan], mm.max[chan]] }
         end
       end
     end
