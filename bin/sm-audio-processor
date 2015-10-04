@@ -12,8 +12,86 @@ FREQ_RANGE  = [500, 3_000]
 
 Thread.abort_on_exception = true
 
-# Represents parameters of a simple band-pass filter, and computes which buckets of an FFT are
-# relevant.
+# Abstract base class for input stream reader that pushes data into a `Queue`.
+#
+# When data is finished, `nil` is pushed onto the queue.
+class InputStream
+  attr_reader :queue, :name, :sample_rate, :window
+  def initialize(window)
+    @queue        = Queue.new
+    @stop_signal  = false
+    @window       = window
+    @input_thread = create_input_thread
+  end
+
+  def dropped_frames; fail "Must be implemented by sub-class!"; end
+  def start; @input_thread.run; end
+  def pop; @queue.pop; end
+
+  def stop
+    @stop_signal = true
+    @input_thread.join
+  end
+
+protected
+
+  def create_input_thread
+    Thread.new do
+      Thread.stop
+      loop do
+        data = @input.read(window)
+        break if @stop_signal || data.nil?
+        queue.push(data)
+      end
+
+      queue.push(nil)
+    end
+  end
+end
+
+# Input stream class to read from an input device using CoreAudio.
+class DeviceInputStream < InputStream
+  def initialize(device_name, window)
+    @input_device = CoreAudio.devices.find { |dev| dev.name =~ /#{device_name}/ }
+    fail "No such device ID!" unless @input_device
+
+    @name         = @input_device.name
+    @input        = @input_device.input_buffer(window)
+    @sample_rate  = @input_device.actual_rate
+    super(window)
+  end
+
+  def start
+    @input.start
+    super
+  end
+
+  def stop
+    super
+    @input.stop
+  end
+
+  def dropped_frames; @input.dropped_frame; end
+end
+
+# Input stream class to read from a file using CoreAudio.
+class FileInputStream < InputStream
+  def initialize(file_name, window)
+    @name         = file_name
+    @input        = CoreAudio::AudioFile.new(file_name, :read)
+    @sample_rate  = @input.rate # TODO: Do we want `inner_rate` instead?
+    super(window)
+  end
+
+  def stop
+    super
+    @input.close
+  end
+
+  def dropped_frames; 0; end
+end
+
+# Implements a simple band-pass filter.
 class BandPassFilter
   attr_reader :frequency_range, :bin_start, :bin_end, :bin_count
   def initialize(freq_range, sample_rate, window, &callback)
@@ -49,6 +127,7 @@ protected
 
   def apply_low_pass!(fft)
     return unless bin_start > 1
+
     fft[1..(bin_start - 1)]    = 0
     fft[-(bin_start - 1)..-1]  = 0
   end
@@ -56,8 +135,9 @@ protected
   def apply_high_pass!(fft)
     half = fft.length / 2
     return unless bin_end <= half
-    fft[(bin_end + 1)...half]  = 0
-    fft[(half + 1)...-(bin_end + 1)] = 0
+
+    fft[(bin_end + 1)...half]         = 0
+    fft[(half + 1)...-(bin_end + 1)]  = 0
   end
 
   # def bin_freq(idx); ((idx - 1) * @sample_rate) / @window; end
@@ -103,61 +183,61 @@ input_name = ARGV.find { |arg| arg =~ DEVICE_PATTERN } ||
              ARGV.find { |arg| arg =~ FILE_PATTERN }
 fail "Must specify --input-device, or --input-file parameter!" unless input_name
 if input_name =~ DEVICE_PATTERN
-  input_name    = input_name.sub(DEVICE_PATTERN, "")
-  input_device  = CoreAudio.devices.find { |dev| dev.name =~ /#{input_name}/ }
-  fail "No such device ID!" unless input_device
-
-  input_name    = input_device.name
-  sample_rate   = input_device.actual_rate
-  inbuf         = input_device.input_buffer(WINDOW)
-  inbuf.start
+  in_stream = DeviceInputStream.new(input_name.sub(DEVICE_PATTERN, ""), WINDOW)
 elsif input_name =~ FILE_PATTERN
-  input_name = input_name.sub(FILE_PATTERN, "")
-  input_file = CoreAudio::AudioFile.new(input_name, :read)
-
-  input_name  = File.basename(input_name)
-  sample_rate = input_file.rate # Do we want `inner_rate` instead?
-  inbuf       = input_file
+  in_stream = FileInputStream.new(input_name.sub(FILE_PATTERN, ""), WINDOW)
 end
 
 # TODO: Coerce devices to nominal rate?
-queue         = Queue.new
 report        = { dc0:     [],
                   min:     [],
                   max:     [],
                   current: [],
-                  count:   0 }
+                  count:   0,
+                  done:    false }
 filter        = BandPassFilter
-                .new(FREQ_RANGE, sample_rate, WINDOW) do |bin_start, bin_end, bin_count|
-                  puts "#{input_name}: #{bin_count} bins, from #{bin_start} to #{bin_end}."
+                .new(FREQ_RANGE, in_stream.sample_rate, WINDOW) do |bin_start, bin_end, bin_count|
+                  puts "#{in_stream.name}: #{bin_count} bins, from #{bin_start} to #{bin_end}."
                   report[:count]  = 0
                   report[:min]    = []
                   report[:max]    = []
                 end
 
-puts "#{input_name}: Sample rate is #{sample_rate}hz."
+puts "#{in_stream.name}: Sample rate is #{in_stream.sample_rate}hz."
 
 play_audio = ARGV.find { |arg| arg =~ /\A--playback=/ }
 if play_audio
   play_audio        = play_audio.sub(/\A--playback=\s*/, "")
   playback_channels = Set.new(play_audio.split(/\s*,\s*/).map(&:to_i))
-  configure_output_device(sample_rate)
+  configure_output_device(in_stream.sample_rate)
   output_device     = CoreAudio.default_output_device
   output_rate       = output_device.actual_rate
   puts "#{output_device.name}: Sample rate is #{output_rate}hz."
-  fail "Input device and output device have different sample rates!" if output_rate != sample_rate
+  fail "Input and output have different sample rates!" if output_rate != in_stream.sample_rate
   outbuf = output_device.output_buffer(WINDOW)
   outbuf.start
 end
+
+interactive = ARGV.find { |arg| arg =~ /\A--interactive\z/ }
+batch = ARGV.find { |arg| arg =~ /\A--batch\z/ }
+if (interactive && batch) || (!interactive && !batch)
+  fail "Must specify one of --batch or --interactive"
+end
+interactive = false if batch
 
 # TODO: Look into this to allow routing AudioHijack output into processor? http://www.ambrosiasw.com/utilities/wta/
 # TODO: ... or maybe this? http://www.jackosx.com/
 # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
 
-filter_thread = Thread.start do
+filter_thread = Thread.new do
+  Thread.stop
+
   loop do
-    w = queue.pop
-    break unless w
+    w = in_stream.pop
+    unless w
+      report[:done] = true
+      break
+    end
 
     # TODO: We get back a 2D matrix.  It's... *supposed* to be per-channel?  Why aren't we seeing
     # TODO: independent results?
@@ -198,41 +278,43 @@ filter_thread = Thread.start do
   end
 end
 
-input_thread = Thread.start do
-  loop do
-    data = inbuf.read(WINDOW)
-    queue.push(data)
-    break unless data
-  end
+REPORT_FORMAT = "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)"
+def report(title, report, channel)
+  puts REPORT_FORMAT % [title,
+                        report[:min][channel],
+                        report[:current][channel],
+                        report[:max][channel],
+                        report[:dc0][channel]]
 end
 
-reporting_thread = Thread.start do
+reporting_thread = Thread.new do
+  Thread.stop
   last_count = 0
   loop do
-    next if report[:count] == last_count
-    last_count = report[:count]
-    title = "%s[%05d, %05d]:" % [input_name,
-                                 report[:count],
-                                 input_device ? inbuf.dropped_frame : 0]
-    puts "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)" % [title,
-                                                       report[:min][0],
-                                                       report[:current][0],
-                                                       report[:max][0],
-                                                       report[:dc0][0]]
+    new_count = report[:count]
+    next if (new_count == last_count) && !report[:done]
+
+    last_count  = new_count
+    title       = "%s[%05d, %05d]:" % [in_stream.name, new_count, in_stream.dropped_frames]
+    report(title, report, 0)
+
     if report[:min].length > 1
       (1..(report[:min].length - 1)).each do |ch|
-        puts "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)" % ["",
-                                                           report[:min][ch],
-                                                           report[:current][ch],
-                                                           report[:max][ch],
-                                                           report[:dc0][ch]]
+        report("", report, ch)
       end
     end
+
+    break if report[:done]
+
     sleep 1.0
   end
 end
 
-if input_device
+in_stream.start
+filter_thread.run
+reporting_thread.run
+
+if interactive
   $stdout.puts "Commands:"
   $stdout.puts "  >X      Filter for frequencies above X, defaults to #{FREQ_RANGE.first}."
   $stdout.puts "  <X      Filter for frequencies below X, defaults to #{FREQ_RANGE.last}."
@@ -245,16 +327,9 @@ if input_device
     FREQ_RANGE[0] = Regexp.last_match(1).to_i if line =~ />\s*(\d+)/
     FREQ_RANGE[1] = Regexp.last_match(1).to_i if line =~ /<\s*(\d+)/
   end
-  input_thread.kill.join
-  inbuf.stop
-  queue.push(nil)
-  filter_thread.kill.join
-else
-  input_thread.join
-  filter_thread.join
-  # TODO: Still winding up not showing output sometimes.  WAT.
-  sleep 0.5
 end
 
-reporting_thread.kill.join
+in_stream.stop
+filter_thread.join
+reporting_thread.join
 outbuf.stop if outbuf
