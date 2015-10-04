@@ -80,9 +80,10 @@ module SparkleMotion
         @bin_count  = bin_end - bin_start + 1
         changed     = old_end != @bin_end || old_start != @bin_start
         return unless changed || @low_pass_ranges.nil? || @high_pass_ranges.nil?
+        @low_pass_ranges = @high_pass_ranges = nil
 
-        @low_pass_ranges  = [bin_end...@half, (@half + 1)..-bin_end]
-        @high_pass_ranges = [1..bin_start, -bin_start..-1]
+        @low_pass_ranges  = [bin_end...@half, (@half + 1)..-bin_end] if @enable_low
+        @high_pass_ranges = [1..bin_start, -bin_start..-1] if @enable_high
 
         @callback.call(bin_start, bin_end, @bin_count) if @callback
       end

@@ -68,9 +68,9 @@ module SparkleMotion
           channel_data  = frame[channel, 0..-1]
           data          = normalize(fft_forward(channel_data))
 
-          debug_filter(channel, channel_data, data)
+          debug_filter("Before", channel, channel_data, data)
           @filter.apply!(data)
-          debug_filter(channel, channel_data, data)
+          debug_filter("After", channel, channel_data, data)
 
           snapshot << data
         end
@@ -83,13 +83,14 @@ module SparkleMotion
     private
 
       def bounce(x); x < 0 ? @window + x : x; end
+
       def r_str(range)
         meh = (0..(@window - 1)).to_a[range]
         "#{bounce(meh.first)}..#{bounce(meh.last)}"
       end
 
-      def debug_filter(_channel, _channel_data, data)
-        $stdout.puts "<<<<<"
+      def debug_filter(phase, _channel, _channel_data, data)
+        $stdout.puts "#{phase}: <<<<<"
         high_pass_ranges  = @filter.send(:high_pass_ranges)
         low_pass_ranges   = @filter.send(:low_pass_ranges)
         # mask = NArray.new(channel_data.typecode, channel_data.length)
@@ -110,18 +111,22 @@ module SparkleMotion
 
         $stdout.puts [data[0], data[0].magnitude].join(" / ")
         $stdout.puts "High: #{high_pass_ranges.inspect}"
-        $stdout.puts "High: [#{r_str(high_pass_ranges[0])}, #{r_str(high_pass_ranges[1])}]"
-        tmp = data[high_pass_ranges[0]].map(&:magnitude).real.round.to_a
-        $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
-        tmp = data[high_pass_ranges[1]].map(&:magnitude).real.round.to_a.reverse
-        $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
+        if high_pass_ranges
+          $stdout.puts "High: [#{r_str(high_pass_ranges[0])}, #{r_str(high_pass_ranges[1])}]"
+          tmp = data[high_pass_ranges[0]].map(&:magnitude).real.round.to_a
+          $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
+          tmp = data[high_pass_ranges[1]].map(&:magnitude).real.round.to_a.reverse
+          $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
+        end
 
         $stdout.puts "Low: #{low_pass_ranges.inspect}"
-        $stdout.puts "Low: [#{r_str(low_pass_ranges[0])}, #{r_str(low_pass_ranges[1])}]"
-        tmp = data[low_pass_ranges[0]].map(&:magnitude).real.round.to_a
-        $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
-        tmp = data[low_pass_ranges[1]].map(&:magnitude).real.round.to_a.reverse
-        $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
+        if low_pass_ranges
+          $stdout.puts "Low: [#{r_str(low_pass_ranges[0])}, #{r_str(low_pass_ranges[1])}]"
+          tmp = data[low_pass_ranges[0]].map(&:magnitude).real.round.to_a
+          $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
+          tmp = data[low_pass_ranges[1]].map(&:magnitude).real.round.to_a.reverse
+          $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
+        end
         $stdout.puts ">>>>>"
         $stdout.flush
       end
