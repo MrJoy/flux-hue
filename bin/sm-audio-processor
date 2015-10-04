@@ -29,7 +29,7 @@ class BandPassFilter
 
   def frequency_range=(val)
     return if @frequency_range == val
-    @frequency_range = val
+    @frequency_range = val.dup
     compute_bins!
   end
 
