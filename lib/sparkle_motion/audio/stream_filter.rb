@@ -87,14 +87,22 @@ module SparkleMotion
           # # tmp = f[(half + 1)..-1].map(&:magnitude).real.to_a.map(&:round).reverse
           # # $stdout.puts "#{tmp.length}: #{tmp.join(', ')}"
 
+          # def bounce(x); x < 0 ? @window + x : x; end
+          # def r_str(range)
+          #   meh = (0..(@window - 1)).to_a[range]
+          #   "#{bounce(meh.first)}..#{bounce(meh.last)}"
+          # end
+
           # $stdout.puts [data[0], data[0].magnitude].join(" / ")
-          # $stdout.puts "#{high_pass_ranges.inspect}:"
+          # $stdout.puts "High: #{high_pass_ranges.inspect}"
+          # $stdout.puts "High: [#{r_str(high_pass_ranges[0])}, #{r_str(high_pass_ranges[1])}]"
           # tmp = data[high_pass_ranges[0]].map(&:magnitude).real.round.to_a
           # $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
           # tmp = data[high_pass_ranges[1]].map(&:magnitude).real.round.to_a.reverse
           # $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
 
-          # $stdout.puts "#{low_pass_ranges.inspect}:"
+          # $stdout.puts "Low: #{low_pass_ranges.inspect}"
+          # $stdout.puts "Low: [#{r_str(low_pass_ranges[0])}, #{r_str(low_pass_ranges[1])}]"
           # tmp = data[low_pass_ranges[0]].map(&:magnitude).real.round.to_a
           # $stdout.puts "[#{tmp.length}]:   #{tmp.join(', ')}"
           # tmp = data[low_pass_ranges[1]].map(&:magnitude).real.round.to_a.reverse
