@@ -46,7 +46,10 @@ protected
   end
 end
 
-input_name    = ARGV.shift
+input_name = ARGV.find { |arg| arg =~ /\A--input=/ }
+fail "Must specify --input parameter!" unless input_name
+input_name = input_name.sub(/\A--input=/, "")
+
 input_device  = CoreAudio.devices.find { |dev| dev.name =~ /#{input_name}/ }
 fail "No such device ID!" unless input_device
 
