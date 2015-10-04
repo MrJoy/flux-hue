@@ -53,10 +53,10 @@ module SparkleMotion
         return unless @enable_high
 
         # $stdout.puts ">>> #{((bin_end + 1)...@half).inspect}"
-        # $stdout.puts "    #{((@half + 1)...-(bin_end + 1)).inspect}"
+        # $stdout.puts "    #{((@half + 1)..-(bin_end + 1)).inspect}"
         # $stdout.flush
         fft[(bin_end + 1)...@half]        = 0
-        fft[(@half + 1)...-(bin_end + 1)] = 0
+        fft[(@half + 1)..-(bin_end + 1)] = 0
       end
 
       # def bin_freq(idx); ((idx - 1) * @sample_rate) / @window; end
