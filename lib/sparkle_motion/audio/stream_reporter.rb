@@ -2,13 +2,56 @@ module SparkleMotion
   module Audio
     # Class to track signal processing info, and report on it in a readable way.
     class StreamReporter < Task
-      attr_reader :name, :dc0, :minima, :maxima, :mean, :count, :dropped_frames
+      # Tiny helper just to let us do things like:
+      #   some_metric.average[channel]
+      # ... without having to vivify the average in advance.
+      class Averager
+        def initialize(sums, counts)
+          @sums   = sums
+          @counts = counts
+        end
+
+        def [](channel); @sums[channel] / @counts[channel]; end
+      end
+
+      # Records metrics about a particular measurement for each channel.
+      class Metric
+        def initialize
+          @mins     = []
+          @maxes    = []
+          @sums     = []
+          @currents = []
+          @counts   = []
+          @averager = Averager.new(@sums, @counts)
+        end
+
+        def min; @mins; end
+        def max; @maxes; end
+        def current; @currents; end
+        def mean; @averager; end
+
+        def length; @currents.length; end
+
+        def []=(channel, val)
+          @currents[channel] = val
+          @mins[channel]   ||= Float::INFINITY
+          @mins[channel]     = val if val < @mins[channel]
+          @maxes[channel]  ||= 0.0
+          @maxes[channel]    = val if val > @maxes[channel]
+          @sums[channel]   ||= 0.0
+          @sums[channel]    += val
+          @counts[channel] ||= 0.0
+          @counts[channel]  += 1
+        end
+      end
+
+      attr_reader :name, :dc0, :minima, :maxima, :sum, :mean, :count, :dropped_frames
 
       def initialize(stream_name, interval, logger)
         @name           = stream_name
         @interval       = interval
 
-        initialize_vars!
+        reset!
 
         super("StreamReporter", logger) do
           next if count == 0
@@ -19,22 +62,19 @@ module SparkleMotion
         end
       end
 
-      REPORT_FORMAT = "%30s %10.1f <= %10.1f <= %10.1f (dc0=%s)"
-
       def print_report
         title = "%s[%05d, %05d]:" % [@name, @count, @dropped_frames]
-        alt   = "%-29s" % [">>>"]
+        @logger.info { title }
         (0..@max_channel).each do |ch|
-          print_channel((ch == 0) ? title : alt, ch)
+          print_channel(ch)
         end
       end
 
       def record_channel(channel:, datum:)
-        ensure_size(channel)
-        @dc0[channel]     = datum[:dc0]
-        @minima[channel]  = min(datum[:mean], @minima[channel])
-        @maxima[channel]  = max(datum[:mean], @maxima[channel])
-        @mean[channel]    = datum[:mean]
+        @dc0[channel] = datum[:dc0]
+        @metrics.each do |name, metric|
+          metric[channel] = datum.fetch(name)
+        end
       end
 
       def record(dropped_frames:, data:)
@@ -47,33 +87,21 @@ module SparkleMotion
       end
 
       def reset!
-        @count       = 0
-        @max_channel = 0
-        @minima      = []
-        @maxima      = []
-      end
-
-    protected
-
-      def initialize_vars!
-        @dc0    = []
-        @minima = []
-        @maxima = []
-        @mean   = []
+        @dc0      = []
+        @metrics  = Hash[%i(min max mean median sum rms).map { |name| [name, Metric.new] }]
 
         @count = @dropped_frames = @max_channel = 0
       end
 
-      def min(a, b); (a < b) ? a : b; end
-      def max(a, b); (a > b) ? a : b; end
+    protected
 
-      def ensure_size(channel)
-        @minima[channel] ||= Float::INFINITY
-        @maxima[channel] ||= 0.0
-      end
+      REPORT_FORMAT = "%-5s %10s: %10.1f <= %10.1f <= %10.1f"
 
-      def print_channel(pref, chan)
-        @logger.info { REPORT_FORMAT % [pref, minima[chan], mean[chan], maxima[chan], dc0[chan]] }
+      def print_channel(chan)
+        @logger.info { "> Channel ##{chan}:" }
+        @metrics.each do |name, mm|
+          @logger.info { REPORT_FORMAT % [">", name, mm.min[chan], mm.mean[chan], mm.max[chan]] }
+        end
       end
     end
   end
