@@ -56,16 +56,18 @@ module SparkleMotion
       def apply_low_pass!(fft)
         return unless @enable_low
 
-        fft[@low_pass_ranges[0]] = 0
-        fft[@low_pass_ranges[1]] = 0
+        clear(fft, low_pass_ranges[0])
+        clear(fft, low_pass_ranges[1])
       end
 
       def apply_high_pass!(fft)
         return unless @enable_high
 
-        fft[@high_pass_ranges[0]] = 0
-        fft[@high_pass_ranges[1]] = 0
+        clear(fft, high_pass_ranges[0])
+        clear(fft, high_pass_ranges[1])
       end
+
+      def clear(data, range); data[range] = 0; end
 
       # def bin_freq(idx); ((idx - 1) * @sample_rate) / @window; end
       def freq_bin(hz); (((hz * @window) / @sample_rate).round / 2); end
