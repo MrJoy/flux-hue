@@ -8,7 +8,7 @@ require "coreaudio"
 require "numru/fftw3"
 
 WINDOW      = 4096
-FREQ_RANGE  = [300, 3_000]
+FREQ_RANGE  = [500, 3_000]
 
 Thread.abort_on_exception = true
 
