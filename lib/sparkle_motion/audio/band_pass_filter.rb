@@ -68,18 +68,18 @@ module SparkleMotion
       end
 
       # def bin_freq(idx); ((idx - 1) * @sample_rate) / @window; end
-      def freq_bin(hz); (((hz * @window) / @sample_rate).round / 2) + 1; end
+      def freq_bin(hz); (((hz * @window) / @sample_rate).round / 2); end
 
       def compute_bins!
         old_end     = @bin_end
         old_start   = @bin_start
-        @bin_end    = min(freq_bin(@frequency_range.last), @half)
+        @bin_end    = min(freq_bin(@frequency_range.last), @half - 1)
         @bin_start  = min(freq_bin(@frequency_range.first), bin_end)
         @bin_count  = bin_end - bin_start + 1
         changed     = old_end != @bin_end || old_start != @bin_start
         return unless changed
-        @low_pass_ranges  = [(bin_end + 1)..@half, (@half + 1)..-(bin_end + 1)]
-        @high_pass_ranges = [1..(bin_start - 1), -(bin_start - 1)..-1]
+        @low_pass_ranges  = [bin_end...@half, (@half + 1)..-bin_end]
+        @high_pass_ranges = [1..bin_start, -bin_start..-1]
 
         @callback.call(bin_start, bin_end, @bin_count) if @callback
       end
