@@ -90,6 +90,7 @@ module SparkleMotion
       end
 
       def debug_filter(phase, _channel, _channel_data, data)
+        return
         $stdout.puts "#{phase}: <<<<<"
         high_pass_ranges  = @filter.send(:high_pass_ranges)
         low_pass_ranges   = @filter.send(:low_pass_ranges)
