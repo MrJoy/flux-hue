@@ -130,6 +130,7 @@ end
 # m4a.close
 
 # TODO: Look into this to allow routing AudioHijack output into processor? http://www.ambrosiasw.com/utilities/wta/
+# TODO: ... or maybe this? http://www.jackosx.com/
 # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
 
 filter_thread = Thread.start do
