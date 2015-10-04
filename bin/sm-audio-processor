@@ -235,13 +235,14 @@ if input_device
     FREQ_RANGE[0] = Regexp.last_match(1).to_i if line =~ />\s*(\d+)/
     FREQ_RANGE[1] = Regexp.last_match(1).to_i if line =~ /<\s*(\d+)/
   end
+  input_thread.kill.join
+  inbuf.stop
+  queue.push(nil)
+  filter_thread.kill.join
 else
   input_thread.join
+  filter_thread.join
 end
 
-input_thread.kill.join
-inbuf.stop if input_device # ... otherwise we have a file, which doesn't need to be stopped.
-queue.push(nil)
-filter_thread.kill.join
 reporting_thread.kill.join
 outbuf.stop if outbuf
