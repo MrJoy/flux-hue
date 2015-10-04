@@ -55,7 +55,7 @@ module SparkleMotion
         # $stdout.puts ">>> #{((bin_end + 1)...@half).inspect}"
         # $stdout.puts "    #{((@half + 1)..-(bin_end + 1)).inspect}"
         # $stdout.flush
-        fft[(bin_end + 1)...@half]        = 0
+        fft[(bin_end + 1)...@half]       = 0
         fft[(@half + 1)..-(bin_end + 1)] = 0
       end
 
