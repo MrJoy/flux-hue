@@ -1,6 +1,7 @@
 #!/bin/bash
 
 WINDOW=8192
+SPAN=1
 for FREQ in 44100 96k; do
   FNAME="test/results/${FREQ}"
   if [ -e "${FNAME}" ]; then
@@ -16,7 +17,7 @@ for FREQ in 44100 96k; do
         OPTS=""
         echo "${HZ}Hz/${FREQ}Hz, Window=${WINDOW}, Filtered:" >> "${FNAME}"
       fi
-      time bin/sm-audio-processor --input-file=test/fixtures/Sin${HZ}Hz\@0dB24bit${FREQ}HzM.caf --window=${WINDOW} $OPTS |
+      time bin/sm-audio-processor --input-file=test/fixtures/Sin${HZ}Hz\@0dB24bit${FREQ}HzM.caf --window=${WINDOW} --span=${SPAN} $OPTS |
         grep 'INFO:' |
         grep -v 'Channel' |
         perl -pse 's/^.*?INFO: //g' >> "${FNAME}"
