@@ -59,8 +59,7 @@ module SparkleMotion
 
     protected
 
-      def low_pass_ranges; @low_pass_ranges; end
-      def high_pass_ranges; @high_pass_ranges; end
+      attr_reader :low_pass_ranges, :high_pass_ranges
 
       def apply_low_pass!(fft)
         return unless @enable_low
