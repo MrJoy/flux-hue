@@ -172,17 +172,18 @@ reporter.start unless in_stream.finite?
 
 case options[:mode]
 when :interactive
+  range = options[:frequency_range]
   $stdout.puts "Commands:"
-  $stdout.puts "  >X      Filter for frequencies above X, defaults to #{options[:frequency_range].first}."
-  $stdout.puts "  <X      Filter for frequencies below X, defaults to #{options[:frequency_range].last}."
-  $stdout.puts "  quit    Exit the program."
+  $stdout.puts "  >X    Filter for frequencies above X, defaults to #{range.first}."
+  $stdout.puts "  <X    Filter for frequencies below X, defaults to #{range.last}."
+  $stdout.puts "  quit  Exit the program."
   $stdout.flush
   loop do
     line = $stdin.gets.strip
     break if line =~ /\Aquit\z/
 
-    options[:frequency_range][0] = Regexp.last_match(1).to_i if line =~ />\s*(\d+)/
-    options[:frequency_range][1] = Regexp.last_match(1).to_i if line =~ /<\s*(\d+)/
+    range[0] = Regexp.last_match(1).to_i if line =~ />\s*(\d+)/
+    range[1] = Regexp.last_match(1).to_i if line =~ /<\s*(\d+)/
   end
 when :batch
   loop { sleep 0.1 } unless in_stream.finite?
