@@ -459,59 +459,71 @@ def light_req(idx, lid, transition, config, stats, debug)
   end
 end
 
+def light_thread!(bridge_name, config, transition, global_results, debug)
+  guarded_thread(bridge_name) do
+    lights    = LIGHTS_FOR_THREADS.lights[bridge_name]
+    stats     = SparkleMotion::Results.new(logger: LOGGER) if defined?(SparkleMotion::Results)
+    iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
+
+    LOGGER.unknown do
+      light_list = lights.map(&:first).join(", ")
+      "#{bridge_name}: Thread set to handle #{lights.count} lights (#{light_list})."
+    end
+
+    Thread.stop
+
+    requests = lights.map { |(idx, lid)| light_req(idx, lid, transition, config, stats, debug) }
+
+    iterator.each do
+      Curl::Multi.http(requests.dup, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do
+      end
+
+      global_results.add_from(stats) if global_results
+      stats.clear! if stats
+      # sleep 0.04
+    end
+  end
+end
+
+def error?(easy)
+  easy.response_code < 200 || easy.response_code >= 400 || easy.body =~ /error/
+end
+
+def pending_commands
+  requests = []
+  loop do
+    sleep 0.05 while PENDING_COMMANDS.empty?
+    requests << PENDING_COMMANDS.pop until PENDING_COMMANDS.empty?
+    break if requests.length > 0
+  end
+  requests
+end
+
+def command_queue_thread!
+  guarded_thread("Command Queue") do
+    Thread.stop
+    loop do
+      requests = pending_commands
+      LOGGER.debug { "Processing #{requests.length} pending commands." }
+      # TODO: Gather stats about success/failure...
+      Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|
+        next unless error?(easy)
+        LOGGER.warn { "Problem processing command: #{easy.url} => #{rc}; #{body}" }
+      end
+    end
+  end
+end
+
 def launch_light_threads!(cfg, global_results, debug)
   threads = []
   return launch_dummy_light_threads! unless USE_LIGHTS
 
   transition  = cfg["transition"]
   threads    += LIGHTS_FOR_THREADS.bridges.map do |(bridge_name, config)|
-    guarded_thread(bridge_name) do
-      lights    = LIGHTS_FOR_THREADS.lights[bridge_name]
-      stats     = SparkleMotion::Results.new(logger: LOGGER) if defined?(SparkleMotion::Results)
-      iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
-
-      LOGGER.unknown do
-        light_list = lights.map(&:first).join(", ")
-        "#{bridge_name}: Thread set to handle #{lights.count} lights (#{light_list})."
-      end
-
-      Thread.stop
-
-      requests = lights.map { |(idx, lid)| light_req(idx, lid, transition, config, stats, debug) }
-
-      iterator.each do
-        Curl::Multi.http(requests.dup, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do
-        end
-
-        global_results.add_from(stats) if global_results
-        stats.clear! if stats
-        # sleep 0.04
-      end
-    end
+    light_thread!(bridge_name, config, transition, global_results, debug)
   end
 
-  threads << guarded_thread("Command Queue") do
-    Thread.stop
-    loop do
-      sleep 0.05 while PENDING_COMMANDS.empty?
-
-      # TODO: Gather stats about success/failure...
-      # results     = SparkleMotion::Results.new(logger: LOGGER)
-      # global_results.add_from(results)
-      # results.clear!
-
-      requests = []
-      requests << PENDING_COMMANDS.pop until PENDING_COMMANDS.empty?
-      next if requests.length == 0
-      LOGGER.debug { "Processing #{requests.length} pending commands." }
-      Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|
-        rc    = easy.response_code
-        body  = easy.body
-        next if rc >= 200 && rc < 400 && body !~ /error/
-        LOGGER.warn { "Problem processing command: #{easy.url} => #{rc}; #{body}" }
-      end
-    end
-  end
+  threads << command_queue_thread!
 end
 
 def launch_all_threads!(sim_cfg, global_results)
