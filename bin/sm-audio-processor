@@ -172,7 +172,6 @@ reporter.start unless in_stream.finite?
 
 case options[:mode]
 when :interactive
-  range = options[:frequency_range]
   $stdout.puts "Commands:"
   $stdout.puts "  >X    Filter for frequencies above X, defaults to #{range.first}."
   $stdout.puts "  <X    Filter for frequencies below X, defaults to #{range.last}."
