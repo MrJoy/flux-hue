@@ -1,40 +1,32 @@
 module SparkleMotion
-  # Wrapper around a frequently-occurring pattern for having a worker thread that's set up early,
-  # but not launched until later.
+  # Abstract base class to wrap up a frequently-occurring pattern for having a worker thread that's
+  # set up early, but not launched until later.
   class Task
+    attr_accessor :name
+
     include FlowControl
 
     def initialize(name, logger, &callback)
       @name   = name
       @logger = logger
-      @thread = Thread.new do
+      @thread = guarded_thread(name) do
         Thread.stop
-        task_loop(&callback)
+        callback.call
       end
     end
 
     def start
-      @end_signal = false
+      @logger.info { "#{@name}: Starting task..." }
       wait_for(@thread, "sleep")
       @thread.run
     end
 
-    def await; @thread.join; end
-
-    def stop
-      @logger.info { "Terminating task '#{@name}'..." }
-      @end_signal = true
+    def await
+      @logger.info { "#{@name}: Waiting for task to end..." }
       @thread.join
-      @logger.info { "Task '#{@name}' ended." }
+      @logger.info { "#{@name}: Task has ended!" }
     end
 
-  protected
-
-    def task_loop(&callback)
-      loop do
-        break if @end_signal
-        callback.call
-      end
-    end
+    def stop; fail "Must be implemented by sub-class!"; end
   end
 end

@@ -1,14 +1,21 @@
 module SparkleMotion
   module Audio
     # Applies a filter to a stream, and optionally allows chaining the output to another stream.
-    class StreamFilter < SparkleMotion::Task
+    class StreamFilter < SparkleMotion::ManagedTask
       def initialize(stream, filter, logger, span, &handler)
         @filter   = filter
         @stream   = stream
         @window   = stream.window
         @handler  = handler
         @span     = span
-        super("StreamFilter", logger) { |frame, drop_count| process_frame(frame, drop_count) }
+        super("StreamFilter", :late, logger) do
+          frame, drop_count = read_frame
+          if frame
+            process_frame(frame, drop_count)
+          else
+            @end_signal = true
+          end
+        end
       end
 
       def send_to(channels, target)
@@ -28,15 +35,6 @@ module SparkleMotion
 
       def fft_forward(frame); NumRu::FFTW3.fft(frame, -1, 0); end
       def fft_backward(frame); NumRu::FFTW3.fft(frame, 1, 0); end
-
-      def task_loop(&handler)
-        loop do
-          frame, drop_count = read_frame
-          break unless frame
-          handler.call(frame, drop_count)
-          break if @end_signal
-        end
-      end
 
       # TODO: Actually check the device!
       def output_channels; 0..1; end

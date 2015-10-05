@@ -53,7 +53,7 @@ if leftovers.length > 0
   exit 1
 end
 
-in_stream = options[:in][0].new(options[:in][1], options[:window])
+in_stream = options[:in][0].new(options[:in][1], options[:window], LOGGER)
 puts "#{in_stream.name}: Sample rate is #{in_stream.sample_rate}hz."
 
 reporter = SparkleMotion::Audio::StreamReporter.new(in_stream.name, 1.0, LOGGER)

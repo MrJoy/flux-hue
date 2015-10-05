@@ -2,14 +2,14 @@ module SparkleMotion
   module Audio
     # Input stream class to read from an input device using CoreAudio.
     class DeviceInputStream < InputStream
-      def initialize(device_name, window)
+      def initialize(device_name, window, logger)
         @input_device = CoreAudio.devices.find { |dev| dev.name =~ /#{device_name}/ }
         fail "No such device ID!" unless @input_device
 
         @name         = @input_device.name
         @input        = @input_device.input_buffer(window)
         @sample_rate  = @input_device.actual_rate
-        super(window)
+        super("DeviceInputStream[#{@name}]", window, logger)
       end
 
       def start
