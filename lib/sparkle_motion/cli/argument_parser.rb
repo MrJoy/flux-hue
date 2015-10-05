@@ -5,25 +5,22 @@ module SparkleMotion
       attr_reader :options
       ARGUMENT_PATTERN = /\A--(?<name>[^=]+)(=(?<value>.*))?\z/
 
-      def initialize(defaults:, kinds:, allowed:, required:)
+      def initialize(defaults)
         @defaults = defaults
         @kinds    = {}
-        kinds.each do |kind, names|
-          names.each do |name|
-            @kinds[name.to_sym] = kind.to_sym
-          end
-        end
-        @required = Hash[required.map(&:to_sym).map { |name| [name, false] }]
-        @allowed  = Set.new(allowed.map(&:to_sym))
+        @required = Hash[]
+        @allowed  = Hash[]
+        @handlers = {}
+        @kinds_encountered = Set.new
         @errors   = false
       end
 
-      def parse!(argv, &handler)
+      def parse!(argv)
         options = @defaults.dup
         flags, other = extract_arguments(argv)
         flags.each do |(arg, name, kind, value)|
-          break unless check_arg(arg, name, kind)
-          handler.call(name, value, options)
+          break unless check_arg!(arg, name, kind, value)
+          @handlers[name].call(value, options, name)
         end
 
         check_results!
@@ -31,23 +28,41 @@ module SparkleMotion
         [options, other]
       end
 
-      def incompatible_args!(kind)
-        @errors = true
-        LOGGER.error { "Must specify only one #{kind} parameter!" }
+      def require!(*names)
+        Array(names).flatten.each do |name|
+          @required[name] = false
+        end
+        self
       end
 
-      def invalid_value!(name, value)
-        @errors = true
-        LOGGER.error { "Got invalid value ('#{value}') for #{name}!" }
+      def allow!(name, allowed: nil, kind: nil, &handler)
+        @handlers[name] = handler || proc { |value, result| result[name] = value || true }
+        @kinds[name]    = kind if kind
+        @allowed[name]  = allowed.nil? ? true : allowed
+        self
       end
 
     protected
 
-      def check_arg(arg, name, kind)
+      def check_arg!(arg, name, kind, value)
         @required[name] = @required[kind] = true
-        return true if @allowed.include?(name)
-        unrecognized_arg!(arg)
-        false
+        [allowed?(arg, name, value),
+         kind_unencountered?(kind)].all?
+      end
+
+      def allowed?(arg, name, value)
+        allowed = @allowed[name]
+        result = allowed.respond_to?(:include?) ? allowed.include?(value) : allowed
+        unrecognized_arg!(arg) unless allowed
+        invalid_value!(name, value, allowed) if allowed && !result
+        result
+      end
+
+      def kind_unencountered?(kind)
+        unencountered = !@kinds_encountered.include?(kind)
+        incompatible_args!(kind) unless unencountered
+        @kinds_encountered << kind
+        unencountered
       end
 
       def check_results!
@@ -79,14 +94,34 @@ module SparkleMotion
           .map { |(arg, name, value)| [arg, name, @kinds.key?(name) ? @kinds[name] : name, value] }
       end
 
-      def unrecognized_arg!(arg)
+      def incompatible_args!(kind)
         @errors = true
-        LOGGER.error { "Unrecognized parameter: #{arg}" }
+        LOGGER.error { "Must specify only one #{kind} parameter!" }
+      end
+
+      def invalid_value!(name, value, allowed)
+        error! do
+          prefix = "Got invalid value ('#{value}') for #{name}!"
+          case [allowed.respond_to?(:include?), allowed.is_a?(Range)]
+          when [true, true] then "#{prefix}  Must be within #{allowed.first}..#{allowed.last}."
+          when [true, false] then "#{prefix}  Must be one of: #{allowed.join(', ')}."
+          else
+            prefix
+          end
+        end
+      end
+
+      def unrecognized_arg!(arg)
+        error! { "Unrecognized parameter: #{arg}" }
       end
 
       def missing_arg!(name)
+        error! { "Must specify #{@kinds.value?(name) ? "an #{name} argument" : name}!" }
+      end
+
+      def error!(&message)
         @errors = true
-        LOGGER.error { "Must specify #{@kinds.value?(name) ? "an #{name} argument" : name}!" }
+        LOGGER.error(&message)
       end
     end
   end

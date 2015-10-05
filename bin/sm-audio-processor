@@ -17,60 +17,43 @@ Thread.abort_on_exception = true
 #   wav.write(w)
 #   wav.close
 
-ALLOWED_MODES = Set.new(%i(interactive batch))
-parser = SparkleMotion::CLI::ArgumentParser
-         .new(defaults: { window:          512,
-                          span:            4,
-                          low:             true,
-                          high:            true,
-                          in_class:        nil,
-                          in_source:       nil,
-                          mode:            :batch,
-                          play:            nil,
-                          frequency_range: [500, 3_000] },
-              kinds:    { input: %i(input_device input_file) },
-              required: %i(input),
-              allowed:  %i(skip_low skip_high freq_start freq_end input_device
-                           input_file play mode window span))
-options, leftovers = parser
-                     .parse!(ARGV) do |name, value, result|
-                       case name
-                       when :skip_low   then result[:low] = false
-                       when :skip_high  then result[:high] = false
-                       when :freq_start then result[:frequency_range][0] = value.to_i
-                       when :freq_end   then result[:frequency_range][1] = value.to_i
-                       when :input_device
-                         parser.incompatible_args!("input") if result[:in_class]
-                         result[:in_class]  = SparkleMotion::Audio::DeviceInputStream
-                         result[:in_source] = value
-                       when :input_file then
-                         parser.incompatible_args!("input") if result[:in_class]
-                         result[:in_class]  = SparkleMotion::Audio::FileInputStream
-                         result[:in_source] = value
-                       when :play then
-                         channels = value ? Set.new(value.split(/\s*,\s*/).map(&:to_i)) : [0, 1]
-                         result[:play] = channels
-                       when :mode then
-                         value = value.to_sym
-                         result[:mode] = value
-                         parser.invalid_value!(name, value) unless ALLOWED_MODES.include?(value)
-                       when :window then
-                         value  = value.to_i
-                         pot    = value.to_s(2).split(//).sort.map(&:to_i).inject(:+) == 1
-                         result[:window] = value.to_i
-                         parser.invalid_value!(name, value) unless value >= 32 && pot
-                       when :span then
-                         value          = value.to_i
-                         result[:span]  = value
-                         parser.invalid_value!(name, value) unless value >= 1 && value <= 1024
-                       end
-                     end
+def to_int_set(value, default); value ? Set.new(value.split(/\s*,\s*/).map(&:to_i)) : default; end
+def pot?(value); value.to_s(2).split(//).sort.map(&:to_i).inject(:+) == 1; end
+
+MODES   = %w(interactive batch)
+WINDOWS = (4..15).map { |n| 2 << n }.map(&:to_s)
+SPANS   = ("1".."1024")
+IN_DEV  = SparkleMotion::Audio::DeviceInputStream
+IN_FILE = SparkleMotion::Audio::FileInputStream
+parser  = SparkleMotion::CLI::ArgumentParser
+          .new(window:          512,
+               span:            4,
+               low:             true,
+               high:            true,
+               mode:            :batch,
+               map:             nil,
+               frequency_range: [500, 3_000])
+parser
+  .require!(%i(input))
+  .allow!(:skip_low)
+  .allow!(:skip_high)
+  .allow!(:freq_start)                 { |vv, rr| rr[:frequency_range][0] = vv.to_i }
+  .allow!(:freq_end)                   { |vv, rr| rr[:frequency_range][1] = vv.to_i }
+  .allow!(:map)                        { |vv, rr| rr[:map] = to_int_set(vv, [0, 1]) }
+  .allow!(:input_channels)             { |vv, rr| rr[:channels] = to_int_set(vv, [0]) }
+  .allow!(:window, allowed: WINDOWS)   { |vv, rr| rr[:window] = vv.to_i }
+  .allow!(:span, allowed: SPANS)       { |vv, rr| rr[:span]   = vv.to_i }
+  .allow!(:mode, allowed: MODES)       { |vv, rr| rr[:mode]   = vv.to_sym }
+  .allow!(:input_device, kind: :input) { |vv, rr| rr[:in] = [IN_DEV, vv] }
+  .allow!(:input_file, kind: :input)   { |vv, rr| rr[:in] = [IN_FILE, vv] }
+
+options, leftovers = parser.parse!(ARGV)
 if leftovers.length > 0
   LOGGER.error { "Unexpected arguments: #{leftovers.inspect}" }
   exit 1
 end
 
-in_stream = options[:in_class].new(options[:in_source], options[:window])
+in_stream = options[:in][0].new(options[:in][1], options[:window])
 puts "#{in_stream.name}: Sample rate is #{in_stream.sample_rate}hz."
 
 reporter = SparkleMotion::Audio::StreamReporter.new(in_stream.name, 1.0, LOGGER)
@@ -86,7 +69,7 @@ filter    = SparkleMotion::Audio::BandPassFilter
               reporter.reset!
             end
 
-if options[:play]
+if options[:map]
   out_stream = SparkleMotion::Audio::DeviceOutputStream.new(in_stream.sample_rate, options[:window])
   puts "#{out_stream.name}: Sample rate is #{out_stream.sample_rate}hz."
 end
@@ -166,7 +149,7 @@ end
 
 out_stream.start if out_stream
 in_stream.start
-processor.send_to(options[:play], out_stream) if out_stream
+processor.send_to(options[:map], out_stream) if out_stream
 processor.start
 reporter.start unless in_stream.finite?
 
