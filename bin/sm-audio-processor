@@ -78,8 +78,8 @@ end
 # TODO: ... or maybe this? http://www.jackosx.com/
 # http://www.abstractnew.com/2014/04/the-fast-fourier-transform-fft-without.html
 
-processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter, LOGGER, span) do |snapshot, dc|
-  computed =  snapshot
+processor = SparkleMotion::Audio::StreamFilter.new(in_stream, filter, LOGGER, span) do |snap, dc|
+  computed =  snap
               .map do |data|
                 # mean, stddev, rms, rmsdev, median
                 # NMath.covariance
