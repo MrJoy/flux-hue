@@ -62,7 +62,7 @@ module SparkleMotion
   def self.use_widgets!
     require "ostruct"
     require "sparkle_motion/launch_pad/widget"
-    require "sparkle_motion/launch_pad/widget/toggle"
+    require "sparkle_motion/launch_pad/widgets/toggle"
     require "sparkle_motion/launch_pad/widgets/horizontal_slider"
     require "sparkle_motion/launch_pad/widgets/vertical_slider"
     require "sparkle_motion/launch_pad/widgets/radio_group"
