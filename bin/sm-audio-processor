@@ -184,6 +184,7 @@ when :interactive
 
     range[0] = Regexp.last_match(1).to_i if line =~ />\s*(\d+)/
     range[1] = Regexp.last_match(1).to_i if line =~ /<\s*(\d+)/
+    filter.frequency_range = range
   end
 when :batch
   loop { sleep 0.1 } unless in_stream.finite?
