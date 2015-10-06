@@ -12,16 +12,6 @@ def unpack_color(col)
   end
 end
 
-def unpack_colors_in_place!(cfg)
-  cfg.each do |key, val|
-    if val.is_a?(Array)
-      cfg[key] = val.map { |vv| unpack_color(vv) }
-    else
-      cfg[key] = unpack_color(val)
-    end
-  end
-end
-
 def unpack_vector_in_place!(cfg)
   cfg.each do |key, val|
     next unless val.is_a?(Array) && val.length == 2
@@ -32,11 +22,6 @@ end
 CONFIG = YAML.load(ERB.new(File.read("config.yml"), nil, "-").result(binding))
 CONFIG["bridges"].map do |name, cfg|
   cfg["name"] = name
-end
-
-CONFIG["simulation"]["controls"].values.each do |cfg|
-  next unless cfg && cfg["colors"]
-  unpack_colors_in_place!(cfg["colors"])
 end
 
 CONFIG["simulation"]["nodes"].values.each do |cfg|

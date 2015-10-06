@@ -1,5 +1,6 @@
 module SparkleMotion
   module Simulation
+    # Class that accepts group update commands and runs them in sequence.
     class CommandQueueTask < SparkleMotion::ManagedTask
       def initialize(logger)
         @queue = Queue.new
@@ -9,6 +10,8 @@ module SparkleMotion
           next if requests.length == 0
           @logger.debug { "Processing #{requests.length} pending commands." }
           # TODO: Gather stats about success/failure...
+
+          # TODO: Only do batches that are spread across bridges?
           Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|
             next unless error?(easy)
             rc    = easy.response_code

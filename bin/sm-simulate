@@ -114,7 +114,6 @@ if USE_INPUT
 else
   INTERACTIONS = {}
 end
-INT_CONTROLS     = {}
 NODES            = {}
 PENDING_COMMANDS = []
 STATE = SparkleMotion::Simulation::Parameters.new("/tmp/sparkle-motion.state", LOGGER)
@@ -136,31 +135,12 @@ NODES["STRETCHED"]  = last = SparkleMotion::Nodes::Transforms::Contrast.new(func
                                                                             iterations: c_iter,
                                                                             source:     last)
 # Create one control group here per "quadrant"...
-intensity_cfg = CONFIG["simulation"]["controls"]["intensity"]
 LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), idx|
   mask        = LIGHTS_FOR_THREADS.masks[bridge_name]
-  int_vals    = intensity_cfg["values"]
-  int_key     = "SHIFTED_#{idx}"
+  int_key     = "int#{idx}"
   last        = NODES[int_key] = SparkleMotion::Nodes::Transforms::Range.new(source: last,
                                                                              mask:   mask,
                                                                              logger: LOGGER)
-  int_colors      = intensity_cfg["colors"]
-  pos             = SparkleMotion::Vector2.new(intensity_cfg["positions"][idx])
-  size            = int_vals.length
-  int_widget      = Kernel.const_get(intensity_cfg["widget"])
-  INT_CONTROLS[int_key] = int_widget.new(launchpad: INTERACTIONS["launchpad"],
-                                         position:  pos,
-                                         size:      size,
-                                         colors:    int_colors,
-                                         on_change: proc { |val| STATE[int_key] = val })
-
-  STATE.parameter!(int_key, INT_CONTROLS[int_key].max_v / 2)
-  STATE.on_change(int_key) do |key, value|
-    ival = int_vals[value]
-    LOGGER.info { "Intensity[#{idx},#{value}]: #{ival}" }
-    NODES[key].set_range(*ival)
-    INT_CONTROLS[key].update(value)
-  end
 end
 
 sl_key               = "spotlighting"
@@ -170,8 +150,7 @@ sl_exp               = sl_cfg["exponent"]
 last = NODES[sl_key] = SparkleMotion::Nodes::Transforms::Spotlight.new(source:   last,
                                                                        base:     sl_base,
                                                                        exponent: sl_exp)
-
-FINAL_RESULT            = last # The end node that will be rendered to the lights.
+FINAL_RESULT         = last # The end node that will be rendered to the lights.
 
 NODES.each do |name, node|
   node.debug = DEBUG_FLAGS[name]
@@ -184,7 +163,7 @@ ITERATIONS                = env_int("ITERATIONS", true) || 0
 TIME_TO_DIE               = [false, :terminate]
 
 def kick!
-  LOGGER.unknown { "Kick!" }
+  LOGGER.unknown { "Kicking system in the head!" }
   TIME_TO_DIE[1] = :restart
   TIME_TO_DIE[0] = true
 end
@@ -198,9 +177,57 @@ def update_group!(group, transition, data)
   PENDING_COMMANDS.each { |queue| queue << req }
 end
 
-SCREENS = SparkleMotion::Widgets::ScreenSet.new(INTERACTIONS, STATE, LOGGER)
+class Simulator
+  attr_accessor :command_queue
 
-load "config.rb"
+  def initialize(interactions, state, logger)
+    @interactions = interactions
+    @state        = state
+    @logger       = logger
+    @screen_set   = SparkleMotion::Widgets::ScreenSet.new(interactions, state, logger)
+
+    return unless USE_LIGHTS
+    @command_queue = SparkleMotion::Simulation::CommandQueueTask.new(logger)
+  end
+
+  def load!(fname)
+    instance_eval(File.read(fname), fname)
+  end
+
+  def screens(&callback)
+    @screen_set.draw(&callback)
+  end
+
+  def screen(name); @screen_set.screens[name]; end
+
+  def start
+    without_persistence do
+      @screen_set.start
+      @state.load!
+      @state.init!
+    end
+    @state.enabled = true
+  end
+
+  def stop
+    @screen_set.stop
+  end
+
+protected
+
+  def without_persistence(&block)
+    prev = @state.enabled
+    @command_queue.disable! if @command_queue
+    @state.enabled = false
+    block.call
+  ensure
+    @command_queue.enable! if @command_queue
+    @state.enabled = prev
+  end
+end
+
+SIM = Simulator.new(INTERACTIONS, STATE, LOGGER)
+SIM.load!("config.rb")
 
 ###############################################################################
 # Profiling Support
@@ -227,46 +254,13 @@ end
 ###############################################################################
 # Main Simulation
 ###############################################################################
-def clear_board!
-  return unless USE_INPUT
 
-  # TODO: Generalize this to deal with the entire board.
-
-  # TODO: Hoist setup / teardown of the board into separate binaries and
-  # TODO: don't do it from here to avoid startup overhead!
-
-  INT_CONTROLS.values.map(&:blank)
-  sleep 0.01 # 88 updates/sec input limit!
-  SCREENS.stop
-end
-
-def without_persistence(command_queue, &block)
-  prev = STATE.enabled
-  command_queue.disable! if command_queue
-  STATE.enabled = false
-  block.call
-ensure
-  command_queue.enable! if command_queue
-  STATE.enabled = prev
-end
-
-def launch_input_threads!(command_queue, logger)
-  setup_control_state!(command_queue)
-
+def launch_input_threads!(logger)
   return [] unless USE_INPUT
 
   INTERACTIONS
     .map { |(nn, cc)| SparkleMotion::Simulation::SurfaceMasterTask.new(nn, cc, logger) }
     .compact
-end
-
-def setup_control_state!(command_queue)
-  without_persistence(command_queue) do
-    SCREENS.start
-    STATE.load!
-    STATE.init!
-  end
-  STATE.enabled = true
 end
 
 def launch_graph_thread!(logger)
@@ -328,7 +322,7 @@ def launch_graph_threads!(logger); [launch_graph_thread!(logger)]; end
 def launch_all_threads!(config, global_results, debug, logger)
   command_queue = launch_command_queue_thread!(logger)
   PENDING_COMMANDS << command_queue if command_queue
-  tmp = { input:   launch_input_threads!(command_queue, logger),
+  tmp = { input:   launch_input_threads!(logger),
           graph:   launch_graph_threads!(logger),
           sweep:   launch_sweep_threads!(config["sweepers"], command_queue, logger),
           command: [command_queue],
@@ -338,6 +332,7 @@ def launch_all_threads!(config, global_results, debug, logger)
                                          logger) }
   tmp.values.map(&:compact!)
   tmp[:all] = tmp.values.flatten.compact
+  SIM.start
   tmp
 end
 
@@ -411,7 +406,7 @@ def main
 
   LOGGER.unknown { "Doing final shutdown..." }
   global_results.done! if global_results
-  clear_board!
+  SIM.stop
 
   print_results(global_results) if global_results
   dump_debug_data!

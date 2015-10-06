@@ -1,19 +1,21 @@
 module SparkleMotion
   module Widgets
+    attr_reader :screens
     class TabSet
-      def initialize(screen_set, controller, colors, default, &handler)
+      def initialize(name, screen_set, controller, colors, on_change: nil, &handler)
+        @name       = name
         @screen_set = screen_set
         @controller = controller
         @tabs       = []
-        @active     = default
         @colors     = colors
         @screens    = []
+        @on_change  = on_change
         instance_eval(&handler)
       end
 
       def enable
         @tabs.each(&:enable)
-        update(@active)
+        update(@active) if @active
       end
 
       def disable
@@ -48,10 +50,11 @@ module SparkleMotion
       def screens; @screen_set.screens; end
 
       def update(val)
-        @active = val
+        @screen_set.state[@name] = @active = val
         @tabs.each_with_index do |tab, i|
           tab.update(i == @active)
         end
+        @on_change.call(val) if @on_change
       end
     end
   end

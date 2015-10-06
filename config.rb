@@ -1,11 +1,4 @@
-SCREENS.draw do
-  # This defines which Hue Bridge, and which group on that bridge a control
-  # should affect.  It would be a bit nonsensical if this didn't correspond
-  # to the arrangement of lights for the intensity controls though.
-  STRAND_GROUPS = { strand1: { group1: ["Bridge-01", 0],
-                               group2: ["Bridge-02", 0] },
-                    strand2: { group1: ["Bridge-03", 0],
-                               group2: ["Bridge-04", 0] } }
+screens do
   screen("simulation", "launchpad") do
     # The desaturation controller.
     #
@@ -39,8 +32,31 @@ SCREENS.draw do
           # TODO: Delay the saturation update until the brightness has taken effect.
           ival, bri_max = SATURATION_POINTS[val]
           logger.info { "Saturation[#{idx},#{val}]: #{ival}" }
-          NODES["SHIFTED_#{idx}"].clamp_to(bri_max)
+          NODES["int#{idx}"].clamp_to(bri_max)
           update_group!(cfg[:group], SATURATION_TRANSITION, "sat" => (255 * ival).round)
+        end
+      end
+
+    # [Mid-point, delta].  Minimum brightness is `mid-point - delta` and max
+    # is `mid-point + delta`.
+    INTENSITY_POINTS = [[0.150, 0.075],
+                        [0.200, 0.100],
+                        [0.400, 0.150],
+                        [0.500, 0.175],
+                        [0.500, 0.500]]
+    INTENSITY_COLORS = { on:   0x22003F,
+                         off:  0x05000A,
+                         down: 0x27103F }
+    int_size = INTENSITY_POINTS.length
+    [{ position: [0, 3], group: ["Bridge-01", "AccentAndMain"] },
+     { position: [1, 3], group: ["Bridge-02", "AccentAndMain"] },
+     { position: [2, 3], group: ["Bridge-03", "AccentAndMain"] },
+     { position: [3, 3], group: ["Bridge-04", "AccentAndMain"] }]
+      .each_with_index do |cfg, idx|
+        vertical_slider("int#{idx}", cfg[:position], int_size, colors: INTENSITY_COLORS,
+                                                               default: int_size / 2) do |val|
+          mid, spread = INTENSITY_POINTS[val]
+          NODES["int#{idx}"].set_range(*mid, spread)
         end
       end
 
@@ -73,7 +89,6 @@ SCREENS.draw do
 
   screen("tabset", "launchpad", default: true) do
     tab_set("screen_selector",
-            default: 0,
             colors: { off:  :dark_gray,
                       down: :white,
                       on:   :light_gray }) do
@@ -103,4 +118,4 @@ SCREENS.draw do
   end
 end
 
-SCREENS.screens["tabset"].start
+screen("tabset").start

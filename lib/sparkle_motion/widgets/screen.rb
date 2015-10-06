@@ -94,13 +94,26 @@ module SparkleMotion
                        colors:     colors,
                        on_press:   handler)
         state.parameter!(name, default) do |_key, value|
-          widgets.update(value)
+          widget.update(value)
         end
         @widgets[name] = widget
       end
 
-      def tab_set(name, colors:, default:, &handler)
-        @widgets[name] = TabSet.new(@screen_set, @controller, colors, default, &handler)
+      def tab_set(name, colors:, default: 0, &handler)
+        our_screen = self
+        widget = TabSet.new(name, @screen_set, @controller, colors,
+                            on_change: proc { |val| state[name] = val }, &handler)
+        state.parameter!(name, default) do |_key, value|
+          widget.update(value)
+          widget.screens.values.each_with_index do |sc, idx|
+            if idx == value
+              sc.start
+            elsif sc != our_screen
+              sc.stop
+            end
+          end
+        end
+        @widgets[name] = widget
       end
     end
   end
