@@ -157,6 +157,25 @@ module SparkleMotion
         end
       end
 
+      def detach_handler!
+        return unless launchpad
+        detach_grid_handler!
+        detach_position_handler!
+      end
+
+      def detach_grid_handler!
+        return unless on_grid?
+        xx, yy = expand_range
+        launchpad.no_response_to(:grid, :down, x: xx, y: yy)
+        launchpad.no_response_to(:grid, :up, x: xx, y: yy)
+      end
+
+      def detach_position_handler!
+        return if on_grid?
+        launchpad.no_response_to(@position, :down)
+        launchpad.no_response_to(@position, :up)
+      end
+
       def attach_handler!
         return unless launchpad
         attach_grid_handler!
