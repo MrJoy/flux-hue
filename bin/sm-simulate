@@ -76,6 +76,8 @@ SparkleMotion.use_input! if USE_INPUT
 
 # Crufty common code:
 require "sparkle_motion/simulation/output"
+require "sparkle_motion/simulation/surface_master_task"
+require "sparkle_motion/simulation/graph_task"
 extend SparkleMotion::Simulation::Output
 extend SparkleMotion::Hue::HTTP
 extend SparkleMotion::FlowControl
@@ -347,21 +349,13 @@ def setup_exit_controls!
   EXIT_BUTTON.update(false)
 end
 
-def launch_input_thread!(name, controller)
-  guarded_thread("Input Handler: #{name}") do
-    Thread.stop
-    controller.start
-  end
-end
-
 def launch_input_threads!
   setup_control_state!
 
   return [] unless USE_INPUT
 
-  INTERACTIONS.map do |(name, controller)|
-    launch_input_thread!(name, controller)
-  end
+  INTERACTIONS
+    .map { |(nn, cc)| SparkleMotion::Simulation::SurfaceMasterTask.new(nn, cc, LOGGER) }
     .compact
 end
 
@@ -380,139 +374,161 @@ end
 
 def launch_graph_thread!
   return nil unless USE_GRAPH
-  guarded_thread("Graph Renderer") do
-    Thread.stop
-
-    loop do
-      t = Time.now.to_f
-      FINAL_RESULT.update(t)
-      el = Time.now.to_f - t
-      # Try to adhere to a specific update frequency...
-      sleep SparkleMotion::Node::FRAME_PERIOD - el if el < SparkleMotion::Node::FRAME_PERIOD
-    end
-  end
+  SparkleMotion::Simulation::GraphTask.new("Main", LOGGER)
 end
 
-def add_group_command!(config, data)
+def add_group_command!(bridge, group_id, data)
   # TODO: Hoist the hash into something reusable?
   PENDING_COMMANDS << { method:   :put,
-                        url:      hue_group_endpoint(config, 0),
+                        url:      hue_group_endpoint(bridge, group_id),
                         put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
 end
 
-def launch_sweep_thread!(config, hues, sweep_len, sweep_wait)
-  guarded_thread("Sweeper") do
-    Thread.stop
+class SweeperTask < SparkleMotion::ManagedTask
+  include SparkleMotion::Hue::HTTP
 
-    loop do
-      before_time = Time.now.to_f
-      idx         = ((before_time / sweep_wait) % hues.length).floor
-      # TODO: Recycle this hash?
-      add_group_command!(config, with_transition_time(sweep_len, "hue" => hues[idx]))
+  def initialize(bridge:, group_id:, config:, logger:)
+    @bridge     = bridge
+    @group_id   = group_id
+    @hues       = config["values"]
+    @transition = config["transition"]
+    @wait       = config["wait"]
 
-      elapsed = Time.now.to_f - before_time
-      sleep sweep_wait - elapsed if elapsed < sweep_wait
+    super("SweeperTask[#{bridge['name']}]", :early, logger) do
+      perform_with_duration do |time|
+        tick(time)
+      end
     end
+
+    validate_params!
+  end
+
+  def perform_with_duration(&callback)
+    before_time = Time.now.to_f
+    callback.call(before_time)
+    elapsed = Time.now.to_f - before_time
+    sleep @wait - elapsed if elapsed < @wait
+  end
+
+  def tick(time)
+    idx = ((time / @wait) % @hues.length).floor
+    # TODO: Recycle this hash?
+    add_group_command!(@bridge, @group_id, with_transition_time(@transition, "hue" => @hues[idx]))
+  end
+
+protected
+
+  def validate_params!
+    logger.warn { "#{@name}: Wait should be >= transition!" } if @wait < @transition
+    logger.warn { "#{@name}: Wait should be >= 1 second!" } if @wait < 1.0
   end
 end
 
 def launch_sweep_threads!(sweep_cfg)
   return [] unless USE_LIGHTS && USE_SWEEP
-  CONFIG["bridges"].map do |(name, config)|
-    hues, sweep_len, sweep_wait = sweep_params(sweep_cfg[name])
-
-    validate_sweep_timings!(name, sweep_len, sweep_wait)
-
-    launch_sweep_thread!(config, hues, sweep_len, sweep_wait)
+  CONFIG["bridges"].map do |(name, bridge)|
+    SweeperTask.new(bridge:     bridge,
+                    group_id:   0,
+                    config:     sweep_cfg[name],
+                    logger:     LOGGER)
   end
 end
 
-def sweep_params(config)
-  [config["values"],
-   config["transition"],
-   config["wait"]]
-end
-
-def validate_sweep_timings!(name, len, wait)
-  LOGGER.warn { "Sweep[#{name}]: Wait should be at least as long as transition!" } if wait < len
-  LOGGER.warn { "Sweep[#{name}]: Wait should be at least 1 second!" } if wait < 1.0
+class DummyTask < SparkleMotion::ManagedTask
+  def initialize(iterations, logger)
+    @iterations = iterations
+    super("DummyTask", logger) do
+      if @iterations > 0
+        sleep 5 * @iterations
+        TIME_TO_DIE[0] = true
+      else
+        # We have an input device to control us, so just sleep until we're told to go away.
+        sleep 0.5 until TIME_TO_DIE[0]
+      end
+    end
+  end
 end
 
 def launch_dummy_light_threads!
-  threads = []
-  threads << guarded_thread("Dummy Thread") do
-    Thread.stop
-    if ITERATIONS > 0
-      sleep 5 * ITERATIONS
-      TIME_TO_DIE[0] = true
-    else
-      sleep 0.5 until TIME_TO_DIE[0]
-    end
-  end
-  threads
+  [DummyTask.new(ITERATIONS, LOGGER)]
 end
 
-def light_req(idx, lid, transition, config, stats, debug)
-  url = hue_light_endpoint(config, lid)
-  SparkleMotion::Hue::LazyRequestConfig.new(LOGGER, config, url, stats, debug: debug) do
-    # TODO: Recycle this hash?
-    data = { "bri" => (FINAL_RESULT[idx] * 255).round }
-    with_transition_time(transition, data)
+class RenderTask < SparkleMotion::ManagedTask
+  include SparkleMotion::Hue::HTTP
+
+  def initialize(bridge:, lights:, transition:, global_results:, logger:, debug: false)
+    @bridge         = bridge
+    @lights         = lights
+    @transition     = transition
+    @global_results = global_results
+    @stats          = SparkleMotion::Results.new(logger: LOGGER) if @global_results
+    @debug          = debug
+    @requests       = @lights.map { |(idx, lid)| light_req(idx, lid, logger) }
+    # TODO: Restore ITERATIONS functionality...
+    super("RenderTask[#{bridge["name"]}]", :early, logger) { render }
   end
-end
 
-def light_thread!(bridge_name, config, transition, global_results, debug)
-  guarded_thread(bridge_name) do
-    lights    = LIGHTS_FOR_THREADS.lights[bridge_name]
-    stats     = SparkleMotion::Results.new(logger: LOGGER) if defined?(SparkleMotion::Results)
-    iterator  = (ITERATIONS > 0) ? ITERATIONS.times : loop
-
-    LOGGER.unknown do
-      light_list = lights.map(&:first).join(", ")
-      "#{bridge_name}: Thread set to handle #{lights.count} lights (#{light_list})."
+  def render
+    Curl::Multi.http(@requests.dup, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do
     end
+    return unless @global_results
+    @global_results.add_from(@stats)
+    @stats.clear!
+  end
 
-    Thread.stop
+protected
 
-    requests = lights.map { |(idx, lid)| light_req(idx, lid, transition, config, stats, debug) }
-
-    iterator.each do
-      Curl::Multi.http(requests.dup, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do
-      end
-
-      global_results.add_from(stats) if global_results
-      stats.clear! if stats
-      # sleep 0.04
+  def light_req(idx, lid, logger)
+    url = hue_light_endpoint(@bridge, lid)
+    data = { "bri" => 0 }
+    SparkleMotion::Hue::LazyRequestConfig.new(logger, @bridge, url, @stats, debug: @debug) do
+      data["bri"] = (FINAL_RESULT[idx] * 255).round
+      with_transition_time(@transition, data)
     end
   end
 end
 
-def error?(easy)
-  easy.response_code < 200 || easy.response_code >= 400 || easy.body =~ /error/
-end
+def light_thread!(bridge, transition, global_results, debug)
+  lights = LIGHTS_FOR_THREADS.lights[bridge["name"]]
 
-def pending_commands
-  requests = []
-  loop do
-    sleep 0.05 while PENDING_COMMANDS.empty?
-    requests << PENDING_COMMANDS.pop until PENDING_COMMANDS.empty?
-    break if requests.length > 0
+  LOGGER.unknown do
+    light_list = lights.map(&:first).join(", ")
+    "#{bridge['name']}: Thread will handle #{lights.count} lights (#{light_list})."
   end
-  requests
+
+  RenderTask.new(bridge:         bridge,
+                 lights:         lights,
+                 transition:     transition,
+                 global_results: global_results,
+                 logger:         LOGGER,
+                 debug:          debug)
 end
 
-def command_queue_thread!
-  guarded_thread("Command Queue") do
-    Thread.stop
-    loop do
+class CommandQueueTask < SparkleMotion::ManagedTask
+  def initialize(logger)
+    super("CommandQueueTask", :early, logger) do
       requests = pending_commands
+      next if requests.length == 0
       LOGGER.debug { "Processing #{requests.length} pending commands." }
       # TODO: Gather stats about success/failure...
       Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|
         next unless error?(easy)
-        LOGGER.warn { "Problem processing command: #{easy.url} => #{rc}; #{body}" }
+        LOGGER.warn { "#{@name}: Request failed: #{easy.url} => #{rc}; #{body}" }
       end
     end
+  end
+
+protected
+
+  def error?(easy)
+    easy.response_code < 200 || easy.response_code >= 400 || easy.body =~ /error/
+  end
+
+  def pending_commands
+    sleep 0.05 if PENDING_COMMANDS.empty?
+    requests = []
+    requests << PENDING_COMMANDS.pop until PENDING_COMMANDS.empty?
+    requests
   end
 end
 
@@ -521,22 +537,20 @@ def launch_light_threads!(cfg, global_results, debug)
   return launch_dummy_light_threads! unless USE_LIGHTS
 
   transition  = cfg["transition"]
-  threads    += LIGHTS_FOR_THREADS.bridges.map do |(bridge_name, config)|
-    light_thread!(bridge_name, config, transition, global_results, debug)
+  threads    += LIGHTS_FOR_THREADS.bridges.values.map do |bridge|
+    light_thread!(bridge, transition, global_results, debug)
   end
 
-  threads << command_queue_thread!
+  threads << CommandQueueTask.new(LOGGER)
 
   threads.compact
 end
 
-def launch_graph_threads!
-  [launch_graph_thread!].compact
-end
+def launch_graph_threads!; [launch_graph_thread!].compact; end
 
 def launch_all_threads!(sim_cfg, global_results)
   tmp = { input:  launch_input_threads!,
-          graph:  launch_graph_thread!,
+          graph:  launch_graph_threads!,
           sweep:  launch_sweep_threads!(sim_cfg["sweep"]).compact,
           lights: launch_light_threads!(sim_cfg["output"], global_results, DEBUG_FLAGS["OUTPUT"]) }
   tmp[:all] = tmp.values.flatten.compact
@@ -579,7 +593,7 @@ end
 
 def wake!(threads)
   LOGGER.unknown { "Final setup done, waking threads..." }
-  threads.each(&:run)
+  threads.each(&:start)
 end
 
 def spin!(threads)
@@ -598,7 +612,7 @@ end
 def stop!(threads)
   LOGGER.unknown { "Stopping threads..." }
   %i(lights sweep graph input).each do |thread_group|
-    threads[thread_group].each(&:terminate)
+    threads[thread_group].each(&:stop)
   end
 end
 

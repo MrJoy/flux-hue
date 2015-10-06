@@ -28,5 +28,7 @@ module SparkleMotion
     end
 
     def stop; fail "Must be implemented by sub-class!"; end
+
+    def status; @thread.status; end
   end
 end
