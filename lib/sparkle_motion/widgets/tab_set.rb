@@ -36,12 +36,11 @@ module SparkleMotion
                                else
                                  update(idx)
                                  @screens.each do |sc|
-                                   if sc == screen
-                                     sc.start
-                                   else
+                                   if sc != screen
                                      sc.stop
                                    end
                                  end
+                                 screen.start
                                  handler.call(idx, val) if handler
                                end
                              end)

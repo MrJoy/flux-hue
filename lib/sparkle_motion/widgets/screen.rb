@@ -108,12 +108,11 @@ module SparkleMotion
                             on_change: proc { |val| state[name] = val }, &handler)
         state.parameter!(name, default) do |_key, value|
           widget.update(value)
+          widget.screens.values.each do |sc|
+            sc.stop if sc != our_screen
+          end
           widget.screens.values.each_with_index do |sc, idx|
-            if idx == value
-              sc.start
-            elsif sc != our_screen
-              sc.stop
-            end
+            sc.start if idx == value
           end
         end
         @widgets[name] = widget
