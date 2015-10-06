@@ -508,7 +508,7 @@ protected
   end
 
   def pending_commands
-    sleep 0.05 if PENDING_COMMANDS.empty?
+    sleep 0.1 if PENDING_COMMANDS.empty?
     requests = []
     requests << PENDING_COMMANDS.pop until PENDING_COMMANDS.empty?
     requests
