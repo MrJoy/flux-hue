@@ -176,16 +176,7 @@ class Parameters
     return unless File.exist?(@filename)
     @logger.debug { "Parameters: Restoring state." }
     check_age
-
-    begin
-      (YAML.load_file(@filename) || {})
-        .each do |key, value|
-          @parameters[key].value = value if @parameters.key?(key)
-        end
-    rescue Psych::SyntaxError => pse
-      LOGGER.error { "Parameters: Error parsing state file!" }
-      LOGGER.error { pse }
-    end
+    perform_load!
   end
 
   def check_age
@@ -219,6 +210,18 @@ class Parameters
     param = @parameters[key]
     return nil unless param
     param.value = value
+  end
+
+protected
+
+  def perform_load!
+    (YAML.load_file(@filename) || {})
+      .each do |key, value|
+        @parameters[key].value = value if @parameters.key?(key)
+      end
+  rescue Psych::SyntaxError => pse
+    LOGGER.error { "Parameters: Error parsing state file!" }
+    LOGGER.error { pse }
   end
 end
 STATE = Parameters.new("/tmp/sparkle-motion.state", LOGGER)
