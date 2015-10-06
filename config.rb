@@ -232,6 +232,21 @@ screens do
 
   screen("tuning", "launchpad") do
     # TODO: Controls for tuning white lights, accent lights, etc...
+    BRIGHTNESS_POINTS = [0.0,
+                         0.25,
+                         0.50,
+                         0.70,
+                         0.85,
+                         0.95,
+                         1.00]
+
+    WHITE_COLORS = { on:   :light_gray,
+                     off:  :dark_gray,
+                     down: :white }
+    vertical_slider("food_area", [0, 1], 7, colors: WHITE_COLORS,
+                                            default: BRIGHTNESS_POINTS.length / 2) do |val|
+      SIM.update_group!(["Bridge-01", "White"], 0.5, "bri" => BRIGHTNESS_POINTS[val])
+    end
   end
 
   screen("tabset", "launchpad", default: true) do
