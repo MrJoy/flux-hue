@@ -153,71 +153,84 @@ controllers:
   # Don't set wait much below 1.0!  ZigBee spec only allows 1 group
   # update/sec, but Hue Bridge/lights seem to be *mostly* OK with about 1
   # every 0.75 sec...
+color_configs:
+  strand1_1:
+    wedding: &strand1_1_wedding
+    - <%= base_hue %>
+    - <%= min_hue %>
+    - <%= base_hue %>
+    - <%= max_hue %>
+    debug: &strand_1_1_debug
+    - <%= random_color(0) %>
+    - <%= random_color(1) %>
+    - <%= random_color(2) %>
+    - <%= random_color(3) %>
+    - <%= random_color(4) %>
+    - <%= random_color(5) %>
+    - <%= random_color(6) %>
+    - <%= random_color(7) %>
+  strand1_2:
+    wedding: &strand1_2_wedding
+    - <%= min_hue %>
+    - <%= base_hue %>
+    - <%= max_hue %>
+    - <%= base_hue %>
+    debug: &strand1_2_debug
+    - <%= random_color(1) %>
+    - <%= random_color(2) %>
+    - <%= random_color(3) %>
+    - <%= random_color(4) %>
+    - <%= random_color(5) %>
+    - <%= random_color(6) %>
+    - <%= random_color(7) %>
+    - <%= random_color(8) %>
+  strand2_1:
+    wedding: &strand2_1_wedding
+    - <%= base_hue %>
+    - <%= max_hue %>
+    - <%= base_hue %>
+    - <%= min_hue %>
+    debug: &strand2_1_debug
+    - <%= random_color(2) %>
+    - <%= random_color(3) %>
+    - <%= random_color(4) %>
+    - <%= random_color(5) %>
+    - <%= random_color(6) %>
+    - <%= random_color(7) %>
+    - <%= random_color(8) %>
+    - <%= random_color(9) %>
+  strand2_2:
+    wedding: &strand2_2_wedding
+    - <%= max_hue %>
+    - <%= base_hue %>
+    - <%= min_hue %>
+    - <%= base_hue %>
+    debug: &strand2_2_debug
+    - <%= random_color(3) %>
+    - <%= random_color(4) %>
+    - <%= random_color(5) %>
+    - <%= random_color(6) %>
+    - <%= random_color(7) %>
+    - <%= random_color(8) %>
+    - <%= random_color(9) %>
+    - <%= random_color(10) %>
 sweepers:
 - target: [Bridge-01, 0]
   transition: <%= shared_sweep_transition %>
   wait:       <%= shared_sweep_wait %>
-  values:
-  # - <%= random_color(0) %>
-  # - <%= random_color(1) %>
-  # - <%= random_color(2) %>
-  # - <%= random_color(3) %>
-  # - <%= random_color(4) %>
-  # - <%= random_color(5) %>
-  # - <%= random_color(6) %>
-  # - <%= random_color(7) %>
-  - <%= base_hue %>
-  - <%= min_hue %>
-  - <%= base_hue %>
-  - <%= max_hue %>
+  values: *strand1_1_wedding
 - target: [Bridge-02, 0]
   transition: <%= shared_sweep_transition %>
   wait:       <%= shared_sweep_wait %>
-  values:
-  # - <%= random_color(1) %>
-  # - <%= random_color(2) %>
-  # - <%= random_color(3) %>
-  # - <%= random_color(4) %>
-  # - <%= random_color(5) %>
-  # - <%= random_color(6) %>
-  # - <%= random_color(7) %>
-  # - <%= random_color(8) %>
-  - <%= min_hue %>
-  - <%= base_hue %>
-  - <%= max_hue %>
-  - <%= base_hue %>
+  values: *strand1_2_wedding
 - target: [Bridge-03, 0]
   transition: <%= shared_sweep_transition %>
   wait:       <%= shared_sweep_wait %>
-  values:
-  # - <%= random_color(2) %>
-  # - <%= random_color(3) %>
-  # - <%= random_color(4) %>
-  # - <%= random_color(5) %>
-  # - <%= random_color(6) %>
-  # - <%= random_color(7) %>
-  # - <%= random_color(8) %>
-  # - <%= random_color(9) %>
-  - <%= base_hue %>
-  - <%= max_hue %>
-  - <%= base_hue %>
-  - <%= min_hue %>
+  values: *strand2_1_wedding
 - target: [Bridge-04, 0]
   transition: <%= shared_sweep_transition %>
   wait:       <%= shared_sweep_wait %>
-  values:
-  # - <%= random_color(3) %>
-  # - <%= random_color(4) %>
-  # - <%= random_color(5) %>
-  # - <%= random_color(6) %>
-  # - <%= random_color(7) %>
-  # - <%= random_color(8) %>
-  # - <%= random_color(9) %>
-  # - <%= random_color(10) %>
-  - <%= max_hue %>
-  - <%= base_hue %>
-  - <%= min_hue %>
-  - <%= base_hue %>
+  values: *strand2_2_wedding
 simulation:
   output:
     # This controls the amount of time (in seconds, but only to a precision of
