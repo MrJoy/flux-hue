@@ -402,7 +402,8 @@ end
 class RenderTask < SparkleMotion::ManagedTask
   include SparkleMotion::Hue::HTTP
 
-  def initialize(bridge:, lights:, transition:, global_results:, logger:, debug: false)
+  def initialize(node:, bridge:, lights:, transition:, global_results:, logger:, debug: false)
+    @node           = node
     @bridge         = bridge
     @lights         = lights
     @transition     = transition
@@ -428,7 +429,7 @@ protected
   def light_req(idx, lid, logger)
     url = hue_light_endpoint(@bridge, lid)
     SparkleMotion::Hue::LazyRequestConfig.new(logger, @bridge, :put, url, @stats, debug: @debug) do
-      @data["bri"] = (FINAL_RESULT[idx] * 255).round
+      @data["bri"] = (@node[idx] * 255).round
       @data
     end
   end
@@ -442,7 +443,8 @@ def light_thread!(bridge, transition, global_results, debug, logger)
     "#{bridge['name']}: Thread will handle #{lights.count} lights (#{light_list})."
   end
 
-  RenderTask.new(bridge:         bridge,
+  RenderTask.new(node:           FINAL_RESULT,
+                 bridge:         bridge,
                  lights:         lights,
                  transition:     transition,
                  global_results: global_results,
