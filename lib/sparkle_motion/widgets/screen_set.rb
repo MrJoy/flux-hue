@@ -12,12 +12,12 @@ module SparkleMotion
         @logger       = logger
       end
 
-      def start
-        @screens.values.each do |screen|
-          screen.start
-          0.01
-        end
-      end
+      # def start
+      #   @screens.values.each do |screen|
+      #     screen.start
+      #     0.01
+      #   end
+      # end
 
       def stop
         @screens.values.each do |screen|
@@ -31,7 +31,7 @@ module SparkleMotion
       end
 
       def screen(name, controller_name, &handler)
-        controller  = @controllers[controller_name]
+        controller = @controllers[controller_name]
         @logger.error { "No such controller: '#{controller_name}'!" } unless controller
 
         @screens[name] = Screen.new(self, @graph_set, controller, state, @logger).draw(&handler)

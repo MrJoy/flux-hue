@@ -162,7 +162,6 @@ class Simulator
 
   def start
     without_persistence do
-      @screen_set.start
       @state.load!
       @state.init!
     end

@@ -51,7 +51,7 @@ module SparkleMotion
                         handler.call(val) if handler
                       end)
         state.parameter!(name, default) do |_key, value|
-          widget.update(value)
+          widget.update(value, false)
         end
         @widgets[name] = widget
       end
@@ -75,7 +75,7 @@ module SparkleMotion
                         end
                       end)
         state.parameter!(name, default) do |_key, value|
-          widget.update(value)
+          widget.update(value, false)
         end
         @widgets[name] = widget
       end
@@ -97,7 +97,7 @@ module SparkleMotion
                        colors:     colors,
                        on_press:   handler)
         state.parameter!(name, default) do |_key, value|
-          widget.update(value)
+          widget.update(value, false)
         end
         @widgets[name] = widget
       end

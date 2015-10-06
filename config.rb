@@ -279,3 +279,5 @@ screens do
                                      down:  :white }) { SIM.kick! }
   end
 end
+
+screen("tabset").start
