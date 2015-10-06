@@ -362,6 +362,7 @@ def launch_input_threads!
   INTERACTIONS.map do |(name, controller)|
     launch_input_thread!(name, controller)
   end
+    .compact
 end
 
 def setup_control_state!
@@ -525,11 +526,17 @@ def launch_light_threads!(cfg, global_results, debug)
   end
 
   threads << command_queue_thread!
+
+  threads.compact
+end
+
+def launch_graph_threads!
+  [launch_graph_thread!].compact
 end
 
 def launch_all_threads!(sim_cfg, global_results)
-  tmp = { input:  launch_input_threads!.compact,
-          graph:  [launch_graph_thread!].compact,
+  tmp = { input:  launch_input_threads!,
+          graph:  launch_graph_thread!,
           sweep:  launch_sweep_threads!(sim_cfg["sweep"]).compact,
           lights: launch_light_threads!(sim_cfg["output"], global_results, DEBUG_FLAGS["OUTPUT"]) }
   tmp[:all] = tmp.values.flatten.compact
