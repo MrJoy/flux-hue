@@ -76,10 +76,11 @@ SparkleMotion.use_input! if USE_INPUT
 
 # Crufty common code:
 require "sparkle_motion/simulation/output"
+require "sparkle_motion/simulation/command_queue_task"
+require "sparkle_motion/simulation/render_task"
 require "sparkle_motion/simulation/surface_master_task"
 require "sparkle_motion/simulation/graph_task"
 require "sparkle_motion/simulation/sweeper_task"
-require "sparkle_motion/simulation/render_task"
 extend SparkleMotion::Simulation::Output
 extend SparkleMotion::Hue::HTTP
 extend SparkleMotion::FlowControl
@@ -416,42 +417,9 @@ def light_thread!(bridge, transition, global_results, debug, logger)
                                             debug:          debug)
 end
 
-class CommandQueueTask < SparkleMotion::ManagedTask
-  def initialize(logger)
-    @queue = Queue.new
-    super("CommandQueueTask", :early, logger) do
-      requests = pending_commands
-      next if requests.length == 0
-      LOGGER.debug { "Processing #{requests.length} pending commands." }
-      # TODO: Gather stats about success/failure...
-      Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|
-        next unless error?(easy)
-        LOGGER.warn { "#{@name}: Request failed: #{easy.url} => #{rc}; #{body}" }
-      end
-    end
-  end
-
-  def <<(val); @queue << val; end
-
-  def clear; @queue.clear; end
-
-protected
-
-  def error?(easy)
-    easy.response_code < 200 || easy.response_code >= 400 || easy.body =~ /error/
-  end
-
-  def pending_commands
-    sleep 0.1 if @queue.empty?
-    requests = []
-    requests << @queue.pop until @queue.empty?
-    requests
-  end
-end
-
 def launch_command_queue_thread!(logger)
   return nil unless USE_LIGHTS
-  CommandQueueTask.new(logger)
+  SparkleMotion::Simulation::CommandQueueTask.new(logger)
 end
 
 def launch_light_threads!(cfg, global_results, debug, logger)
