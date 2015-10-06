@@ -1,5 +1,4 @@
 SCREENS.draw do
-  state.parameter!("spotlighting", nil)
   # This defines which Hue Bridge, and which group on that bridge a control
   # should affect.  It would be a bit nonsensical if this didn't correspond
   # to the arrangement of lights for the intensity controls though.
@@ -48,22 +47,14 @@ SCREENS.draw do
     # end
 
     SAT_POSITIONS.each_with_index do |pos, idx|
-      sat_key = "sat#{idx}"
-      STATE.parameter!(sat_key, sat_size - 1) # do |_key, value|
-        # SAT_CTRLS[sat_key].update(value)
-      # end
       group = SATURATION_GROUPS[idx]
-      group[0] = CONFIG["bridges"][group[0]]
-      vertical_slider(sat_key, pos, sat_size, colors:  SAT_COLORS) do |val|
+      vertical_slider("sat#{idx}", pos, sat_size, colors: SAT_COLORS,
+                                                  default: sat_size - 1) do |val|
         # TODO: Delay the saturation update until the brightness has taken effect.
         ival, bri_max = SATURATION_POINTS[val]
-        data = with_transition_time(SATURATION_TRANSITION, "sat" => (255 * ival).round)
-        req = { method:   :put,
-                url:      hue_group_endpoint(group[0], group[1]),
-                put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
         LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
         NODES["SHIFTED_#{idx}"].clamp_to(bri_max)
-        PENDING_COMMANDS.each { |queue| queue << req }
+        update_group!(group[0], group[1], SATURATION_TRANSITION, "sat" => (255 * ival).round)
       end
     end
 

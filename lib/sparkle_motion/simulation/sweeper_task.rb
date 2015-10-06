@@ -30,7 +30,7 @@ module SparkleMotion
         # TODO: Recycle hashes?
         @targets.each do |req|
           @data["hue"] = @hues[idx]
-          @command_queue << req
+          @command_queue << req if @command_queue
         end
       end
 
