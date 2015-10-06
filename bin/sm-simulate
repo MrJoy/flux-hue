@@ -249,21 +249,52 @@ end
 ITERATIONS                = env_int("ITERATIONS", true) || 0
 TIME_TO_DIE               = [false, :terminate]
 
+def kick!
+  LOGGER.unknown { "Kick!" }
+  TIME_TO_DIE[1] = :restart
+  TIME_TO_DIE[0] = true
+end
+
+def resolve_colors(colors)
+  resolved = {}
+  colors.each do |role, color|
+    color = SparkleMotion::LaunchPad::Color.const_get(color.to_s.upcase) if color.is_a?(Symbol)
+    resolved[role.to_s] = color.to_h
+  end
+  resolved
+end
+
+WIDGETS = {}
+def button(name, position, colors, &handler)
+  WIDGETS[name] =  SparkleMotion::LaunchPad::Widgets::Button
+                   .new(launchpad:  INTERACTIONS["launchpad"],
+                        position:   position.to_sym,
+                        colors:     resolve_colors(colors),
+                        on_press:   handler)
+  # TODO: Want to gate this...
+  WIDGETS[name].update(false)
+end
+
+# Sometimes the process(es) on Hue Bridge that a thread is connected to
+# (or possibly `libcurl` on our end) just seem to get... stuck.  It's
+# very rare but it does happen.  Also, you may find heap growth to be an
+# issue, and swapping might cause you some problems.  This allows a quick
+# (under 0.5s last I measured) restart of the process.  It preserves state
+# to disk as it goes, so it will come back quickly and gracefully with no
+# more than a tiny hiccup in the simulation.
+#
+# Alternatively,  you may just want to do a quick reload after making a
+# configuration change.
+#
+# Position is which of the control buttons to use for this
+# kick-in-the-head function.
+# TODO: Make this optional.
+button("exit", :mixer, color: :dark_gray,
+                       down:  :white) { kick! }
+
 ###############################################################################
 # Profiling Support
 ###############################################################################
-# TODO: Make this optional.
-e_cfg = CONFIG["simulation"]["controls"]["exit"]
-EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTIONS["launchpad"],
-                                                            position:  e_cfg["position"].to_sym,
-                                                            colors:    e_cfg["colors"],
-                                                            on_press:  lambda do |value|
-                                                              return unless value != 0
-                                                              LOGGER.unknown { "Kick!" }
-                                                              TIME_TO_DIE[1] = :restart
-                                                              TIME_TO_DIE[0] = true
-                                                            end)
-
 def start_ruby_prof!
   return unless PROFILE_RUN == "ruby-prof"
 
@@ -300,7 +331,15 @@ def clear_board!
   sleep 0.01 # 88 updates/sec input limit!
   SL_STATE.blank
   sleep 0.01
-  EXIT_BUTTON.blank
+  counter = 0
+  WIDGETS.values.each do |widget|
+    widget.blank
+    counter += 1
+    if counter > 40
+      sleep 0.01
+      counter = 0
+    end
+  end
 end
 
 def without_persistence(command_queue, &block)
@@ -311,10 +350,6 @@ def without_persistence(command_queue, &block)
 ensure
   command_queue.enable! if command_queue
   STATE.enabled = prev
-end
-
-def setup_exit_controls!
-  EXIT_BUTTON.update(false)
 end
 
 def launch_input_threads!(command_queue, logger)
@@ -331,7 +366,6 @@ def setup_control_state!(command_queue)
   without_persistence(command_queue) do
     STATE.load!
     STATE.init!
-    EXIT_BUTTON.update(false)
   end
   STATE.enabled = true
 end

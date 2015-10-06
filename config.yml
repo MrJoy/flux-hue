@@ -319,25 +319,6 @@ simulation:
       function:   cubic
       iterations: 3
   controls:
-    exit:
-      # Sometimes the process(es) on Hue Bridge that a thread is connected to
-      # (or possibly `libcurl` on our end) just seem to get... stuck.  It's
-      # very rare but it does happen.  Also, you may find heap growth to be an
-      # issue, and swapping might cause you some problems.  This allows a quick
-      # (under 0.5s last I measured) restart of the process.  It preserves state
-      # to disk as it goes, so it will come back quickly and gracefully with no
-      # more than a tiny hiccup in the simulation.
-      #
-      # Alternatively,  you may just want to do a quick reload after making a
-      # configuration change.
-      #
-      # Position is which of the control buttons to use for this
-      # kick-in-the-head function.
-      position: mixer
-      # What colors for the button.  Base color, and color while pressed.
-      colors:
-        "color": dark_gray
-        "down":  white
     intensity:
       # This is the set of controls for adjusting the intensity of the lights.
       # You should define one position for each Philips Hue Bridge (as this is
