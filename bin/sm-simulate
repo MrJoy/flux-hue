@@ -420,7 +420,7 @@ def launch_sweep_threads!(sweep_cfgs, logger)
     targets = config["targets"]
               .map do |(name, group)|
                 bridge = CONFIG["bridges"][name]
-                [bridge, bridges["groups"][group]]
+                [bridge, bridge["groups"][group]]
               end
     SweeperTask.new(targets:    targets,
                     config:     config,
