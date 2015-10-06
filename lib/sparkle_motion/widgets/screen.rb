@@ -2,6 +2,7 @@ module SparkleMotion
   module Widgets
     # A collection of widgets that can be enabled/disabled together.
     class Screen
+      include SparkleMotion::Hue::HTTP
       attr_accessor :widgets, :state
 
       def initialize(screen_set, controller, state, logger)
@@ -36,6 +37,21 @@ module SparkleMotion
         self
       end
 
+      def vertical_slider(name, position, size, colors:, default: 0, &handler)
+        widget = SparkleMotion::LaunchPad::Widgets::VerticalSlider
+                 .new(launchpad:   @controller,
+                      position:    SparkleMotion::Vector2.new(position),
+                      size:        size,
+                      colors:      colors,
+                      on_change:   proc do |val|
+                        state[name] = val
+                        handler.call(val) if handler
+                      end)
+        @defaults[name] = default
+        @widgets[name]  = widget
+        widget
+      end
+
       def radio_group(name, position, size, colors:, default: 0, allow_off: true, &handler)
         widget = SparkleMotion::LaunchPad::Widgets::RadioGroup
                  .new(launchpad:   @controller,
@@ -44,14 +60,14 @@ module SparkleMotion
                       colors:      colors,
                       on_select:   proc do |val|
                         state[name] = val
-                        handler.call(val)
+                        handler.call(val) if handler
                       end,
                       on_deselect: proc do |val|
                         if allow_off
                           state[name] = nil
-                          handler.call(nil)
+                          handler.call(nil) if handler
                         else
-                          update(val)
+                          update(val) if handler
                         end
                       end)
         @defaults[name] = default

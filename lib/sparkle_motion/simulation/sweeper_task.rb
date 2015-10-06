@@ -14,7 +14,7 @@ module SparkleMotion
         @data           = with_transition_time(@transition, "hue" => 0)
         @targets        = targets
                           .map do |(bridge, group_id)|
-                            url = group_update_url(bridge, group_id)
+                            url = hue_group_endpoint(bridge, group_id)
                             SparkleMotion::Hue::LazyRequestConfig.new(logger, bridge, :put, url) do
                               @data
                             end

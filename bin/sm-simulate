@@ -101,8 +101,8 @@ DEBUG_FLAGS   = Hash[(ENV["DEBUG_NODES"] || "")
 # Shared State Setup
 ###############################################################################
 # TODO: Run all simulations, and use a mixer to blend between them...
-num_lights              = CONFIG["light_groups"]["main_lights"].length
-LIGHTS_FOR_THREADS      = SparkleMotion::LightConfig.new(config: CONFIG, group: "main_lights")
+num_lights         = CONFIG["light_groups"]["main_lights"].length
+LIGHTS_FOR_THREADS = SparkleMotion::LightConfig.new(config: CONFIG, group: "main_lights")
 if USE_INPUT
   controllers = {}
   CONFIG["controllers"].each do |name, config|
@@ -163,48 +163,6 @@ LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), id
   end
 end
 
-def sat_req(ival, sat_len, sat_bridge, sat_group)
-  data = with_transition_time(sat_len, "sat" => (255 * ival).round)
-  { method:   :put,
-    url:      group_update_url(sat_bridge, sat_group),
-    put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
-end
-
-SAT_CTRLS   = {}
-sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
-sat_len     = sat_cfg["transition"]
-sat_colors  = sat_cfg["colors"]
-sat_vals    = sat_cfg["values"]
-sat_grps    = sat_cfg["groups"]
-sat_widget  = Kernel.const_get(sat_cfg["widget"])
-sat_cfg["positions_lp"].each_with_index do |pos, idx|
-  sat_grp_info  = sat_grps[idx]
-  sat_bridge    = CONFIG["bridges"][sat_grp_info[0]]
-  sat_group     = sat_grp_info[1]
-  sat_key       = "SAT_#{idx}"
-  sat_pos_lp    = SparkleMotion::Vector2.new(pos)
-  sat_pos_no    = SparkleMotion::Vector2.new(sat_cfg["positions_no"][idx])
-
-  SAT_CTRLS[sat_key] = sat_widget.new(launchpad:     INTERACTIONS["launchpad"],
-                                      orbit:         INTERACTIONS["orbit"],
-                                      position_lp:   sat_pos_lp,
-                                      position_no:   sat_pos_no,
-                                      size:          sat_vals.length,
-                                      colors:        sat_colors,
-                                      on_change:     proc { |val| STATE[sat_key] = val })
-  STATE.parameter!(sat_key, sat_vals.length - 1) do |_key, value|
-    SAT_CTRLS[sat_key].update(value)
-  end
-  STATE.on_change(sat_key) do |_key, value|
-    # TODO: Delay the saturation update until the brightness has taken effect.
-    ival, bri_max  = sat_vals[value]
-    req            = sat_req(ival, sat_len, sat_bridge, sat_group)
-    LOGGER.info { "Saturation[#{idx},#{value}]: #{ival}" }
-    NODES["SHIFTED_#{idx}"].clamp_to(bri_max)
-    PENDING_COMMANDS.each { |queue| queue << req }
-  end
-end
-
 sl_key               = "spotlighting"
 sl_cfg               = CONFIG["simulation"]["nodes"]["spotlighting"]
 sl_base              = sl_cfg["base"]
@@ -234,8 +192,67 @@ end
 SCREENS = SparkleMotion::Widgets::ScreenSet.new(INTERACTIONS, STATE, LOGGER)
 
 SCREENS.draw do
+  state.parameter!("spotlighting", nil)
+  # This defines which Hue Bridge, and which group on that bridge a control
+  # should affect.  It would be a bit nonsensical if this didn't correspond
+  # to the arrangement of lights for the intensity controls though.
+  STRAND_GROUPS = { strand1: { group1: ["Bridge-01", 0],
+                               group2: ["Bridge-02", 0] },
+                    strand2: { group1: ["Bridge-03", 0],
+                               group2: ["Bridge-04", 0] } }
+  SATURATION_GROUPS = [["Bridge-01", 0],
+                       ["Bridge-02", 0],
+                       ["Bridge-03", 0],
+                       ["Bridge-04", 0]]
+  # Values are [saturation, maximum brightness] -- and nil means "don't
+  # clamp brightness"
+  SATURATION_POINTS = [[0.2, 0.00],
+                       [0.6, 0.30],
+                       [0.8, 0.70],
+                       [1.0, nil]]
   screen("simulation", "launchpad") do
-    state.parameter!("spotlighting", nil)
+    SATURATION_TRANSITION = 0.5
+    # ORBIT_POS = [[0, 4],
+    #              [1, 4],
+    #              [2, 4],
+    #              [3, 4]]
+    SAT_COLORS = { on:   0x1C103F,
+                   off:  0x03030C,
+                   down: 0x10103F }
+    SAT_POSITIONS = [[4, 4],
+                     [5, 4],
+                     [6, 4],
+                     [7, 4]]
+    sat_size = SATURATION_POINTS.length
+    # def sat_req(ival, sat_bridge, sat_group)
+    #   data = { "sat"            => (255 * ival).round,
+    #            "transitiontime" => (SATURATION_TRANSITION * 10).round }
+    #   { method:   :put,
+    #     url:      group_update_url(sat_bridge, sat_group),
+    #     put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
+    # end
+
+    SAT_POSITIONS.each_with_index do |pos, idx|
+      sat_key = "sat#{idx}"
+      STATE.parameter!(sat_key, sat_size - 1) # do |_key, value|
+        # SAT_CTRLS[sat_key].update(value)
+      # end
+      group = SATURATION_GROUPS[idx]
+      group[0] = CONFIG["bridges"][group[0]]
+      vertical_slider(sat_key, pos, sat_size, colors:  SAT_COLORS) do |val|
+        # TODO: Delay the saturation update until the brightness has taken effect.
+        ival, bri_max = SATURATION_POINTS[val]
+        data = with_transition_time(SATURATION_TRANSITION, "sat" => (255 * ival).round)
+        req = { method:   :put,
+                url:      hue_group_endpoint(group[0], group[1]),
+                put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
+        LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
+        NODES["SHIFTED_#{idx}"].clamp_to(bri_max)
+        PENDING_COMMANDS.each { |queue| queue << req }
+      end
+    end
+
+
     # NOTE: Values are indexes into main_lights array.
     #
     # Excluding outermost lights because they extend beyond the seating area.
@@ -335,8 +352,6 @@ def clear_board!
   # TODO: don't do it from here to avoid startup overhead!
 
   INT_CONTROLS.values.map(&:blank)
-  sleep 0.01 # 88 updates/sec input limit!
-  SAT_CTRLS.values.map(&:blank)
   sleep 0.01 # 88 updates/sec input limit!
   SCREENS.stop
 end

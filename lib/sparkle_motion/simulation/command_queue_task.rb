@@ -7,11 +7,13 @@ module SparkleMotion
         super("CommandQueueTask", :early, logger) do
           requests = pending_commands
           next if requests.length == 0
-          LOGGER.debug { "Processing #{requests.length} pending commands." }
+          @logger.debug { "Processing #{requests.length} pending commands." }
           # TODO: Gather stats about success/failure...
           Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|
             next unless error?(easy)
-            LOGGER.warn { "#{@name}: Request failed: #{easy.url} => #{rc}; #{body}" }
+            rc    = easy.response_code
+            body  = easy.body
+            @logger.warn { "#{@name}: Request failed: #{easy.url} => #{rc}; #{body}" }
           end
         end
       end
