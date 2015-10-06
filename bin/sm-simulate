@@ -116,8 +116,6 @@ else
   INTERACTIONS = {}
 end
 NODES            = {}
-PENDING_COMMANDS = []
-STATE = SparkleMotion::Simulation::Parameters.new("/tmp/sparkle-motion.state", LOGGER)
 
 ###############################################################################
 # Simulation Graph Configuration / Setup
@@ -239,7 +237,8 @@ protected
   end
 end
 
-SIM = Simulator.new(INTERACTIONS, STATE, LOGGER)
+state = SparkleMotion::Simulation::Parameters.new("/tmp/sparkle-motion.state", LOGGER)
+SIM = Simulator.new(INTERACTIONS, state, LOGGER)
 SIM.load!("config.rb")
 
 ###############################################################################
@@ -305,7 +304,6 @@ def launch_graph_threads!(logger); [launch_graph_thread!(logger)]; end
 
 def launch_all_threads!(config, global_results, debug, logger)
   tmp = { graph:   launch_graph_threads!(logger),
-          command: [],
           lights:  launch_light_threads!(config["simulation"]["output"],
                                          global_results,
                                          debug["OUTPUT"],
@@ -365,7 +363,7 @@ end
 
 def stop!(threads)
   LOGGER.unknown { "Stopping threads..." }
-  %i(lights command graph).each do |thread_group|
+  %i(lights graph).each do |thread_group|
     threads[thread_group].each(&:stop)
   end
   threads[:all].map(&:await)
