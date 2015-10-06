@@ -347,47 +347,6 @@ simulation:
         "on":   0x22003F
         "off":  0x05000A
         "down": 0x27103F
-    saturation:
-      # The desaturation controller.  As above, it's one control per bridge and
-      # the `size` defines the height/width of the control.
-      #
-      # Transition time is how quickly to transition the saturation.  I suggest
-      # not going too quickly because while the saturation is updated en masse
-      # via group update, the brightness is done per-bulb in the main rendering
-      # loop -- and you probably don't want to blind everyone during the
-      # transition time.
-      widget: SparkleMotion::LaunchPad::Widgets::VerticalSlider
-      transition: 0.5
-      positions_lp:
-      - [4, 4]
-      - [5, 4]
-      - [6, 4]
-      - [7, 4]
-      positions_no:
-      - [0, 0]
-      - [1, 0]
-      - [2, 0]
-      - [3, 0]
-      # This defines which Hue Bridge, and which group on that bridge a control
-      # should affect.  It would be a bit nonsensical if this didn't correspond
-      # to the arrangement of lights for the intensity controls though.
-      groups:
-      - ["Bridge-01", 0]
-      - ["Bridge-02", 0]
-      - ["Bridge-03", 0]
-      - ["Bridge-04", 0]
-      values:
-      # Values are [saturation, maximum brightness] -- and null means "don't
-      # clamp brightness"
-      - [0.2, 0.00]
-      # - [0.4, 0.10]
-      - [0.6, 0.30]
-      - [0.8, 0.70]
-      - [1.0, null]
-      colors:
-        "on":   0x1C103F
-        "off":  0x03030C
-        "down": 0x10103F
 # TODO: Reallocate accent lights.
 # TODO: Allow sweepers to address a particular *group or light* at each step.
 # TODO: Allow arbitrary sweeper definitions.

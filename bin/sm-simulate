@@ -211,7 +211,15 @@ SCREENS.draw do
                        [0.8, 0.70],
                        [1.0, nil]]
   screen("simulation", "launchpad") do
-    SATURATION_TRANSITION = 0.5
+    # The desaturation controller.
+    #
+    # Transition time is how quickly to transition the saturation.  I suggest
+    # not going too quickly because while the saturation is updated en masse
+    # via group update, the brightness is done per-bulb in the main rendering
+    # loop -- and you probably don't want to blind everyone during the
+    # transition time.
+
+    SATURATION_TRANSITION = 1.0
     # ORBIT_POS = [[0, 4],
     #              [1, 4],
     #              [2, 4],
@@ -251,7 +259,6 @@ SCREENS.draw do
         PENDING_COMMANDS.each { |queue| queue << req }
       end
     end
-
 
     # NOTE: Values are indexes into main_lights array.
     #
