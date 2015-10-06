@@ -28,6 +28,7 @@ bridges:
     debug_hue: <%= color_step(0) %>
     groups:
       Accent: 2
+      AccentMain: 5 # All lights from Accent and Main
       Dance: 4
       Main: 1
       White: 3
@@ -38,6 +39,7 @@ bridges:
     debug_hue: <%= color_step(1) %>
     groups:
       Accent: 2
+      AccentMain: 5 # All lights from Accent and Main
       Dance: 4
       Main: 1
       White: 3
@@ -246,15 +248,13 @@ color_configs:
 sweepers:
 - name: "Strand1Group1"
   targets:
-  - [Bridge-01, Main]
-  - [Bridge-01, Accent]
+  - [Bridge-01, AccentMain]
   transition: <%= shared_sweep_transition %>
   wait:       <%= shared_sweep_wait %>
   values: *strand1_1_wedding
 - name: "Strand1Group2"
   targets:
-  - [Bridge-02, Main]
-  - [Bridge-02, Accent]
+  - [Bridge-02, AccentMain]
   transition: <%= shared_sweep_transition %>
   wait:       <%= shared_sweep_wait %>
   values: *strand1_2_wedding
