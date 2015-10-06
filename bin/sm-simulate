@@ -385,7 +385,7 @@ def launch_graph_thread!(logger)
 end
 
 def launch_sweep_threads!(sweep_cfgs, command_queue, logger)
-  return [] unless USE_LIGHTS && USE_SWEEP
+  return [] unless USE_SWEEP
   sweep_cfgs.map do |config|
     targets = config["targets"]
               .map do |(name, group)|
