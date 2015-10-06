@@ -10,6 +10,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "erb"
 require "yaml"
 require "logger-better"
+require "thread"
 
 # System for building interesting, dynamic lighting effects for the Philips Hue,
 # using the Novation Launchpad for control.
@@ -17,59 +18,79 @@ module SparkleMotion
   def self.logger; @logger; end
 
   def self.init!
-    @logger         = Logger::Better.new(STDOUT)
-    @logger.level   = (ENV["SPARKLEMOTION_LOGLEVEL"] || "info").downcase.to_sym
+    @logger          = Logger::Better.new(STDOUT)
+    @logger.level    = (ENV["SPARKLEMOTION_LOGLEVEL"] || "info").downcase.to_sym
     @logger.progname = caller.last.split(":", 2).first.split(%r{/}).last
   end
 
   # Load code for talking to Philips Hue lighting system.
+  HUE_API_DEPS = ["sparkle_motion/results",
+                  "sparkle_motion/hue/http",
+                  "sparkle_motion/hue/lazy_request_config"]
+  HUE_DISCOVERY_DEPS = ["frisky/ssdp",
+                        "sparkle_motion/hue/ssdp"]
   def self.use_hue!(discovery: false, api: false)
-    if api
-      require "sparkle_motion/results"
-      require "sparkle_motion/hue/http"
-      require "sparkle_motion/hue/lazy_request_config"
-    end
+    HUE_API_DEPS.each { |name| require name } if api
 
-    if discovery
-      require "sparkle_motion/hue/ssdp"
-    end
+    return unless discovery
+    HUE_DISCOVERY_DEPS.each { |name| require name }
+    Frisky.logging_enabled = false # Frisky is super verbose
   end
 
   # Load code for graph-structured effect generation.
-  def self.use_graph!
-    # Base classes:
-    require "sparkle_motion/node"
-    require "sparkle_motion/nodes/generator"
-    require "sparkle_motion/nodes/transform"
+  GRAPH_DEPS = ["perlin_noise",
+                # Base classes:
+                "sparkle_motion/node",
+                "sparkle_motion/nodes/generator",
+                "sparkle_motion/nodes/transform",
+                # Simulation root nodes:
+                "sparkle_motion/nodes/generators/const",
+                "sparkle_motion/nodes/generators/perlin",
+                "sparkle_motion/nodes/generators/wave2",
+                # Simulation transform nodes:
+                "sparkle_motion/nodes/transforms/contrast",
+                "sparkle_motion/nodes/transforms/range",
+                "sparkle_motion/nodes/transforms/spotlight"]
+  def self.use_graph!; GRAPH_DEPS.each { |name| require name }; end
 
-    # Simulation root nodes:
-    require "sparkle_motion/nodes/generators/const"
-    require "sparkle_motion/nodes/generators/perlin"
-    require "sparkle_motion/nodes/generators/wave2"
+  # Load code/widgets for Novation LaunchPad and Numark Orbit.
+  WIDGET_DEPS = ["ostruct",
+                 "sparkle_motion/launch_pad/widget",
+                 "sparkle_motion/launch_pad/widgets/toggle",
+                 "sparkle_motion/launch_pad/widgets/horizontal_slider",
+                 "sparkle_motion/launch_pad/widgets/vertical_slider",
+                 "sparkle_motion/launch_pad/widgets/radio_group",
+                 "sparkle_motion/launch_pad/widgets/button"]
+  def self.use_widgets!; WIDGET_DEPS.each { |name| require name }; end
 
-    # Simulation transform nodes:
-    require "sparkle_motion/nodes/transforms/contrast"
-    require "sparkle_motion/nodes/transforms/range"
-    require "sparkle_motion/nodes/transforms/spotlight"
-  end
+  INPUT_DEPS = ["surface_master"]
+  def self.use_input!; INPUT_DEPS.each { |name| require name }; end
 
-  def self.use_widgets!
-    require "sparkle_motion/launch_pad/widget"
-    require "sparkle_motion/launch_pad/widgets/horizontal_slider"
-    require "sparkle_motion/launch_pad/widgets/vertical_slider"
-    require "sparkle_motion/launch_pad/widgets/radio_group"
-    require "sparkle_motion/launch_pad/widgets/button"
-  end
+  CLI_DEPS = ["sparkle_motion/cli/argument_parser"]
+  def self.use_cli!; CLI_DEPS.each { |name| require name }; end
 
-  # Load code/widgets for Novation LaunchPad.
-  def self.use_input!
-    require "surface_master"
-  end
+  # Load code/widgets for processing audio data and interacting with audio devices.
+  AUDIO_DEPS = ["coreaudio",
+                "numru/fftw3",
+                "sparkle_motion/audio/input_stream",
+                "sparkle_motion/audio/device_input_stream",
+                "sparkle_motion/audio/file_input_stream",
+                "sparkle_motion/audio/output_stream",
+                "sparkle_motion/audio/device_output_stream",
+                "sparkle_motion/audio/band_pass_filter",
+                "sparkle_motion/audio/stream_reporter",
+                "sparkle_motion/audio/stream_filter"]
+  def self.use_audio!; AUDIO_DEPS.each { |name| require name }; end
+
+  CONFIG_DEPS = ["sparkle_motion/config",
+                 "sparkle_motion/light_config"]
+  def self.use_config!; CONFIG_DEPS.each { |name| require name }; end
 end
 
 require "sparkle_motion/version"
 require "sparkle_motion/flow_control"
-require "sparkle_motion/config"
-require "sparkle_motion/light_config"
+require "sparkle_motion/task"
+require "sparkle_motion/managed_task"
+require "sparkle_motion/unmanaged_task"
 require "sparkle_motion/env"
 require "sparkle_motion/stop_watch"
