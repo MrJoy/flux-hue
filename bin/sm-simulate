@@ -256,9 +256,8 @@ def kick!
 end
 
 class Screen
-  def initialize(controller, colors, logger)
+  def initialize(controller, logger)
     @controller = controller
-    @colors     = colors
     @logger     = logger
     @widgets    = {}
     @defaults   = {}
@@ -286,29 +285,18 @@ class Screen
     widget =  SparkleMotion::LaunchPad::Widgets::Button
               .new(launchpad:  @controller,
                    position:   position.to_sym,
-                   colors:     resolve_colors(colors),
+                   colors:     colors,
                    on_press:   handler)
     # TODO: Want to gate this...
     @defaults[name] = false
     @widgets[name] = widget
     self
   end
-
-protected
-
-  def resolve_colors(colors)
-    resolved = {}
-    colors.each do |role, color|
-      color = @colors.const_get(color.to_s.upcase) if color.is_a?(Symbol)
-      resolved[role.to_s] = color.to_h
-    end
-    resolved
-  end
 end
 
 SCREENS = {}
 SCREENS["main"] = Screen
-                  .new(INTERACTIONS["launchpad"], SparkleMotion::LaunchPad::Color, LOGGER)
+                  .new(INTERACTIONS["launchpad"], LOGGER)
                   .draw do
                     # Sometimes the process(es) on Hue Bridge that a thread is connected to
                     # (or possibly `libcurl` on our end) just seem to get... stuck.  It's
