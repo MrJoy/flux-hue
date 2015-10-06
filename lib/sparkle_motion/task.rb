@@ -17,7 +17,7 @@ module SparkleMotion
 
     def start
       @logger.info { "#{@name}: Starting task..." }
-      wait_for(@thread, "sleep")
+      sleep 0.02 while @thread.status != "sleep"
       @thread.run
     end
 

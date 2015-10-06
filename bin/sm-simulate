@@ -349,13 +349,13 @@ def setup_exit_controls!
   EXIT_BUTTON.update(false)
 end
 
-def launch_input_threads!
+def launch_input_threads!(logger)
   setup_control_state!
 
   return [] unless USE_INPUT
 
   INTERACTIONS
-    .map { |(nn, cc)| SparkleMotion::Simulation::SurfaceMasterTask.new(nn, cc, LOGGER) }
+    .map { |(nn, cc)| SparkleMotion::Simulation::SurfaceMasterTask.new(nn, cc, logger) }
     .compact
 end
 
@@ -372,9 +372,9 @@ def setup_control_state!
   PENDING_COMMANDS.clear if HAVE_STATE_FILE
 end
 
-def launch_graph_thread!
+def launch_graph_thread!(logger)
   return nil unless USE_GRAPH
-  SparkleMotion::Simulation::GraphTask.new("Main", LOGGER)
+  SparkleMotion::Simulation::GraphTask.new("Main", logger)
 end
 
 def add_group_command!(bridge, group_id, data)
@@ -424,33 +424,15 @@ protected
   end
 end
 
-def launch_sweep_threads!(sweep_cfg)
+def launch_sweep_threads!(sweep_cfgs, logger)
   return [] unless USE_LIGHTS && USE_SWEEP
-  CONFIG["bridges"].map do |(name, bridge)|
-    SweeperTask.new(bridge:     bridge,
-                    group_id:   0,
-                    config:     sweep_cfg[name],
-                    logger:     LOGGER)
+  sweep_cfgs.map do |config|
+    target = config["target"]
+    SweeperTask.new(bridge:     CONFIG["bridges"][target[0]],
+                    group_id:   target[1],
+                    config:     config,
+                    logger:     logger)
   end
-end
-
-class DummyTask < SparkleMotion::ManagedTask
-  def initialize(iterations, logger)
-    @iterations = iterations
-    super("DummyTask", logger) do
-      if @iterations > 0
-        sleep 5 * @iterations
-        TIME_TO_DIE[0] = true
-      else
-        # We have an input device to control us, so just sleep until we're told to go away.
-        sleep 0.5 until TIME_TO_DIE[0]
-      end
-    end
-  end
-end
-
-def launch_dummy_light_threads!
-  [DummyTask.new(ITERATIONS, LOGGER)]
 end
 
 class RenderTask < SparkleMotion::ManagedTask
@@ -488,7 +470,7 @@ protected
   end
 end
 
-def light_thread!(bridge, transition, global_results, debug)
+def light_thread!(bridge, transition, global_results, debug, logger)
   lights = LIGHTS_FOR_THREADS.lights[bridge["name"]]
 
   LOGGER.unknown do
@@ -532,27 +514,31 @@ protected
   end
 end
 
-def launch_light_threads!(cfg, global_results, debug)
+def launch_light_threads!(cfg, global_results, debug, logger)
   threads = []
-  return launch_dummy_light_threads! unless USE_LIGHTS
+  return [] unless USE_LIGHTS
 
   transition  = cfg["transition"]
   threads    += LIGHTS_FOR_THREADS.bridges.values.map do |bridge|
-    light_thread!(bridge, transition, global_results, debug)
+    light_thread!(bridge, transition, global_results, debug, logger)
   end
 
   threads << CommandQueueTask.new(LOGGER)
 
-  threads.compact
+  threads
 end
 
-def launch_graph_threads!; [launch_graph_thread!].compact; end
+def launch_graph_threads!(logger); [launch_graph_thread!(logger)]; end
 
-def launch_all_threads!(sim_cfg, global_results)
-  tmp = { input:  launch_input_threads!,
-          graph:  launch_graph_threads!,
-          sweep:  launch_sweep_threads!(sim_cfg["sweep"]).compact,
-          lights: launch_light_threads!(sim_cfg["output"], global_results, DEBUG_FLAGS["OUTPUT"]) }
+def launch_all_threads!(config, global_results, debug, logger)
+  tmp = { input:  launch_input_threads!(logger),
+          graph:  launch_graph_threads!(logger),
+          sweep:  launch_sweep_threads!(config["sweepers"], logger),
+          lights: launch_light_threads!(config["simulation"]["output"],
+                                        global_results,
+                                        debug["OUTPUT"],
+                                        logger) }
+  tmp.values.map(&:compact!)
   tmp[:all] = tmp.values.flatten.compact
   tmp
 end
@@ -573,11 +559,6 @@ end
 
 def debugging?
   nodes_under_debug.length > 0 || DEBUG_FLAGS["OUTPUT"] || PROFILE_RUN
-end
-
-def wait_for_threads!(threads)
-  LOGGER.unknown { "Waiting for threads to finish initializing..." }
-  wait_for(threads, "sleep")
 end
 
 def init!(global_results)
@@ -614,6 +595,7 @@ def stop!(threads)
   %i(lights sweep graph input).each do |thread_group|
     threads[thread_group].each(&:stop)
   end
+  threads[:all].map(&:await)
 end
 
 def main
@@ -622,9 +604,8 @@ def main
   announce_iteration_config(ITERATIONS)
 
   global_results  = SparkleMotion::Results.new(logger: LOGGER) if defined?(SparkleMotion::Results)
-  threads         = launch_all_threads!(CONFIG["simulation"], global_results)
+  threads         = launch_all_threads!(CONFIG, global_results, DEBUG_FLAGS, LOGGER)
 
-  wait_for_threads!(threads[:all])
   init!(global_results)
   wake!(threads[:all])
   spin!(threads[:lights])

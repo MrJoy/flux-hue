@@ -11,11 +11,7 @@ module SparkleMotion
       super
     end
 
-    def stop
-      @end_signal = true
-      # TODO: Separate out the join step and make it the caller's responsibility.
-      await
-    end
+    def stop; @end_signal = true; end
 
   protected
 

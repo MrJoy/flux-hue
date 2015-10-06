@@ -5,6 +5,10 @@ def random_color(steps); Random.rand(65536); end
 base_hue  = 50_000
 min_hue   = base_hue - 2_000
 max_hue   = base_hue + 2_000
+
+shared_sweep_transition = 0.5
+shared_sweep_wait       = 1.0
+
 -%>
 ---
 # The username for the Philips Hue Bridge(s).  You can either create one and
@@ -142,6 +146,78 @@ controllers:
     class: SurfaceMaster::Launchpad::Interaction
   orbit:
     class: SurfaceMaster::Orbit::Interaction
+  # This defines the color-swirl effect, per group.  It's a list of
+  # steps, the time take (in seconds) LERPing from color to color, and the
+  # time to wait between steps.
+  #
+  # Don't set wait much below 1.0!  ZigBee spec only allows 1 group
+  # update/sec, but Hue Bridge/lights seem to be *mostly* OK with about 1
+  # every 0.75 sec...
+sweepers:
+- target: [Bridge-01, 0]
+  transition: <%= shared_sweep_transition %>
+  wait:       <%= shared_sweep_wait %>
+  values:
+  # - <%= random_color(0) %>
+  # - <%= random_color(1) %>
+  # - <%= random_color(2) %>
+  # - <%= random_color(3) %>
+  # - <%= random_color(4) %>
+  # - <%= random_color(5) %>
+  # - <%= random_color(6) %>
+  # - <%= random_color(7) %>
+  - <%= base_hue %>
+  - <%= min_hue %>
+  - <%= base_hue %>
+  - <%= max_hue %>
+- target: [Bridge-02, 0]
+  transition: <%= shared_sweep_transition %>
+  wait:       <%= shared_sweep_wait %>
+  values:
+  # - <%= random_color(1) %>
+  # - <%= random_color(2) %>
+  # - <%= random_color(3) %>
+  # - <%= random_color(4) %>
+  # - <%= random_color(5) %>
+  # - <%= random_color(6) %>
+  # - <%= random_color(7) %>
+  # - <%= random_color(8) %>
+  - <%= min_hue %>
+  - <%= base_hue %>
+  - <%= max_hue %>
+  - <%= base_hue %>
+- target: [Bridge-03, 0]
+  transition: <%= shared_sweep_transition %>
+  wait:       <%= shared_sweep_wait %>
+  values:
+  # - <%= random_color(2) %>
+  # - <%= random_color(3) %>
+  # - <%= random_color(4) %>
+  # - <%= random_color(5) %>
+  # - <%= random_color(6) %>
+  # - <%= random_color(7) %>
+  # - <%= random_color(8) %>
+  # - <%= random_color(9) %>
+  - <%= base_hue %>
+  - <%= max_hue %>
+  - <%= base_hue %>
+  - <%= min_hue %>
+- target: [Bridge-04, 0]
+  transition: <%= shared_sweep_transition %>
+  wait:       <%= shared_sweep_wait %>
+  values:
+  # - <%= random_color(3) %>
+  # - <%= random_color(4) %>
+  # - <%= random_color(5) %>
+  # - <%= random_color(6) %>
+  # - <%= random_color(7) %>
+  # - <%= random_color(8) %>
+  # - <%= random_color(9) %>
+  # - <%= random_color(10) %>
+  - <%= max_hue %>
+  - <%= base_hue %>
+  - <%= min_hue %>
+  - <%= base_hue %>
 simulation:
   output:
     # This controls the amount of time (in seconds, but only to a precision of
@@ -151,81 +227,6 @@ simulation:
     # brightness it's currently at to the new value, again spread over the full
     # transition time.
     transition: 0.2
-  sweep:
-    # This defines the color-swirl effect, per Hue Bridge.  It's a list of
-    # steps, the time take (in seconds) LERPing from color to color, and the
-    # time to wait between steps.
-    #
-    # Don't set wait much below 1.0!  ZigBee spec only allows 1 group
-    # update/sec, but Hue Bridge/lights seem to be *mostly* OK with about 1
-    # every 0.75 sec...
-    shared_sweep_transition: &shared_sweep_transition 0.5
-    shared_sweep_wait: &shared_sweep_wait 1.0
-
-    Bridge-01:
-      transition: *shared_sweep_transition
-      wait:       *shared_sweep_wait
-      values:
-      # - <%= random_color(0) %>
-      # - <%= random_color(1) %>
-      # - <%= random_color(2) %>
-      # - <%= random_color(3) %>
-      # - <%= random_color(4) %>
-      # - <%= random_color(5) %>
-      # - <%= random_color(6) %>
-      # - <%= random_color(7) %>
-      - <%= base_hue %>
-      - <%= min_hue %>
-      - <%= base_hue %>
-      - <%= max_hue %>
-    Bridge-02:
-      transition: *shared_sweep_transition
-      wait:       *shared_sweep_wait
-      values:
-      # - <%= random_color(1) %>
-      # - <%= random_color(2) %>
-      # - <%= random_color(3) %>
-      # - <%= random_color(4) %>
-      # - <%= random_color(5) %>
-      # - <%= random_color(6) %>
-      # - <%= random_color(7) %>
-      # - <%= random_color(8) %>
-      - <%= min_hue %>
-      - <%= base_hue %>
-      - <%= max_hue %>
-      - <%= base_hue %>
-    Bridge-03:
-      transition: *shared_sweep_transition
-      wait:       *shared_sweep_wait
-      values:
-      # - <%= random_color(2) %>
-      # - <%= random_color(3) %>
-      # - <%= random_color(4) %>
-      # - <%= random_color(5) %>
-      # - <%= random_color(6) %>
-      # - <%= random_color(7) %>
-      # - <%= random_color(8) %>
-      # - <%= random_color(9) %>
-      - <%= base_hue %>
-      - <%= max_hue %>
-      - <%= base_hue %>
-      - <%= min_hue %>
-    Bridge-04:
-      transition: *shared_sweep_transition
-      wait:       *shared_sweep_wait
-      values:
-      # - <%= random_color(3) %>
-      # - <%= random_color(4) %>
-      # - <%= random_color(5) %>
-      # - <%= random_color(6) %>
-      # - <%= random_color(7) %>
-      # - <%= random_color(8) %>
-      # - <%= random_color(9) %>
-      # - <%= random_color(10) %>
-      - <%= max_hue %>
-      - <%= base_hue %>
-      - <%= min_hue %>
-      - <%= base_hue %>
   nodes:
     perlin:
       # The speed parameter as a multiplier on `(x, time)` to map the Perlin
