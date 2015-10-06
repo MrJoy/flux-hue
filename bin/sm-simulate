@@ -78,6 +78,7 @@ SparkleMotion.use_input! if USE_INPUT
 require "sparkle_motion/simulation/output"
 require "sparkle_motion/simulation/surface_master_task"
 require "sparkle_motion/simulation/graph_task"
+require "sparkle_motion/simulation/sweeper_task"
 extend SparkleMotion::Simulation::Output
 extend SparkleMotion::Hue::HTTP
 extend SparkleMotion::FlowControl
@@ -384,36 +385,6 @@ def add_group_command!(bridge, group_id, data)
                         put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
 end
 
-class SweeperTask < SparkleMotion::TickTask
-  include SparkleMotion::Hue::HTTP
-
-  def initialize(targets:, config:, logger:)
-    @targets    = targets
-    @hues       = config["values"]
-    @transition = config["transition"]
-    @wait       = config["wait"]
-
-    super("SweeperTask[#{config['name']}]", @wait, logger)
-
-    validate_params!
-  end
-
-  def tick(time)
-    idx = ((time / @wait) % @hues.length).floor
-    # TODO: Recycle hashes?
-    @targets.each do |(bridge, group_id)|
-      add_group_command!(bridge, group_id, with_transition_time(@transition, "hue" => @hues[idx]))
-    end
-  end
-
-protected
-
-  def validate_params!
-    logger.warn { "#{@name}: Wait should be >= transition!" } if @wait < @transition
-    logger.warn { "#{@name}: Wait should be >= 1 second!" } if @wait < 1.0
-  end
-end
-
 def launch_sweep_threads!(sweep_cfgs, logger)
   return [] unless USE_LIGHTS && USE_SWEEP
   sweep_cfgs.map do |config|
@@ -422,9 +393,9 @@ def launch_sweep_threads!(sweep_cfgs, logger)
                 bridge = CONFIG["bridges"][name]
                 [bridge, bridge["groups"][group]]
               end
-    SweeperTask.new(targets:    targets,
-                    config:     config,
-                    logger:     logger)
+    SparkleMotion::Simulation::SweeperTask.new(targets: targets,
+                                               config:  config,
+                                               logger:  logger)
   end
 end
 
