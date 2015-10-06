@@ -157,13 +157,13 @@ module SparkleMotion
       end
 
       def attach_handler!
+        return unless launchpad
         attach_grid_handler!
         attach_position_handler!
       end
 
       def attach_grid_handler!
         return unless on_grid?
-        return unless launchpad
         xx, yy = expand_range
         launchpad.response_to(:grid, :down, x: xx, y: yy) do |_inter, action|
           handle_grid_response_down(action)
@@ -175,7 +175,6 @@ module SparkleMotion
 
       def attach_position_handler!
         return if on_grid?
-        return unless launchpad
         launchpad.response_to(@position, :down) do |_inter, _action|
           handle_command_response_down
         end
