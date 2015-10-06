@@ -282,15 +282,14 @@ class Screen
     self
   end
 
-  def button(name, position, colors, &handler)
+  def button(name, position, colors:, &handler)
     widget =  SparkleMotion::LaunchPad::Widgets::Button
               .new(launchpad:  @controller,
                    position:   position.to_sym,
                    colors:     colors,
                    on_press:   handler)
-    # TODO: Want to gate this...
     @defaults[name] = false
-    @widgets[name] = widget
+    @widgets[name]  = widget
     self
   end
 end
@@ -313,8 +312,8 @@ SCREENS["main"] = Screen
                     # Position is which of the control buttons to use for this
                     # kick-in-the-head function.
                     # TODO: Make this optional.
-                    button("exit", :mixer, color: :dark_gray,
-                                           down:  :white) { kick! }
+                    button("exit", :mixer, colors: { color: :dark_gray,
+                                                     down:  :white }) { kick! }
                   end
 
 
