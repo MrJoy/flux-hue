@@ -113,46 +113,115 @@ if USE_INPUT
 else
   INTERACTIONS = {}
 end
-INT_STATES              = []
-NODES                   = {}
-PENDING_COMMANDS        = []
-CURRENT_STATE           = {}
-STATE_FILENAME          = "/tmp/sparkle-motion.state"
-SKIP_STATE_PERSISTENCE  = [false]
-HAVE_STATE_FILE         = File.exist?(STATE_FILENAME)
-if HAVE_STATE_FILE
-  age = Time.now.to_f - File.stat(STATE_FILENAME).mtime.to_f
-  if age > 3600
-    LOGGER.warn do
-      "#{STATE_FILENAME} is #{age} seconds old!"\
-        "  This is probably not what you want, but you're the boss..."
+INT_CONTROLS     = {}
+NODES            = {}
+PENDING_COMMANDS = []
+
+class Parameters
+  class Parameter
+    attr_reader :name, :value, :callbacks
+    def initialize(name, value, &initializer)
+      @name         = name
+      @value        = value
+      @callbacks    = []
+      @calling      = false
+      @initializer  = initializer
+    end
+
+    def value=(val)
+      return if value == val || @calling
+      @value = val
+      on_change
+    end
+
+    def init!; on_change(true); end
+
+  protected
+
+    def on_change(init = false)
+      @calling = true
+      @callbacks.each { |cb| cb.call(@name, @value) }
+      @initializer.call(@name, @value) if init && @initializer
+    ensure
+      @calling = false
     end
   end
-  begin
-    state_temp = YAML.load_file(STATE_FILENAME)
-  rescue Psych::SyntaxError => pse
-    LOGGER.error { "Got error parsing state file: " }
-    LOGGER.error { pse }
-  end
-  CURRENT_STATE.merge!(state_temp) if state_temp
-end
 
-def update_state!(key, value)
-  old_value = CURRENT_STATE[key]
-  return if old_value == value
-  CURRENT_STATE[key] = value
-  return if SKIP_STATE_PERSISTENCE[0]
-  LOGGER.debug { "Persisting control state." }
-  # TODO: Maybe keep the file open, and rewind?
-  File.open(STATE_FILENAME, "w") do |fh|
-    fh.write(CURRENT_STATE.to_yaml)
-  end
-end
+  attr_accessor :enabled
 
-class PersistentState
-  def initialize(filename)
+  def initialize(filename, logger)
+    @logger     = logger
+    @filename   = filename
+    @enabled    = false
+    @parameters = Hash.new do |_data, key|
+      @logger.warn { "Parameters[#{key}]: Unrecognized key!" }
+      nil
+    end
+  end
+
+  def init!
+    @parameters.values.map(&:init!)
+  end
+
+  def save!
+    return unless @enabled
+    @logger.debug { "Parameters: Persisting state." }
+    # TODO: Maybe keep the file open, and rewind?
+    File.open(@filename, "w") do |fh|
+      fh.write(Hash[@parameters.values.map { |pp| [pp.name, pp.value] }].to_yaml)
+    end
+  end
+
+  def load!
+    return unless File.exist?(@filename)
+    @logger.debug { "Parameters: Restoring state." }
+    check_age
+
+    begin
+      (YAML.load_file(@filename) || {})
+        .each do |key, value|
+          @parameters[key].value = value if @parameters.key?(key)
+        end
+    rescue Psych::SyntaxError => pse
+      LOGGER.error { "Parameters: Error parsing state file!" }
+      LOGGER.error { pse }
+    end
+  end
+
+  def check_age
+    age = Time.now.to_f - File.stat(@filename).mtime.to_f
+    return unless age > 3600
+    logger.warn do
+      "Parameters: #{@filename} is #{age} seconds old!"\
+        "  Probably NOT what you want, but you're the boss..."
+    end
+  end
+
+  def parameter!(key, default, &initializer)
+    fail "Tried to re-register parameter: #{key}!" if @parameters.key?(key)
+    @parameters[key] = Parameter.new(key, default, &initializer)
+    @parameters[key].callbacks << proc { save! }
+  end
+
+  def on_change(key, &callback)
+    param = @parameters[key]
+    return nil unless param
+    param.callbacks << callback
+  end
+
+  def [](key)
+    param = @parameters[key]
+    return nil unless param
+    param.value
+  end
+
+  def []=(key, value)
+    param = @parameters[key]
+    return nil unless param
+    param.value = value
   end
 end
+STATE = Parameters.new("/tmp/sparkle-motion.state", LOGGER)
 
 ###############################################################################
 # Simulation Graph Configuration / Setup
@@ -176,24 +245,26 @@ LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), id
   mask        = LIGHTS_FOR_THREADS.masks[bridge_name]
   int_vals    = intensity_cfg["values"]
   int_key     = "SHIFTED_#{idx}"
-  last        = SparkleMotion::Nodes::Transforms::Range.new(source:     last,
-                                                            mask:       mask,
-                                                            logger:     LOGGER)
-  NODES[int_key]  = last
+  last        = NODES[int_key] = SparkleMotion::Nodes::Transforms::Range.new(source: last,
+                                                                             mask:   mask,
+                                                                             logger: LOGGER)
   int_colors      = intensity_cfg["colors"]
   pos             = SparkleMotion::Vector2.new(intensity_cfg["positions"][idx])
   size            = int_vals.length
   int_widget      = Kernel.const_get(intensity_cfg["widget"])
-  INT_STATES[idx] = int_widget.new(launchpad: INTERACTIONS["launchpad"],
-                                   position:  pos,
-                                   size:      size,
-                                   colors:    int_colors,
-                                   on_change: proc do |val|
-                                     ival = int_vals[val]
-                                     LOGGER.info { "Intensity[#{idx},#{val}]: #{ival}" }
-                                     NODES[int_key].set_range(ival[0], ival[1])
-                                     update_state!(int_key, val)
-                                   end)
+  INT_CONTROLS[int_key] = int_widget.new(launchpad: INTERACTIONS["launchpad"],
+                                         position:  pos,
+                                         size:      size,
+                                         colors:    int_colors,
+                                         on_change: proc { |val| STATE[int_key] = val })
+
+  STATE.parameter!(int_key, INT_CONTROLS[int_key].max_v / 2)
+  STATE.on_change(int_key) do |key, value|
+    ival = int_vals[value]
+    LOGGER.info { "Intensity[#{idx},#{value}]: #{ival}" }
+    NODES[key].set_range(*ival)
+    INT_CONTROLS[key].update(value)
+  end
 end
 
 def sat_req(ival, sat_len, sat_bridge, sat_group)
@@ -203,7 +274,7 @@ def sat_req(ival, sat_len, sat_bridge, sat_group)
     put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
 end
 
-SAT_STATES = []
+SAT_CTRLS   = {}
 sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
 sat_len     = sat_cfg["transition"]
 sat_colors  = sat_cfg["colors"]
@@ -214,39 +285,42 @@ sat_cfg["positions_lp"].each_with_index do |pos, idx|
   sat_grp_info  = sat_grps[idx]
   sat_bridge    = CONFIG["bridges"][sat_grp_info[0]]
   sat_group     = sat_grp_info[1]
-  sat_key       = "SAT_STATES[#{idx}]"
+  sat_key       = "SAT_#{idx}"
   sat_pos_lp    = SparkleMotion::Vector2.new(pos)
   sat_pos_no    = SparkleMotion::Vector2.new(sat_cfg["positions_no"][idx])
-  int_key       = "SHIFTED_#{idx}"
-  SAT_STATES << sat_widget.new(launchpad:     INTERACTIONS["launchpad"],
-                               orbit:         INTERACTIONS["orbit"],
-                               position_lp:   sat_pos_lp,
-                               position_no:   sat_pos_no,
-                               size:          sat_vals.length,
-                               colors:        sat_colors,
-                               on_change:     proc do |val|
-                                 ival, bri_max  = sat_vals[val]
-                                 req            = sat_req(ival, sat_len, sat_bridge, sat_group)
-                                 LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
-                                 NODES[int_key].clamp_to(bri_max)
-                                 # TODO: Delay the saturation update until the
-                                 # brightness has taken effect.
-                                 PENDING_COMMANDS.each { |queue| queue << req }
-                                 update_state!(sat_key, val)
-                               end)
+
+  SAT_CTRLS[sat_key] = sat_widget.new(launchpad:     INTERACTIONS["launchpad"],
+                                      orbit:         INTERACTIONS["orbit"],
+                                      position_lp:   sat_pos_lp,
+                                      position_no:   sat_pos_no,
+                                      size:          sat_vals.length,
+                                      colors:        sat_colors,
+                                      on_change:     proc { |val| STATE[sat_key] = val })
+  STATE.parameter!(sat_key, sat_vals.length - 1) do |_key, value|
+    SAT_CTRLS[sat_key].update(value)
+  end
+  STATE.on_change(sat_key) do |_key, value|
+    # TODO: Delay the saturation update until the brightness has taken effect.
+    ival, bri_max  = sat_vals[value]
+    req            = sat_req(ival, sat_len, sat_bridge, sat_group)
+    LOGGER.info { "Saturation[#{idx},#{value}]: #{ival}" }
+    NODES["SHIFTED_#{idx}"].clamp_to(bri_max)
+    PENDING_COMMANDS.each { |queue| queue << req }
+  end
 end
 
-sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
-sl_base                 = sl_cfg["base"]
-sl_exp                  = sl_cfg["exponent"]
-last = NODES["SPOTLIT"] = SparkleMotion::Nodes::Transforms::Spotlight.new(source:   last,
-                                                                          base:     sl_base,
-                                                                          exponent: sl_exp)
+sl_key               = "SPOTLIT"
+sl_cfg               = CONFIG["simulation"]["controls"]["spotlighting"]
+sl_base              = sl_cfg["base"]
+sl_exp               = sl_cfg["exponent"]
+last = NODES[sl_key] = SparkleMotion::Nodes::Transforms::Spotlight.new(source:   last,
+                                                                       base:     sl_base,
+                                                                       exponent: sl_exp)
+
 FINAL_RESULT            = last # The end node that will be rendered to the lights.
 sl_colors               = sl_cfg["colors"]
 sl_map                  = sl_cfg["mappings"]
 sl_pos_map              = sl_map.flatten
-sl_key                  = "SPOTLIT"
 sl_pos                  = SparkleMotion::Vector2.new(sl_cfg["position"])
 sl_size                 = SparkleMotion::Vector2.new(sl_map.map(&:length).sort[-1], sl_map.length)
 sl_widget               = Kernel.const_get(sl_cfg["class"])
@@ -254,16 +328,20 @@ SL_STATE                = sl_widget.new(launchpad:   INTERACTIONS["launchpad"],
                                         position:    sl_pos,
                                         size:        sl_size,
                                         colors:      sl_colors,
-                                        on_select:   proc do |x|
-                                          LOGGER.info { "Spot ##{sl_pos_map[x]}" }
-                                          NODES[sl_key].spotlight!(sl_pos_map[x])
-                                          update_state!(sl_key, x)
-                                        end,
-                                        on_deselect: proc do
-                                          LOGGER.info { "Spot Off" }
-                                          NODES[sl_key].spotlight!(nil)
-                                          update_state!(sl_key, nil)
-                                        end)
+                                        on_select:   proc { |x| STATE["SPOTLIT"] = x },
+                                        on_deselect: proc { STATE["SPOTLIT"] = nil })
+
+STATE.parameter!(sl_key, nil)
+STATE.on_change(sl_key) do |_key, value|
+  val = sl_pos_map[value] if value
+  if val
+    LOGGER.info { "Spot ##{val}" }
+  else
+    LOGGER.info { "Spot Off" }
+  end
+  NODES[sl_key].spotlight!(val)
+  SL_STATE.update(value)
+end
 
 NODES.each do |name, node|
   node.debug = DEBUG_FLAGS[name]
@@ -320,36 +398,23 @@ def clear_board!
   # TODO: Hoist setup / teardown of the board into separate binaries and
   # TODO: don't do it from here to avoid startup overhead!
 
-  INT_STATES.map(&:blank)
+  INT_CONTROLS.values.map(&:blank)
   sleep 0.01 # 88 updates/sec input limit!
-  SAT_STATES.map(&:blank)
+  SAT_CTRLS.values.map(&:blank)
   sleep 0.01 # 88 updates/sec input limit!
   SL_STATE.blank
   sleep 0.01
   EXIT_BUTTON.blank
 end
 
-def without_persistence(&block)
-  SKIP_STATE_PERSISTENCE[0] = defined?(LaunchPad) ? true : false
+def without_persistence(command_queue, &block)
+  prev = STATE.enabled
+  command_queue.disable! if command_queue
+  STATE.enabled = false
   block.call
 ensure
-  SKIP_STATE_PERSISTENCE[0] = false
-end
-
-def setup_intensity_controls!
-  INT_STATES.each_with_index do |ctrl, idx|
-    ctrl.update(CURRENT_STATE.fetch("SHIFTED_#{idx}", ctrl.max_v / 2))
-  end
-end
-
-def setup_saturation_controls!
-  SAT_STATES.each_with_index do |ctrl, idx|
-    ctrl.update(CURRENT_STATE.fetch("SAT_STATES[#{idx}]", ctrl.max_v))
-  end
-end
-
-def setup_spotlight_controls!
-  SL_STATE.update(CURRENT_STATE.fetch("SPOTLIT", nil))
+  command_queue.enable! if command_queue
+  STATE.enabled = prev
 end
 
 def setup_exit_controls!
@@ -367,16 +432,12 @@ def launch_input_threads!(command_queue, logger)
 end
 
 def setup_control_state!(command_queue)
-  without_persistence do
-    setup_intensity_controls!
-    setup_saturation_controls!
-    setup_spotlight_controls!
-    setup_exit_controls!
+  without_persistence(command_queue) do
+    STATE.load!
+    STATE.init!
+    EXIT_BUTTON.update(false)
   end
-
-  # Don't send updates from our attempts at setting things up when we're picking up where we left
-  # off...
-  command_queue.clear if command_queue
+  STATE.enabled = true
 end
 
 def launch_graph_thread!(logger)

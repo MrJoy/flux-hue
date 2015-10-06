@@ -3,6 +3,7 @@ module SparkleMotion
     class CommandQueueTask < SparkleMotion::ManagedTask
       def initialize(logger)
         @queue = Queue.new
+        @enabled = false
         super("CommandQueueTask", :early, logger) do
           requests = pending_commands
           next if requests.length == 0
@@ -15,7 +16,13 @@ module SparkleMotion
         end
       end
 
-      def <<(val); @queue << val; end
+      def <<(val)
+        return unless @enabled
+        @queue << val
+      end
+
+      def enable!; @enabled = true; end
+      def disable!; @enabled = false; end
 
       def clear; @queue.clear; end
 
