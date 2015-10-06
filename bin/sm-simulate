@@ -384,7 +384,7 @@ def add_group_command!(bridge, group_id, data)
                         put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
 end
 
-class SweeperTask < SparkleMotion::ManagedTask
+class SweeperTask < SparkleMotion::TickTask
   include SparkleMotion::Hue::HTTP
 
   def initialize(targets:, config:, logger:)
@@ -393,25 +393,14 @@ class SweeperTask < SparkleMotion::ManagedTask
     @transition = config["transition"]
     @wait       = config["wait"]
 
-    super("SweeperTask[#{config['name']}]", :early, logger) do
-      perform_with_duration do |time|
-        tick(time)
-      end
-    end
+    super("SweeperTask[#{config['name']}]", @wait, logger)
 
     validate_params!
   end
 
-  def perform_with_duration(&callback)
-    before_time = Time.now.to_f
-    callback.call(before_time)
-    elapsed = Time.now.to_f - before_time
-    sleep @wait - elapsed if elapsed < @wait
-  end
-
   def tick(time)
     idx = ((time / @wait) % @hues.length).floor
-    # TODO: Recycle this hash?
+    # TODO: Recycle hashes?
     @targets.each do |(bridge, group_id)|
       add_group_command!(bridge, group_id, with_transition_time(@transition, "hue" => @hues[idx]))
     end
