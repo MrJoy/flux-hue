@@ -20,6 +20,7 @@ module SparkleMotion
         render if render_now
       end
 
+      # TODO: Batch rendering support.
       def render
         @pressed.map do |idx, state|
           next unless state
