@@ -418,7 +418,10 @@ def launch_sweep_threads!(sweep_cfgs, logger)
   return [] unless USE_LIGHTS && USE_SWEEP
   sweep_cfgs.map do |config|
     targets = config["targets"]
-              .map { |(name, group_id)| [CONFIG["bridges"][name], group_id] }
+              .map do |(name, group)|
+                bridge = CONFIG["bridges"][name]
+                [bridge, bridges["groups"][group]]
+              end
     SweeperTask.new(targets:    targets,
                     config:     config,
                     logger:     logger)

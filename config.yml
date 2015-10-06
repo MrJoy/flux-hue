@@ -26,21 +26,37 @@ bridges:
     ip: "192.168.2.10"
     username: *common_username
     debug_hue: <%= color_step(0) %>
+    groups:
+      Accent: 2
+      Dance: 4
+      Main: 1
+      White: 3
   "Bridge-02":
     id: "001788105eda"
     ip: "192.168.2.6"
     username: *common_username
     debug_hue: <%= color_step(1) %>
+    groups:
+      Accent: 2
+      Dance: 4
+      Main: 1
+      White: 3
   "Bridge-03":
     id: "0017881853d0"
     ip: "192.168.2.7"
     username: *common_username
     debug_hue: <%= color_step(2) %>
+    groups:
+      Dance: 1
+      Main: 2
   "Bridge-04":
     id: "0017881a1d5c"
     ip: "192.168.2.9"
     username: *common_username
     debug_hue: <%= color_step(3) %>
+    groups:
+      Dance: 2
+      Main: 1
 light_groups:
   # Groups of lights for different purposes.
   #
@@ -228,25 +244,36 @@ color_configs:
     - <%= random_color(10) %>
     - <%= random_color(11) %>
 sweepers:
-- targets:
-  - [Bridge-01, 1] # Main
-  - [Bridge-01, 2] # Accent
+- name: "Strand1Group1"
+  targets:
+  - [Bridge-01, Main]
+  - [Bridge-01, Accent]
   transition: <%= shared_sweep_transition %>
   wait:       <%= shared_sweep_wait %>
   values: *strand1_1_wedding
-- targets:
-  - [Bridge-02, 1] # Main
-  - [Bridge-02, 2] # Accent
+- name: "Strand1Group2"
+  targets:
+  - [Bridge-02, Main]
+  - [Bridge-02, Accent]
   transition: <%= shared_sweep_transition %>
   wait:       <%= shared_sweep_wait %>
   values: *strand1_2_wedding
-- targets:
-  - [Bridge-03, 2] # Main
+- name: "Strand2Group1"
+  targets:
+  - [Bridge-03, Main]
   transition: <%= shared_sweep_transition %>
   wait:       <%= shared_sweep_wait %>
   values: *strand2_1_wedding
-- targets:
-  - [Bridge-04, 1] # Main
+- name: "Strand2Group2"
+  targets:
+  - [Bridge-04, Main]
+  transition: <%= shared_sweep_transition %>
+  wait:       <%= shared_sweep_wait %>
+  values: *strand2_2_wedding
+- name: "Dance"
+  targets:
+  - [Bridge-01, Dance]
+  - [Bridge-04, Dance]
   transition: <%= shared_sweep_transition %>
   wait:       <%= shared_sweep_wait %>
   values: *strand2_2_wedding
