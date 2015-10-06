@@ -266,7 +266,7 @@ class Screen
   def start
     # TODO: Want to gate this...
     @widgets.each do |name, widget|
-      # TODO: Enable button listeners.
+      widget.enable
       next unless @defaults.key?(name)
       widget.update(@defaults[name])
     end
@@ -274,12 +274,25 @@ class Screen
 
   def stop
     # TODO: Disable button listeners.
-    @widgets.values.each(&:blank)
+    @widgets.values.each(&:disable)
   end
 
   def draw(&callback)
     instance_eval(&callback)
     self
+  end
+
+  def radio_group(name, position, size, colors:, default: 0, allow_off: true, &handler)
+    widget =  SparkleMotion::LaunchPad::Widgets::RadioGroup
+              .new(launchpad:   @controller,
+                   position:    SparkleMotion::Vector2.new(position),
+                   size:        SparkleMotion::Vector2.new(size),
+                   colors:      colors,
+                   on_select:   proc { |x| handler.call(x) },
+                   on_deselect: proc { |x| allow_off ? handler.call(nil) : update(x) })
+    @defaults[name] = default
+    @widgets[name]  = widget
+    widget
   end
 
   def button(name, position, colors:, &handler)
@@ -290,32 +303,113 @@ class Screen
                    on_press:   handler)
     @defaults[name] = false
     @widgets[name]  = widget
-    self
+    widget
+  end
+
+  def toggle(name, position, default: false, colors:, &handler)
+    widget =  SparkleMotion::LaunchPad::Widgets::Toggle
+              .new(launchpad:  @controller,
+                   position:   position.to_sym,
+                   colors:     colors,
+                   on_press:   handler)
+    @defaults[name] = default
+    @widgets[name]  = widget
+    widget
+  end
+
+  class TabSet
+    def initialize(screen, colors, default, &handler)
+      @screen     = screen
+      @tabs       = []
+      @active     = default
+      @colors     = colors
+      @screens    = []
+      instance_eval(&handler)
+    end
+
+    def enable; end
+
+    def disable; end
+
+    def tab(name, position, screen = nil, &handler)
+      idx           = @tabs.length
+      active        = idx == @active
+      @screens[idx] = screen if screen
+      @tabs[idx]  = @screen.toggle(name, position, colors: @colors, default: active) do |val|
+        if val == 0 && idx == @active
+          # Don't allow de-selection!
+          @tabs[idx].update(true)
+        else
+          update(idx)
+          @screens.each do |sc|
+            if sc == screen
+              sc.start
+            else
+              sc.stop
+            end
+          end
+          handler.call(idx, val) if handler
+        end
+      end
+    end
+
+    def update(val)
+      @active = val
+      @tabs.each_with_index do |tab, i|
+        tab.update(i == @active)
+      end
+    end
+  end
+
+  def tab_set(name, colors:, default:, &handler)
+    @widgets[name] = TabSet.new(self, colors, default, &handler)
   end
 end
 
 SCREENS = {}
-SCREENS["main"] = Screen
-                  .new(INTERACTIONS["launchpad"], LOGGER)
-                  .draw do
-                    # Sometimes the process(es) on Hue Bridge that a thread is connected to
-                    # (or possibly `libcurl` on our end) just seem to get... stuck.  It's
-                    # very rare but it does happen.  Also, you may find heap growth to be an
-                    # issue, and swapping might cause you some problems.  This allows a quick
-                    # (under 0.5s last I measured) restart of the process.  It preserves state
-                    # to disk as it goes, so it will come back quickly and gracefully with no
-                    # more than a tiny hiccup in the simulation.
-                    #
-                    # Alternatively,  you may just want to do a quick reload after making a
-                    # configuration change.
-                    #
-                    # Position is which of the control buttons to use for this
-                    # kick-in-the-head function.
-                    # TODO: Make this optional.
-                    button("exit", :mixer, colors: { color: :dark_gray,
-                                                     down:  :white }) { kick! }
-                  end
 
+SCREENS["simulation"] = Screen
+                        .new(INTERACTIONS["launchpad"], LOGGER)
+                        .draw do
+                          # Sometimes the process(es) on Hue Bridge that a thread is connected to
+                          # (or possibly `libcurl` on our end) just seem to get... stuck.  It's
+                          # very rare but it does happen.  Also, you may find heap growth to be an
+                          # issue, and swapping might cause you some problems.  This allows a quick
+                          # (under 0.5s last I measured) restart of the process.  It preserves state
+                          # to disk as it goes, so it will come back quickly and gracefully with no
+                          # more than a tiny hiccup in the simulation.
+                          #
+                          # Alternatively,  you may just want to do a quick reload after making a
+                          # configuration change.
+                          #
+                          # Position is which of the control buttons to use for this
+                          # kick-in-the-head function.
+                          # TODO: Make this optional.
+                          button("exit", :mixer, colors: { color: :dark_gray,
+                                                           down:  :white }) { kick! }
+                        end
+
+SCREENS["tuning"] = Screen
+                    .new(INTERACTIONS["launchpad"], LOGGER)
+                    .draw do
+                      # TODO: Controls for tuning white lights, accent lights, etc...
+                    end
+
+SCREENS["tabset"] = Screen
+                    .new(INTERACTIONS["launchpad"], LOGGER)
+                    .draw do
+                      tab_set("screen_selector",
+                              default: 0,
+                              colors: { off:  :dark_gray,
+                                        down: :white,
+                                        on:   :light_gray }) do
+                        tab("simulation_tab", :up,    SCREENS["simulation"])
+                        tab("dance_tab",      :down,  SCREENS["tuning"])
+                        # tab("custom_tab") do
+                        #   puts "PING!"
+                        # end
+                      end
+                    end
 
 ###############################################################################
 # Profiling Support

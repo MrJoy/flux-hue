@@ -12,8 +12,8 @@ module SparkleMotion
                 size:      Vector2.new(1, size),
                 colors:    colors,
                 value:     value)
-          @orbit     = orbit
-          @on_change = on_change
+          @orbit        = orbit
+          @on_change    = on_change
 
           attach_orbit_handler!(position_no)
         end

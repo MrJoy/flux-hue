@@ -11,7 +11,15 @@ module SparkleMotion
         @value      = value
         @pressed    = {}
         @colors     = OpenStruct.new(normalize_colors!(colors))
+      end
+
+      def enable
         attach_handler!
+      end
+
+      def disable
+        detach_handler!
+        blank
       end
 
       def update(value, render_now = true)
