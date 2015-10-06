@@ -55,6 +55,9 @@ module SparkleMotion
 
   # Load code/widgets for Novation LaunchPad and Numark Orbit.
   WIDGET_DEPS = ["ostruct",
+                 "sparkle_motion/widgets/screen_set",
+                 "sparkle_motion/widgets/screen",
+                 "sparkle_motion/widgets/tab_set",
                  "sparkle_motion/launch_pad/widget",
                  "sparkle_motion/launch_pad/widgets/toggle",
                  "sparkle_motion/launch_pad/widgets/horizontal_slider",

@@ -255,164 +255,29 @@ def kick!
   TIME_TO_DIE[0] = true
 end
 
-class TabSet
-  def initialize(screen_set, controller, colors, default, &handler)
-    @screen_set = screen_set
-    @controller = controller
-    @tabs       = []
-    @active     = default
-    @colors     = colors
-    @screens    = []
-    instance_eval(&handler)
-  end
-
-  def enable
-    @tabs.each(&:enable)
-    # @tabs[@active].update(true)
-  end
-
-  def disable
-    @tabs.each(&:disable)
-  end
-
-  def tab(position, screen = nil, &handler)
-    idx           = @tabs.length
-    @screens[idx] = screen if screen
-    @tabs[idx]    = SparkleMotion::LaunchPad::Widgets::Toggle
-                    .new(launchpad:  @controller,
-                         position:   position.to_sym,
-                         colors:     @colors,
-                         on_press:   proc do |val|
-                           if val == 0 && idx == @active
-                             # Don't allow de-selection!
-                             @tabs[idx].update(true)
-                           else
-                             update(idx)
-                             @screens.each do |sc|
-                               if sc == screen
-                                 sc.start
-                               else
-                                 sc.stop
-                               end
-                             end
-                             handler.call(idx, val) if handler
-                           end
-                         end)
-  end
-
-  def screens; @screen_set.screens; end
-
-  def update(val)
-    @active = val
-    @tabs.each_with_index do |tab, i|
-      tab.update(i == @active)
-    end
-  end
-end
-
-class Screen
-  def initialize(screen_set, controller, logger)
-    @screen_set = screen_set
-    @controller = controller
-    @logger     = logger
-    @widgets    = {}
-    @defaults   = {}
-    @started    = false
-  end
-
-  def start
-    return if @started
-    @started = true
-    # TODO: Want to gate this...
-    @widgets.each do |name, widget|
-      widget.enable
-      next unless @defaults.key?(name)
-      widget.update(@defaults[name])
-    end
-  end
-
-  def stop
-    return unless @started
-    @started = false
-    @widgets.values.each(&:disable)
-  end
-
-  def draw(&callback)
-    instance_eval(&callback)
-    self
-  end
-
-  def radio_group(name, position, size, colors:, default: 0, allow_off: true, &handler)
-    widget =  SparkleMotion::LaunchPad::Widgets::RadioGroup
-              .new(launchpad:   @controller,
-                   position:    SparkleMotion::Vector2.new(position),
-                   size:        SparkleMotion::Vector2.new(size),
-                   colors:      colors,
-                   on_select:   proc { |x| handler.call(x) },
-                   on_deselect: proc { |x| allow_off ? handler.call(nil) : update(x) })
-    @defaults[name] = default
-    @widgets[name]  = widget
-    widget
-  end
-
-  def button(name, position, colors:, &handler)
-    widget =  SparkleMotion::LaunchPad::Widgets::Button
-              .new(launchpad:  @controller,
-                   position:   position.to_sym,
-                   colors:     colors,
-                   on_press:   handler)
-    @defaults[name] = false
-    @widgets[name]  = widget
-    widget
-  end
-
-  def toggle(name, position, default: false, colors:, &handler)
-    widget =  SparkleMotion::LaunchPad::Widgets::Toggle
-              .new(launchpad:  @controller,
-                   position:   position.to_sym,
-                   colors:     colors,
-                   on_press:   handler)
-    @defaults[name] = default
-    @widgets[name]  = widget
-    widget
-  end
-
-  def tab_set(name, colors:, default:, &handler)
-    @widgets[name] = TabSet.new(@screen_set, @controller, colors, default, &handler)
-  end
-end
-
-class ScreenSet
-  attr_accessor :screens
-
-  def initialize(controllers, logger)
-    @controllers  = controllers
-    @screens      = {}
-    @default      = nil
-    @logger       = logger
-  end
-
-  def start; @screens.values.each(&:start); end
-  def stop; @screens.values.each(&:stop); end
-
-  def draw(&handler)
-    instance_eval(&handler)
-    @screens[@default].start if @default
-  end
-
-  def screen(name, controller_name, default: false, &handler)
-    @default    = name if default
-    controller  = @controllers[controller_name]
-    @logger.error { "No such controller: '#{controller_name}'!" } unless controller
-
-    @screens[name] = Screen.new(self, controller, @logger).draw(&handler)
-  end
-end
-
-SCREENS = ScreenSet.new(INTERACTIONS, LOGGER)
+SCREENS = SparkleMotion::Widgets::ScreenSet.new(INTERACTIONS, LOGGER)
 
 SCREENS.draw do
   screen("simulation", "launchpad") do
+  end
+
+  screen("tuning", "launchpad") do
+    # TODO: Controls for tuning white lights, accent lights, etc...
+  end
+
+  screen("tabset", "launchpad", default: true) do
+    tab_set("screen_selector",
+            default: 0,
+            colors: { off:  :dark_gray,
+                      down: :white,
+                      on:   :light_gray }) do
+      tab(:up,    screens["simulation"])
+      tab(:down,  screens["tuning"])
+      # tab(:left) do
+      #   puts "PING!"
+      # end
+    end
+
     # Sometimes the process(es) on Hue Bridge that a thread is connected to
     # (or possibly `libcurl` on our end) just seem to get... stuck.  It's
     # very rare but it does happen.  Also, you may find heap growth to be an
@@ -429,24 +294,6 @@ SCREENS.draw do
     # TODO: Make this optional.
     button("exit", :mixer, colors: { color: :dark_gray,
                                      down:  :white }) { kick! }
-  end
-
-  screen("tuning", "launchpad") do
-    # TODO: Controls for tuning white lights, accent lights, etc...
-  end
-
-  screen("tabset", "launchpad", default: true) do
-    tab_set("screen_selector",
-            default: 0,
-            colors: { off:  :dark_gray,
-                      down: :white,
-                      on:   :light_gray }) do
-      tab(:up,    screens["simulation"])
-      tab(:down,  screens["tuning"])
-      tab(:left) do
-        puts "PING!"
-      end
-    end
   end
 end
 
