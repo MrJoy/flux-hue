@@ -175,6 +175,11 @@ class Simulator
     @command_queue  = SparkleMotion::Simulation::CommandQueueTask.new(logger) if USE_LIGHTS
     bb              = CONFIG["bridges"]
     @sweepers       = SparkleMotion::Simulation::SweeperSet.new(bb, @command_queue, @logger)
+    @input_threads  = @interactions
+                      .map do |(nn, cc)|
+                        SparkleMotion::Simulation::SurfaceMasterTask.new(nn, cc, @logger)
+                      end
+
   end
 
   def load!(fname)
@@ -198,10 +203,12 @@ class Simulator
       @state.init!
     end
     @state.enabled = true
+    @input_threads.map(&:start)
   end
 
   def stop
     @screen_set.stop
+    @input_threads.map(&:stop)
   end
 
   def kick!
@@ -260,15 +267,6 @@ end
 ###############################################################################
 # Main Simulation
 ###############################################################################
-
-def launch_input_threads!(logger)
-  return [] unless USE_INPUT
-
-  INTERACTIONS
-    .map { |(nn, cc)| SparkleMotion::Simulation::SurfaceMasterTask.new(nn, cc, logger) }
-    .compact
-end
-
 def launch_graph_thread!(logger)
   return nil unless USE_GRAPH
   SparkleMotion::Simulation::GraphTask.new("Main", logger)
@@ -306,8 +304,7 @@ end
 def launch_graph_threads!(logger); [launch_graph_thread!(logger)]; end
 
 def launch_all_threads!(config, global_results, debug, logger)
-  tmp = { input:   launch_input_threads!(logger),
-          graph:   launch_graph_threads!(logger),
+  tmp = { graph:   launch_graph_threads!(logger),
           command: [],
           lights:  launch_light_threads!(config["simulation"]["output"],
                                          global_results,
@@ -368,7 +365,7 @@ end
 
 def stop!(threads)
   LOGGER.unknown { "Stopping threads..." }
-  %i(lights command graph input).each do |thread_group|
+  %i(lights command graph).each do |thread_group|
     threads[thread_group].each(&:stop)
   end
   threads[:all].map(&:await)
