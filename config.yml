@@ -1,13 +1,6 @@
 <%-
 def color_step(steps); ((((90.0 / 360.0) * 65536) * steps) % 65536).round; end
-def random_color(steps); Random.rand(65536); end
-
-base_hue  = 50_000
-min_hue   = base_hue - 2_000
-max_hue   = base_hue + 2_000
-
-shared_sweep_transition = 0.5
-shared_sweep_wait       = 2.0
+base_hue = 50_000
 
 -%>
 ---
@@ -171,114 +164,6 @@ controllers:
   # Don't set wait much below 1.0!  ZigBee spec only allows 1 group
   # update/sec, but Hue Bridge/lights seem to be *mostly* OK with about 1
   # every 0.75 sec...
-color_configs:
-  strand1_1:
-    wedding: &strand1_1_wedding
-    - <%= base_hue %>
-    - <%= min_hue %>
-    - <%= base_hue %>
-    - <%= max_hue %>
-    debug: &strand1_1_debug
-    - <%= random_color(0) %>
-    - <%= random_color(1) %>
-    - <%= random_color(2) %>
-    - <%= random_color(3) %>
-    - <%= random_color(4) %>
-    - <%= random_color(5) %>
-    - <%= random_color(6) %>
-    - <%= random_color(7) %>
-  strand1_2:
-    wedding: &strand1_2_wedding
-    - <%= min_hue %>
-    - <%= base_hue %>
-    - <%= max_hue %>
-    - <%= base_hue %>
-    debug: &strand1_2_debug
-    - <%= random_color(1) %>
-    - <%= random_color(2) %>
-    - <%= random_color(3) %>
-    - <%= random_color(4) %>
-    - <%= random_color(5) %>
-    - <%= random_color(6) %>
-    - <%= random_color(7) %>
-    - <%= random_color(8) %>
-  strand2_1:
-    wedding: &strand2_1_wedding
-    - <%= base_hue %>
-    - <%= max_hue %>
-    - <%= base_hue %>
-    - <%= min_hue %>
-    debug: &strand2_1_debug
-    - <%= random_color(2) %>
-    - <%= random_color(3) %>
-    - <%= random_color(4) %>
-    - <%= random_color(5) %>
-    - <%= random_color(6) %>
-    - <%= random_color(7) %>
-    - <%= random_color(8) %>
-    - <%= random_color(9) %>
-  strand2_2:
-    wedding: &strand2_2_wedding
-    - <%= max_hue %>
-    - <%= base_hue %>
-    - <%= min_hue %>
-    - <%= base_hue %>
-    debug: &strand2_2_debug
-    - <%= random_color(3) %>
-    - <%= random_color(4) %>
-    - <%= random_color(5) %>
-    - <%= random_color(6) %>
-    - <%= random_color(7) %>
-    - <%= random_color(8) %>
-    - <%= random_color(9) %>
-    - <%= random_color(10) %>
-  dance:
-    wedding: &dance_wedding
-    - <%= max_hue %>
-    - <%= min_hue %>
-    debug: &dance_debug
-    - <%= random_color(4) %>
-    - <%= random_color(5) %>
-    - <%= random_color(6) %>
-    - <%= random_color(7) %>
-    - <%= random_color(8) %>
-    - <%= random_color(9) %>
-    - <%= random_color(10) %>
-    - <%= random_color(11) %>
-sweepers:
-- name: "Strand1Group1"
-  targets:
-  - [Bridge-01, AccentMain]
-  transition: <%= shared_sweep_transition %>
-  wait:       <%= shared_sweep_wait %>
-  values: *strand1_1_wedding
-- name: "Strand1Group2"
-  targets:
-  - [Bridge-02, AccentMain]
-  transition: <%= shared_sweep_transition %>
-  wait:       <%= shared_sweep_wait %>
-  values: *strand1_2_wedding
-- name: "Strand2Group1"
-  targets:
-  - [Bridge-03, Main]
-  transition: <%= shared_sweep_transition %>
-  wait:       <%= shared_sweep_wait %>
-  values: *strand2_1_wedding
-- name: "Strand2Group2"
-  targets:
-  - [Bridge-04, Main]
-  transition: <%= shared_sweep_transition %>
-  wait:       <%= shared_sweep_wait %>
-  values: *strand2_2_wedding
-- name: "Dance"
-  targets:
-  - [Bridge-01, Dance]
-  - [Bridge-02, Dance]
-  - [Bridge-03, Dance]
-  - [Bridge-04, Dance]
-  transition: 0.1
-  wait:       1.0
-  values: *dance_wedding
 simulation:
   output:
     # This controls the amount of time (in seconds, but only to a precision of
@@ -287,7 +172,7 @@ simulation:
     # is still changing, then it will simply start moving from whatever
     # brightness it's currently at to the new value, again spread over the full
     # transition time.
-    transition: 0.3
+    transition: 0.0
   nodes:
     perlin:
       # The speed parameter as a multiplier on `(x, time)` to map the Perlin

@@ -8,9 +8,9 @@ module SparkleMotion
 
       def initialize(targets:, command_queue:, config:, logger:)
         @command_queue  = command_queue
-        @hues           = config["values"]
-        @transition     = config["transition"]
-        @wait           = config["wait"]
+        @hues           = config[:hues]
+        @transition     = config[:transition]
+        @wait           = config[:wait]
         @data           = with_transition_time(@transition, "hue" => 0)
         @targets        = targets
                           .map do |(bridge, group_id)|
@@ -28,6 +28,7 @@ module SparkleMotion
       def tick(time)
         idx = ((time / @wait) % @hues.length).floor
         # TODO: Recycle hashes?
+        return unless USE_SWEEP
         @targets.each do |req|
           @data["hue"] = @hues[idx]
           @command_queue << req if @command_queue

@@ -1,3 +1,83 @@
+# - name: "Strand1Group1"
+#   targets:
+#   - [Bridge-01, AccentMain]
+#   transition: <%= shared_sweep_transition %>
+#   wait:       <%= shared_sweep_wait %>
+#   values: *strand1_1_wedding
+# - name: "Strand1Group2"
+#   targets:
+#   - [Bridge-02, AccentMain]
+#   transition: <%= shared_sweep_transition %>
+#   wait:       <%= shared_sweep_wait %>
+#   values: *strand1_2_wedding
+# - name: "Strand2Group1"
+#   targets:
+#   - [Bridge-03, Main]
+#   transition: <%= shared_sweep_transition %>
+#   wait:       <%= shared_sweep_wait %>
+#   values: *strand2_1_wedding
+# - name: "Strand2Group2"
+#   targets:
+#   - [Bridge-04, Main]
+#   transition: <%= shared_sweep_transition %>
+#   wait:       <%= shared_sweep_wait %>
+#   values: *strand2_2_wedding
+# - name: "Dance"
+#   targets:
+#   - [Bridge-01, Dance]
+#   - [Bridge-02, Dance]
+#   - [Bridge-03, Dance]
+#   - [Bridge-04, Dance]
+#   transition: 0.1
+#   wait:       1.0
+#   values: *dance_debug
+
+STRAND_TRANSITION = 0.5
+STRAND_WAIT       = 2.0
+DANCE_TRANSITION  = 0.1
+DANCE_WAIT        = 1.0
+
+BASE_HUE  = 50_000
+MIN_HUE   = BASE_HUE - 2_000
+MAX_HUE   = BASE_HUE + 2_000
+wedding_hues = [BASE_HUE, MIN_HUE, BASE_HUE, MAX_HUE]
+WEDDING_HUES = [wedding_hues,
+                wedding_hues[1..-1] + wedding_hues[0..0],
+                wedding_hues[2..-1] + wedding_hues[0..1],
+                wedding_hues[3..-1] + wedding_hues[0..2],
+                [MIN_HUE, MAX_HUE]]
+DEBUG_HUES = [(0..7).map { Random.rand(65_536) },
+              (0..7).map { Random.rand(65_536) },
+              (0..7).map { Random.rand(65_536) },
+              (0..7).map { Random.rand(65_536) },
+              (0..7).map { Random.rand(65_536) }]
+
+hue_set = WEDDING_HUES
+STRAND_HUES = { "strand1_group1" => hue_set[0],
+                "strand1_group2" => hue_set[1],
+                "strand2_group1" => hue_set[2],
+                "strand2_group2" => hue_set[3],
+                "dance_floor" => hue_set[4] }
+sweepers do
+  [{ name: "strand1_group1", bridge: "Bridge-01", group: "AccentMain" },
+   { name: "strand1_group2", bridge: "Bridge-02", group: "AccentMain" },
+   { name: "strand2_group1", bridge: "Bridge-03", group: "Main" },
+   { name: "strand2_group2", bridge: "Bridge-04", group: "Main" }]
+    .each do |cfg|
+    sweeper(cfg[:name], targets:    [[cfg[:bridge], cfg[:group]]],
+                        transition: STRAND_TRANSITION,
+                        wait:       STRAND_WAIT,
+                        hues:       STRAND_HUES[cfg[:name]])
+  end
+  sweeper("dance_floor", targets: [["Bridge-01", "Dance"],
+                                   ["Bridge-02", "Dance"],
+                                   ["Bridge-03", "Dance"],
+                                   ["Bridge-04", "Dance"]],
+                         transition: DANCE_TRANSITION,
+                         wait:       DANCE_WAIT,
+                         hues:       STRAND_HUES["dance_floor"])
+end
+
 screens do
   screen("simulation", "launchpad") do
     # The desaturation controller.
@@ -33,7 +113,7 @@ screens do
           ival, bri_max = SATURATION_POINTS[val]
           logger.info { "Saturation[#{idx},#{val}]: #{ival}" }
           NODES["int#{idx}"].clamp_to(bri_max)
-          update_group!(cfg[:group], SATURATION_TRANSITION, "sat" => (255 * ival).round)
+          SIM.update_group!(cfg[:group], SATURATION_TRANSITION, "sat" => (255 * ival).round)
         end
       end
 
@@ -114,7 +194,7 @@ screens do
     # kick-in-the-head function.
     # TODO: Make this optional.
     button("exit", :mixer, colors: { color: :dark_gray,
-                                     down:  :white }) { kick! }
+                                     down:  :white }) { SIM.kick! }
   end
 end
 

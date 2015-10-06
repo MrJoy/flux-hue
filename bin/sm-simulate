@@ -162,36 +162,60 @@ end
 ITERATIONS                = env_int("ITERATIONS", true) || 0
 TIME_TO_DIE               = [false, :terminate]
 
-def kick!
-  LOGGER.unknown { "Kicking system in the head!" }
-  TIME_TO_DIE[1] = :restart
-  TIME_TO_DIE[0] = true
-end
+class SweeperSet
+  def initialize(command_queue, logger)
+    @command_queue = command_queue,
+    @logger        = logger
+    @sweepers      = {}
+  end
 
-def update_group!(group, transition, data)
-  bridge    = CONFIG["bridges"][group[0]]
-  group_id  = bridge["groups"][group[1]]
-  url       = hue_group_endpoint(bridge, group_id)
-  data      = with_transition_time(transition, data)
-  req       = SparkleMotion::Hue::LazyRequestConfig.new(logger, bridge, :put, url) { data }
-  PENDING_COMMANDS.each { |queue| queue << req }
+  def draw(&callback)
+    instance_eval(&callback)
+  end
+
+  def start
+    @sweepers.values.map(&:start)
+  end
+
+  def stop
+    @sweepers.values.map(&:stop)
+  end
+
+  def sweeper(name, targets:, transition:, wait:, hues:)
+    targets = targets
+              .map do |(nn, group)|
+                bridge = CONFIG["bridges"][nn]
+                [bridge, bridge["groups"][group]]
+              end
+    sweeper = SparkleMotion::Simulation::SweeperTask.new(targets:       targets,
+                                                         config:        { hues:       hues,
+                                                                          transition: transition,
+                                                                          wait:       wait },
+                                                         logger:        @logger,
+                                                         command_queue: @command_queue)
+    @sweepers[name] = sweeper
+  end
 end
 
 class Simulator
+  include SparkleMotion::Hue::HTTP
   attr_accessor :command_queue
 
   def initialize(interactions, state, logger)
-    @interactions = interactions
-    @state        = state
-    @logger       = logger
-    @screen_set   = SparkleMotion::Widgets::ScreenSet.new(interactions, state, logger)
-
-    return unless USE_LIGHTS
-    @command_queue = SparkleMotion::Simulation::CommandQueueTask.new(logger)
+    @interactions   = interactions
+    @state          = state
+    @logger         = logger
+    @screen_set     = SparkleMotion::Widgets::ScreenSet.new(interactions, state, logger)
+    @command_queue  = SparkleMotion::Simulation::CommandQueueTask.new(logger) if USE_LIGHTS
+    @sweepers       = SweeperSet.new(@command_queue, @logger)
   end
 
   def load!(fname)
     instance_eval(File.read(fname), fname)
+  end
+
+  def sweepers(&callback)
+    @sweepers.draw(&callback)
   end
 
   def screens(&callback)
@@ -211,6 +235,21 @@ class Simulator
 
   def stop
     @screen_set.stop
+  end
+
+  def kick!
+    @logger.unknown { "Kicking system in the head!" }
+    TIME_TO_DIE[1] = :restart
+    TIME_TO_DIE[0] = true
+  end
+
+  def update_group!(group, transition, data)
+    bridge    = CONFIG["bridges"][group[0]]
+    group_id  = bridge["groups"][group[1]]
+    url       = hue_group_endpoint(bridge, group_id)
+    data      = with_transition_time(transition, data)
+    req       = SparkleMotion::Hue::LazyRequestConfig.new(@logger, bridge, :put, url) { data }
+    @command_queue << req if @command_queue
   end
 
 protected
@@ -268,21 +307,6 @@ def launch_graph_thread!(logger)
   SparkleMotion::Simulation::GraphTask.new("Main", logger)
 end
 
-def launch_sweep_threads!(sweep_cfgs, command_queue, logger)
-  return [] unless USE_SWEEP
-  sweep_cfgs.map do |config|
-    targets = config["targets"]
-              .map do |(name, group)|
-                bridge = CONFIG["bridges"][name]
-                [bridge, bridge["groups"][group]]
-              end
-    SparkleMotion::Simulation::SweeperTask.new(targets:       targets,
-                                               config:        config,
-                                               logger:        logger,
-                                               command_queue: command_queue)
-  end
-end
-
 def light_thread!(bridge, transition, global_results, debug, logger)
   lights = LIGHTS_FOR_THREADS.lights[bridge["name"]]
 
@@ -300,11 +324,6 @@ def light_thread!(bridge, transition, global_results, debug, logger)
                                             debug:          debug)
 end
 
-def launch_command_queue_thread!(logger)
-  return nil unless USE_LIGHTS
-  SparkleMotion::Simulation::CommandQueueTask.new(logger)
-end
-
 def launch_light_threads!(cfg, global_results, debug, logger)
   threads = []
   return [] unless USE_LIGHTS
@@ -320,12 +339,9 @@ end
 def launch_graph_threads!(logger); [launch_graph_thread!(logger)]; end
 
 def launch_all_threads!(config, global_results, debug, logger)
-  command_queue = launch_command_queue_thread!(logger)
-  PENDING_COMMANDS << command_queue if command_queue
   tmp = { input:   launch_input_threads!(logger),
           graph:   launch_graph_threads!(logger),
-          sweep:   launch_sweep_threads!(config["sweepers"], command_queue, logger),
-          command: [command_queue],
+          command: [],
           lights:  launch_light_threads!(config["simulation"]["output"],
                                          global_results,
                                          debug["OUTPUT"],
@@ -385,7 +401,7 @@ end
 
 def stop!(threads)
   LOGGER.unknown { "Stopping threads..." }
-  %i(lights command sweep graph input).each do |thread_group|
+  %i(lights command graph input).each do |thread_group|
     threads[thread_group].each(&:stop)
   end
   threads[:all].map(&:await)
