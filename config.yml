@@ -160,7 +160,7 @@ color_configs:
     - <%= min_hue %>
     - <%= base_hue %>
     - <%= max_hue %>
-    debug: &strand_1_1_debug
+    debug: &strand1_1_debug
     - <%= random_color(0) %>
     - <%= random_color(1) %>
     - <%= random_color(2) %>
@@ -228,19 +228,25 @@ color_configs:
     - <%= random_color(10) %>
     - <%= random_color(11) %>
 sweepers:
-- target: [Bridge-01, 0]
+- targets:
+  - [Bridge-01, 1] # Main
+  - [Bridge-01, 2] # Accent
   transition: <%= shared_sweep_transition %>
   wait:       <%= shared_sweep_wait %>
   values: *strand1_1_wedding
-- target: [Bridge-02, 0]
+- targets:
+  - [Bridge-02, 1] # Main
+  - [Bridge-02, 2] # Accent
   transition: <%= shared_sweep_transition %>
   wait:       <%= shared_sweep_wait %>
   values: *strand1_2_wedding
-- target: [Bridge-03, 0]
+- targets:
+  - [Bridge-03, 2] # Main
   transition: <%= shared_sweep_transition %>
   wait:       <%= shared_sweep_wait %>
   values: *strand2_1_wedding
-- target: [Bridge-04, 0]
+- targets:
+  - [Bridge-04, 1] # Main
   transition: <%= shared_sweep_transition %>
   wait:       <%= shared_sweep_wait %>
   values: *strand2_2_wedding
