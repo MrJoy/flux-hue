@@ -82,6 +82,7 @@ require "sparkle_motion/simulation/render_task"
 require "sparkle_motion/simulation/surface_master_task"
 require "sparkle_motion/simulation/graph_task"
 require "sparkle_motion/simulation/sweeper_task"
+require "sparkle_motion/simulation/sweeper_set"
 extend SparkleMotion::Simulation::Output
 extend SparkleMotion::Hue::HTTP
 
@@ -162,41 +163,6 @@ end
 ITERATIONS                = env_int("ITERATIONS", true) || 0
 TIME_TO_DIE               = [false, :terminate]
 
-class SweeperSet
-  def initialize(command_queue, logger)
-    @command_queue = command_queue,
-    @logger        = logger
-    @sweepers      = {}
-  end
-
-  def draw(&callback)
-    instance_eval(&callback)
-  end
-
-  def start
-    @sweepers.values.map(&:start)
-  end
-
-  def stop
-    @sweepers.values.map(&:stop)
-  end
-
-  def sweeper(name, targets:, transition:, wait:, hues:)
-    targets = targets
-              .map do |(nn, group)|
-                bridge = CONFIG["bridges"][nn]
-                [bridge, bridge["groups"][group]]
-              end
-    sweeper = SparkleMotion::Simulation::SweeperTask.new(targets:       targets,
-                                                         config:        { hues:       hues,
-                                                                          transition: transition,
-                                                                          wait:       wait },
-                                                         logger:        @logger,
-                                                         command_queue: @command_queue)
-    @sweepers[name] = sweeper
-  end
-end
-
 class Simulator
   include SparkleMotion::Hue::HTTP
   attr_accessor :command_queue
@@ -207,7 +173,8 @@ class Simulator
     @logger         = logger
     @screen_set     = SparkleMotion::Widgets::ScreenSet.new(interactions, state, logger)
     @command_queue  = SparkleMotion::Simulation::CommandQueueTask.new(logger) if USE_LIGHTS
-    @sweepers       = SweeperSet.new(@command_queue, @logger)
+    bb              = CONFIG["bridges"]
+    @sweepers       = SparkleMotion::Simulation::SweeperSet.new(bb, @command_queue, @logger)
   end
 
   def load!(fname)
