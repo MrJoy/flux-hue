@@ -7,7 +7,7 @@ min_hue   = base_hue - 2_000
 max_hue   = base_hue + 2_000
 
 shared_sweep_transition = 0.5
-shared_sweep_wait       = 1.0
+shared_sweep_wait       = 2.0
 
 -%>
 ---
@@ -273,10 +273,12 @@ sweepers:
 - name: "Dance"
   targets:
   - [Bridge-01, Dance]
+  - [Bridge-02, Dance]
+  - [Bridge-03, Dance]
   - [Bridge-04, Dance]
-  transition: <%= shared_sweep_transition %>
-  wait:       <%= shared_sweep_wait %>
-  values: *strand2_2_wedding
+  transition: 0.1
+  wait:       1.0
+  values: *dance_wedding
 simulation:
   output:
     # This controls the amount of time (in seconds, but only to a precision of
