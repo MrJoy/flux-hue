@@ -2,10 +2,11 @@ module SparkleMotion
   module Widgets
     # A collection of screens on a device.
     class ScreenSet
-      attr_accessor :screens
+      attr_accessor :screens, :state
 
-      def initialize(controllers, logger)
+      def initialize(controllers, state, logger)
         @controllers  = controllers
+        @state        = state
         @screens      = {}
         @default      = nil
         @logger       = logger
@@ -24,7 +25,7 @@ module SparkleMotion
         controller  = @controllers[controller_name]
         @logger.error { "No such controller: '#{controller_name}'!" } unless controller
 
-        @screens[name] = Screen.new(self, controller, @logger).draw(&handler)
+        @screens[name] = Screen.new(self, controller, state, @logger).draw(&handler)
       end
     end
   end

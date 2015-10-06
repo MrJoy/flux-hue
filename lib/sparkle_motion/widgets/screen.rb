@@ -2,8 +2,11 @@ module SparkleMotion
   module Widgets
     # A collection of widgets that can be enabled/disabled together.
     class Screen
-      def initialize(screen_set, controller, logger)
+      attr_accessor :widgets, :state
+
+      def initialize(screen_set, controller, state, logger)
         @screen_set = screen_set
+        @state      = state
         @controller = controller
         @logger     = logger
         @widgets    = {}
@@ -34,13 +37,23 @@ module SparkleMotion
       end
 
       def radio_group(name, position, size, colors:, default: 0, allow_off: true, &handler)
-        widget =  SparkleMotion::LaunchPad::Widgets::RadioGroup
-                  .new(launchpad:   @controller,
-                       position:    SparkleMotion::Vector2.new(position),
-                       size:        SparkleMotion::Vector2.new(size),
-                       colors:      colors,
-                       on_select:   proc { |x| handler.call(x) },
-                       on_deselect: proc { |x| allow_off ? handler.call(nil) : update(x) })
+        widget = SparkleMotion::LaunchPad::Widgets::RadioGroup
+                 .new(launchpad:   @controller,
+                      position:    SparkleMotion::Vector2.new(position),
+                      size:        SparkleMotion::Vector2.new(size),
+                      colors:      colors,
+                      on_select:   proc do |val|
+                        state[name] = val
+                        handler.call(val)
+                      end,
+                      on_deselect: proc do |val|
+                        if allow_off
+                          state[name] = nil
+                          handler.call(nil)
+                        else
+                          update(val)
+                        end
+                      end)
         @defaults[name] = default
         @widgets[name]  = widget
         widget

@@ -205,8 +205,8 @@ sat_cfg["positions_lp"].each_with_index do |pos, idx|
   end
 end
 
-sl_key               = "SPOTLIT"
-sl_cfg               = CONFIG["simulation"]["controls"]["spotlighting"]
+sl_key               = "spotlighting"
+sl_cfg               = CONFIG["simulation"]["nodes"]["spotlighting"]
 sl_base              = sl_cfg["base"]
 sl_exp               = sl_cfg["exponent"]
 last = NODES[sl_key] = SparkleMotion::Nodes::Transforms::Spotlight.new(source:   last,
@@ -214,30 +214,6 @@ last = NODES[sl_key] = SparkleMotion::Nodes::Transforms::Spotlight.new(source:  
                                                                        exponent: sl_exp)
 
 FINAL_RESULT            = last # The end node that will be rendered to the lights.
-sl_colors               = sl_cfg["colors"]
-sl_map                  = sl_cfg["mappings"]
-sl_pos_map              = sl_map.flatten
-sl_pos                  = SparkleMotion::Vector2.new(sl_cfg["position"])
-sl_size                 = SparkleMotion::Vector2.new(sl_map.map(&:length).sort[-1], sl_map.length)
-sl_widget               = Kernel.const_get(sl_cfg["class"])
-SL_STATE                = sl_widget.new(launchpad:   INTERACTIONS["launchpad"],
-                                        position:    sl_pos,
-                                        size:        sl_size,
-                                        colors:      sl_colors,
-                                        on_select:   proc { |x| STATE["SPOTLIT"] = x },
-                                        on_deselect: proc { STATE["SPOTLIT"] = nil })
-
-STATE.parameter!(sl_key, nil)
-STATE.on_change(sl_key) do |_key, value|
-  val = sl_pos_map[value] if value
-  if val
-    LOGGER.info { "Spot ##{val}" }
-  else
-    LOGGER.info { "Spot Off" }
-  end
-  NODES[sl_key].spotlight!(val)
-  SL_STATE.update(value)
-end
 
 NODES.each do |name, node|
   node.debug = DEBUG_FLAGS[name]
@@ -255,10 +231,36 @@ def kick!
   TIME_TO_DIE[0] = true
 end
 
-SCREENS = SparkleMotion::Widgets::ScreenSet.new(INTERACTIONS, LOGGER)
+SCREENS = SparkleMotion::Widgets::ScreenSet.new(INTERACTIONS, STATE, LOGGER)
 
 SCREENS.draw do
   screen("simulation", "launchpad") do
+    state.parameter!("spotlighting", nil)
+    # NOTE: Values are indexes into main_lights array.
+    #
+    # Excluding outermost lights because they extend beyond the seating area.
+    # This configuration gives two rows, one corresponding to each of the two
+    # light strands I'm putting up.
+    #
+    # TODO: Automatically suss out lights by using padding / widget size settings and spreading
+    # TODO: across the simulations.
+    SPOTLIGHT_POSITIONS = [[17, 18, 19, 20,   21, 22, 23, 24],
+                           [ 3,  4,  5,  6,    7,  8,  9, 10]]
+    w = SPOTLIGHT_POSITIONS[0].length
+    h = SPOTLIGHT_POSITIONS.length
+    radio_group("spotlighting", [0, 0], [w, h], colors:    { on:   0x032727,
+                                                             off:  0x000202,
+                                                             down: 0x103F3F },
+                                                default:   nil,
+                                                allow_off: true) do |val|
+      val = SPOTLIGHT_POSITIONS.flatten[val] if val
+      if val
+        LOGGER.info { "Spot ##{val}" }
+      else
+        LOGGER.info { "Spot Off" }
+      end
+      NODES["spotlighting"].spotlight!(val)
+    end
   end
 
   screen("tuning", "launchpad") do
@@ -336,8 +338,6 @@ def clear_board!
   sleep 0.01 # 88 updates/sec input limit!
   SAT_CTRLS.values.map(&:blank)
   sleep 0.01 # 88 updates/sec input limit!
-  SL_STATE.blank
-  sleep 0.01
   SCREENS.stop
 end
 
@@ -363,8 +363,8 @@ end
 
 def setup_control_state!(command_queue)
   without_persistence(command_queue) do
-    STATE.load!
     SCREENS.start
+    STATE.load!
     STATE.init!
   end
   STATE.enabled = true

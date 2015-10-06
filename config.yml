@@ -318,6 +318,9 @@ simulation:
       # The iteration count is how many times to stretch the value in successtion.
       function:   cubic
       iterations: 3
+    spotlighting:
+      base:     0.9
+      exponent: 2
   controls:
     intensity:
       # This is the set of controls for adjusting the intensity of the lights.
@@ -385,33 +388,6 @@ simulation:
         "on":   0x1C103F
         "off":  0x03030C
         "down": 0x10103F
-    spotlighting:
-      class: SparkleMotion::LaunchPad::Widgets::RadioGroup
-      # This defines the spotlighting effect.  The width and height of the
-      # widget are defined by the `mappings` configuration.  The choice of
-      # widget class is not configurable because at the moment there's only
-      # one option that will work.
-      position: [0, 0]
-      base:     0.9
-      exponent: 2
-      mappings:
-      # NOTE: Values are indexes into main_lights array.
-      #
-      # Excluding outermost lights because they extend beyond the seating area.
-      # This configuration gives two rows, one corresponding to each of the two
-      # light strands I'm putting up.
-      #
-      # TODO: Automatically suss out lights by using padding / widget size settings and spreading
-      # TODO: across the simulations.
-      #
-      # Bridge 3/4:
-      - [17, 18, 19, 20,   21, 22, 23, 24]
-      # Bridge 1/2:
-      - [ 3,  4,  5,  6,    7,  8,  9, 10]
-      colors:
-        "on":   0x032727
-        "off":  0x000202
-        "down": 0x103F3F
 # TODO: Reallocate accent lights.
 # TODO: Allow sweepers to address a particular *group or light* at each step.
 # TODO: Allow arbitrary sweeper definitions.
