@@ -189,11 +189,12 @@ def kick!
   TIME_TO_DIE[0] = true
 end
 
-def update_group!(bridge_name, group_id, transition, data)
-  bridge = CONFIG["bridges"][bridge_name]
-  req = { method:   :put,
-          url:      hue_group_endpoint(bridge, group_id),
-          put_data: Oj.dump(with_transition_time(transition, data)) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
+def update_group!(group, transition, data)
+  bridge    = CONFIG["bridges"][group[0]]
+  group_id  = bridge["groups"][group[1]]
+  url       = hue_group_endpoint(bridge, group_id)
+  data      = with_transition_time(transition, data)
+  req       = SparkleMotion::Hue::LazyRequestConfig.new(logger, bridge, :put, url) { data }
   PENDING_COMMANDS.each { |queue| queue << req }
 end
 

@@ -6,16 +6,6 @@ SCREENS.draw do
                                group2: ["Bridge-02", 0] },
                     strand2: { group1: ["Bridge-03", 0],
                                group2: ["Bridge-04", 0] } }
-  SATURATION_GROUPS = [["Bridge-01", 0],
-                       ["Bridge-02", 0],
-                       ["Bridge-03", 0],
-                       ["Bridge-04", 0]]
-  # Values are [saturation, maximum brightness] -- and nil means "don't
-  # clamp brightness"
-  SATURATION_POINTS = [[0.2, 0.00],
-                       [0.6, 0.30],
-                       [0.8, 0.70],
-                       [1.0, nil]]
   screen("simulation", "launchpad") do
     # The desaturation controller.
     #
@@ -24,39 +14,35 @@ SCREENS.draw do
     # via group update, the brightness is done per-bulb in the main rendering
     # loop -- and you probably don't want to blind everyone during the
     # transition time.
-
+    # Values are [saturation, maximum brightness] -- and nil means "don't
+    # clamp brightness"
+    SATURATION_POINTS = [[0.2, 0.00],
+                         [0.6, 0.30],
+                         [0.8, 0.70],
+                         [1.0, nil]]
     SATURATION_TRANSITION = 1.0
     # ORBIT_POS = [[0, 4],
     #              [1, 4],
     #              [2, 4],
     #              [3, 4]]
-    SAT_COLORS = { on:   0x1C103F,
-                   off:  0x03030C,
-                   down: 0x10103F }
-    SAT_POSITIONS = [[4, 4],
-                     [5, 4],
-                     [6, 4],
-                     [7, 4]]
+    SATURATION_COLORS = { on:   0x1C103F,
+                          off:  0x03030C,
+                          down: 0x10103F }
     sat_size = SATURATION_POINTS.length
-    # def sat_req(ival, sat_bridge, sat_group)
-    #   data = { "sat"            => (255 * ival).round,
-    #            "transitiontime" => (SATURATION_TRANSITION * 10).round }
-    #   { method:   :put,
-    #     url:      group_update_url(sat_bridge, sat_group),
-    #     put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
-    # end
-
-    SAT_POSITIONS.each_with_index do |pos, idx|
-      group = SATURATION_GROUPS[idx]
-      vertical_slider("sat#{idx}", pos, sat_size, colors: SAT_COLORS,
-                                                  default: sat_size - 1) do |val|
-        # TODO: Delay the saturation update until the brightness has taken effect.
-        ival, bri_max = SATURATION_POINTS[val]
-        LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
-        NODES["SHIFTED_#{idx}"].clamp_to(bri_max)
-        update_group!(group[0], group[1], SATURATION_TRANSITION, "sat" => (255 * ival).round)
+    [{ position: [4, 4], group: ["Bridge-01", "AccentAndMain"] },
+     { position: [5, 4], group: ["Bridge-02", "AccentAndMain"] },
+     { position: [6, 4], group: ["Bridge-03", "AccentAndMain"] },
+     { position: [7, 4], group: ["Bridge-04", "AccentAndMain"] }]
+      .each_with_index do |cfg, idx|
+        vertical_slider("sat#{idx}", cfg[:position], sat_size, colors: SATURATION_COLORS,
+                                                               default: sat_size - 1) do |val|
+          # TODO: Delay the saturation update until the brightness has taken effect.
+          ival, bri_max = SATURATION_POINTS[val]
+          logger.info { "Saturation[#{idx},#{val}]: #{ival}" }
+          NODES["SHIFTED_#{idx}"].clamp_to(bri_max)
+          update_group!(cfg[:group], SATURATION_TRANSITION, "sat" => (255 * ival).round)
+        end
       end
-    end
 
     # NOTE: Values are indexes into main_lights array.
     #
@@ -76,11 +62,7 @@ SCREENS.draw do
                                                 default:   nil,
                                                 allow_off: true) do |val|
       val = SPOTLIGHT_POSITIONS.flatten[val] if val
-      if val
-        LOGGER.info { "Spot ##{val}" }
-      else
-        LOGGER.info { "Spot Off" }
-      end
+      LOGGER.info { val ? "Spot ##{val}" : "Spot Off" }
       NODES["spotlighting"].spotlight!(val)
     end
   end
