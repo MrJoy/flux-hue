@@ -83,7 +83,6 @@ require "sparkle_motion/simulation/graph_task"
 require "sparkle_motion/simulation/sweeper_task"
 extend SparkleMotion::Simulation::Output
 extend SparkleMotion::Hue::HTTP
-extend SparkleMotion::FlowControl
 
 ###############################################################################
 # Profiling and Debugging
