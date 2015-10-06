@@ -50,8 +50,7 @@ module SparkleMotion
         state.parameter!(name, default) do |_key, value|
           widget.update(value)
         end
-        @widgets[name]  = widget
-        widget
+        @widgets[name] = widget
       end
 
       def radio_group(name, position, size, colors:, default: 0, allow_off: true, &handler)
@@ -75,8 +74,7 @@ module SparkleMotion
         state.parameter!(name, default) do |_key, value|
           widget.update(value)
         end
-        @widgets[name]  = widget
-        widget
+        @widgets[name] = widget
       end
 
       def button(name, position, colors:, &handler)
@@ -87,7 +85,6 @@ module SparkleMotion
                        on_press:   handler)
         @defaults[name] = false
         @widgets[name]  = widget
-        widget
       end
 
       def toggle(name, position, default: false, colors:, &handler)
@@ -99,8 +96,7 @@ module SparkleMotion
         state.parameter!(name, default) do |_key, value|
           widgets.update(value)
         end
-        @widgets[name]  = widget
-        widget
+        @widgets[name] = widget
       end
 
       def tab_set(name, colors:, default:, &handler)
