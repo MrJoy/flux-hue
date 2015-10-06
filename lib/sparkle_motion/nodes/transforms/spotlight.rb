@@ -10,8 +10,8 @@ module SparkleMotion
       #
       # TODO: Parameterize the falloff
       class Spotlight < Transform
-        def initialize(source:, base:, exponent:, mask: nil)
-          super(source: source, mask: mask)
+        def initialize(source:, base:, exponent:)
+          super(source: source)
           @spotlight  = nil
           @base       = base
           @exponent   = exponent

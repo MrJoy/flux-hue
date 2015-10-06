@@ -5,8 +5,8 @@ module SparkleMotion
       #
       # TODO: Allow change to range to apply over time?
       class Range < Transform
-        def initialize(source:, mask: nil, logger:)
-          super(source: source, mask: mask)
+        def initialize(source:, logger:)
+          super(source: source)
           @logger       = logger
           @clamp_to     = nil
           @clamp_target = nil

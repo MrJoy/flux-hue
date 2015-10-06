@@ -12,10 +12,9 @@ module SparkleMotion
     # end
     # ```
     class Transform < Node
-      def initialize(source:, mask: nil)
-        super(lights: source.lights)
+      def initialize(source:, lights: nil)
+        super(lights: lights || source.lights)
         @source = source
-        @mask   = mask
       end
 
       def update(t)
@@ -23,8 +22,7 @@ module SparkleMotion
         if block_given?
           (0..(@lights - 1)).each do |x|
             # Apply to all lights if no mask, and apply to specific lights if mask.
-            apply_transform = !@mask || @mask[x]
-            @state[x]       = apply_transform ? yield(x) : @source[x]
+            @state[x] = yield(x)
           end
         end
         super(t)

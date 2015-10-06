@@ -81,6 +81,7 @@ require "sparkle_motion/simulation/command_queue_task"
 require "sparkle_motion/simulation/render_task"
 require "sparkle_motion/simulation/surface_master_task"
 require "sparkle_motion/simulation/graph_task"
+require "sparkle_motion/simulation/graph_set"
 require "sparkle_motion/simulation/sweeper_task"
 require "sparkle_motion/simulation/sweeper_set"
 extend SparkleMotion::Simulation::Output
@@ -115,45 +116,6 @@ if USE_INPUT
 else
   INTERACTIONS = {}
 end
-NODES            = {}
-
-###############################################################################
-# Simulation Graph Configuration / Setup
-###############################################################################
-# Root nodes (don't act as modifiers on other nodes' output):
-n_cfg           = CONFIG["simulation"]["nodes"]
-p_speed         = n_cfg["perlin"]["speed"]
-NODES["PERLIN"] = SparkleMotion::Nodes::Generators::Perlin.new(lights: num_lights, speed: p_speed)
-last            = NODES["PERLIN"]
-
-# Transform nodes (act as a chain of modifiers):
-c_cfg               = n_cfg["contrast"]
-c_fun               = c_cfg["function"]
-c_iter              = c_cfg["iterations"]
-NODES["STRETCHED"]  = last = SparkleMotion::Nodes::Transforms::Contrast.new(function:   c_fun,
-                                                                            iterations: c_iter,
-                                                                            source:     last)
-# Create one control group here per "quadrant"...
-LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), idx|
-  mask        = LIGHTS_FOR_THREADS.masks[bridge_name]
-  int_key     = "int#{idx}"
-  last        = NODES[int_key] = SparkleMotion::Nodes::Transforms::Range.new(source: last,
-                                                                             mask:   mask,
-                                                                             logger: LOGGER)
-end
-
-sl_key               = "spotlighting"
-sl_cfg               = CONFIG["simulation"]["nodes"]["spotlighting"]
-sl_base              = sl_cfg["base"]
-sl_exp               = sl_cfg["exponent"]
-last = NODES[sl_key] = SparkleMotion::Nodes::Transforms::Spotlight.new(source:   last,
-                                                                       base:     sl_base,
-                                                                       exponent: sl_exp)
-FINAL_RESULT         = last # The end node that will be rendered to the lights.
-
-NODES.each do |name, node|
-  node.debug = DEBUG_FLAGS[name]
-end
 
 ###############################################################################
 # Operational Configuration
@@ -169,23 +131,27 @@ class Simulator
     @interactions   = interactions
     @state          = state
     @logger         = logger
-    @screen_set     = SparkleMotion::Widgets::ScreenSet.new(interactions, state, logger)
     @command_queue  = SparkleMotion::Simulation::CommandQueueTask.new(logger) if USE_LIGHTS
     bb              = CONFIG["bridges"]
-    @sweepers       = SparkleMotion::Simulation::SweeperSet.new(bb, @command_queue, @logger)
+    @sweeper_set    = SparkleMotion::Simulation::SweeperSet.new(bb, @command_queue, @logger)
+    @graph_set      = SparkleMotion::Simulation::GraphSet.new(@logger)
+    @screen_set     = SparkleMotion::Widgets::ScreenSet.new(interactions, @graph_set, state, logger)
     @input_threads  = @interactions
                       .map do |(nn, cc)|
                         SparkleMotion::Simulation::SurfaceMasterTask.new(nn, cc, @logger)
                       end
-
   end
 
   def load!(fname)
     instance_eval(File.read(fname), fname)
   end
 
+  def graphs(&callback)
+    @graph_set.draw(&callback)
+  end
+
   def sweepers(&callback)
-    @sweepers.draw(&callback)
+    @sweeper_set.draw(&callback)
   end
 
   def screens(&callback)
@@ -202,9 +168,13 @@ class Simulator
     end
     @state.enabled = true
     @input_threads.map(&:start)
+    @sweeper_set.start
+    @graph_set.start
   end
 
   def stop
+    @graph_set.stop
+    @sweeper_set.stop
     @screen_set.stop
     @input_threads.map(&:stop)
   end
@@ -240,6 +210,10 @@ end
 state = SparkleMotion::Simulation::Parameters.new("/tmp/sparkle-motion.state", LOGGER)
 SIM = Simulator.new(INTERACTIONS, state, LOGGER)
 SIM.load!("config.rb")
+# NODES.each do |name, node|
+#   node.debug = DEBUG_FLAGS[name]
+# end
+
 
 ###############################################################################
 # Profiling Support
@@ -266,11 +240,6 @@ end
 ###############################################################################
 # Main Simulation
 ###############################################################################
-def launch_graph_thread!(logger)
-  return nil unless USE_GRAPH
-  SparkleMotion::Simulation::GraphTask.new("Main", logger)
-end
-
 def light_thread!(bridge, transition, global_results, debug, logger)
   lights = LIGHTS_FOR_THREADS.lights[bridge["name"]]
 
@@ -279,13 +248,13 @@ def light_thread!(bridge, transition, global_results, debug, logger)
     "#{bridge['name']}: Thread will handle #{lights.count} lights (#{light_list})."
   end
 
-  SparkleMotion::Simulation::RenderTask.new(node:           FINAL_RESULT,
-                                            bridge:         bridge,
-                                            lights:         lights,
-                                            transition:     transition,
-                                            global_results: global_results,
-                                            logger:         logger,
-                                            debug:          debug)
+  # SparkleMotion::Simulation::RenderTask.new(node:           FINAL_RESULT,
+  #                                           bridge:         bridge,
+  #                                           lights:         lights,
+  #                                           transition:     transition,
+  #                                           global_results: global_results,
+  #                                           logger:         logger,
+  #                                           debug:          debug)
 end
 
 def launch_light_threads!(cfg, global_results, debug, logger)
@@ -300,11 +269,8 @@ def launch_light_threads!(cfg, global_results, debug, logger)
   threads
 end
 
-def launch_graph_threads!(logger); [launch_graph_thread!(logger)]; end
-
 def launch_all_threads!(config, global_results, debug, logger)
-  tmp = { graph:   launch_graph_threads!(logger),
-          lights:  launch_light_threads!(config["simulation"]["output"],
+  tmp = { lights:  launch_light_threads!(config["simulation"]["output"],
                                          global_results,
                                          debug["OUTPUT"],
                                          logger) }
@@ -325,11 +291,15 @@ def pre_init!
 end
 
 def nodes_under_debug
-  NODES.select { |name, _node| DEBUG_FLAGS[name] }
+  # NODES.select { |name, _node| DEBUG_FLAGS[name] }
+  # TODO: Reimplement me!
+  false
 end
 
 def debugging?
-  nodes_under_debug.length > 0 || DEBUG_FLAGS["OUTPUT"] || PROFILE_RUN
+  # TODO: Reimplement me!
+  # nodes_under_debug.length > 0 || DEBUG_FLAGS["OUTPUT"] || PROFILE_RUN
+  false
 end
 
 def init!(global_results)
@@ -340,7 +310,7 @@ def init!(global_results)
   end
   global_results.begin! if global_results
   start_ruby_prof!
-  FINAL_RESULT.update(Time.now.to_f)
+  # FINAL_RESULT.update(Time.now.to_f)
 end
 
 def wake!(threads)
@@ -363,7 +333,7 @@ end
 
 def stop!(threads)
   LOGGER.unknown { "Stopping threads..." }
-  %i(lights graph).each do |thread_group|
+  %i(lights).each do |thread_group|
     threads[thread_group].each(&:stop)
   end
   threads[:all].map(&:await)

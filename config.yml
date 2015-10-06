@@ -173,39 +173,6 @@ simulation:
     # brightness it's currently at to the new value, again spread over the full
     # transition time.
     transition: 0.0
-  nodes:
-    perlin:
-      # The speed parameter as a multiplier on `(x, time)` to map the Perlin
-      # surface onto the lights.  Smaller values for the x component bring the
-      # lights closer together on that surface, and larger ones move them
-      # further apart.
-      #
-      # Similarly, smaller values for the y component cause the lights to move
-      # down the surface more slowly as time passes -- and larger ones cause
-      # quicker movement.
-      #
-      # Be mindful of how this plays out given how slow the Hue lights are to
-      # update!
-      #
-      # NOTE: I'm ignoring octaves and persitence for the moment as the low
-      # NOTE: precision for brightness and slow light updates make it easy for
-      # NOTE: that to just get in the way.
-      speed: [0.1, 4.0]
-    contrast:
-      # Performs a contrast-stretch on the Perlin noise generated above.
-      # This has the effect of spreading the values out across the range of
-      # brightnesses somewhat more evenly, as they'll tend to be centered
-      # pretty heavily around 0.5 otherwise.
-      #
-      # Function: LINEAR, CUBIC, QUINTIC -- don't bother using iterations > 1
-      # with LINEAR, as LINEAR is a no-op.
-      #
-      # The iteration count is how many times to stretch the value in successtion.
-      function:   cubic
-      iterations: 3
-    spotlighting:
-      base:     0.9
-      exponent: 2
 # TODO: Reallocate accent lights.
 # TODO: Allow sweepers to address a particular *group or light* at each step.
 # TODO: Allow arbitrary sweeper definitions.

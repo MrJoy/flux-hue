@@ -78,6 +78,63 @@ sweepers do
                          hues:       STRAND_HUES["dance_floor"])
 end
 
+graphs do
+  graph("strand1") do
+    # The speed parameter as a multiplier on `(x, time)` to map the Perlin
+    # surface onto the lights.  Smaller values for the x component bring the
+    # lights closer together on that surface, and larger ones move them
+    # further apart.
+    #
+    # Similarly, smaller values for the y component cause the lights to move
+    # down the surface more slowly as time passes -- and larger ones cause
+    # quicker movement.
+    #
+    # Be mindful of how this plays out given how slow the Hue lights are to
+    # update!
+    #
+    # NOTE: I'm ignoring octaves and persitence for the moment as the low
+    # NOTE: precision for brightness and slow light updates make it easy for
+    # NOTE: that to just get in the way.
+    # TODO: Infer width.
+    perlin("perlin",  speed: [0.1, 0.4],
+                      width: 14)
+    # Performs a contrast-stretch on the Perlin noise generated above.
+    # This has the effect of spreading the values out across the range of
+    # brightnesses somewhat more evenly, as they'll tend to be centered
+    # pretty heavily around 0.5 otherwise.
+    #
+    # Function: LINEAR, CUBIC, QUINTIC -- don't bother using iterations > 1
+    # with LINEAR, as LINEAR is a no-op.
+    #
+    # The iteration count is how many times to stretch the value in successtion.
+    stretch("contrast", function:   :cubic,
+                        iterations: 3,
+                        from:       "perlin")
+    remap("int0", from: slice("contrast", 0..7))
+    remap("int1", from: slice("contrast", 8..14))
+    spotlight("spotlighting", base:     0.9,
+                              exponent: 2,
+                              from:     join("int0", "int1"))
+
+    render("spotlighting")
+  end
+
+  graph("strand2") do
+    perlin("perlin",  speed: [0.1, 0.4],
+                      width: 14)
+    stretch("contrast", function:   :cubic,
+                        iterations: 3,
+                        from:       "perlin")
+    remap("int2", from: slice("contrast", 0..7))
+    remap("int3", from: slice("contrast", 8..14))
+    spotlight("spotlighting", base:     0.9,
+                              exponent: 2,
+                              from:     join("int2", "int3"))
+
+    render("spotlighting")
+  end
+end
+
 screens do
   screen("simulation", "launchpad") do
     # The desaturation controller.
@@ -102,17 +159,17 @@ screens do
                           off:  0x03030C,
                           down: 0x10103F }
     sat_size = SATURATION_POINTS.length
-    [{ position: [4, 4], group: ["Bridge-01", "AccentAndMain"] },
-     { position: [5, 4], group: ["Bridge-02", "AccentAndMain"] },
-     { position: [6, 4], group: ["Bridge-03", "AccentAndMain"] },
-     { position: [7, 4], group: ["Bridge-04", "AccentAndMain"] }]
+    [{ position: [4, 4], group: ["Bridge-01", "AccentAndMain"], graph: "strand1" },
+     { position: [5, 4], group: ["Bridge-02", "AccentAndMain"], graph: "strand1" },
+     { position: [6, 4], group: ["Bridge-03", "AccentAndMain"], graph: "strand2" },
+     { position: [7, 4], group: ["Bridge-04", "AccentAndMain"], graph: "strand2" }]
       .each_with_index do |cfg, idx|
         vertical_slider("sat#{idx}", cfg[:position], sat_size, colors: SATURATION_COLORS,
                                                                default: sat_size - 1) do |val|
           # TODO: Delay the saturation update until the brightness has taken effect.
           ival, bri_max = SATURATION_POINTS[val]
           logger.info { "Saturation[#{idx},#{val}]: #{ival}" }
-          NODES["int#{idx}"].clamp_to(bri_max)
+          graph(cfg[:graph]).node("int#{idx}").clamp_to(bri_max)
           SIM.update_group!(cfg[:group], SATURATION_TRANSITION, "sat" => (255 * ival).round)
         end
       end
@@ -128,15 +185,15 @@ screens do
                          off:  0x05000A,
                          down: 0x27103F }
     int_size = INTENSITY_POINTS.length
-    [{ position: [0, 3], group: ["Bridge-01", "AccentAndMain"] },
-     { position: [1, 3], group: ["Bridge-02", "AccentAndMain"] },
-     { position: [2, 3], group: ["Bridge-03", "AccentAndMain"] },
-     { position: [3, 3], group: ["Bridge-04", "AccentAndMain"] }]
+    [{ position: [0, 3], group: ["Bridge-01", "AccentAndMain"], graph: "strand1" },
+     { position: [1, 3], group: ["Bridge-02", "AccentAndMain"], graph: "strand1" },
+     { position: [2, 3], group: ["Bridge-03", "AccentAndMain"], graph: "strand2" },
+     { position: [3, 3], group: ["Bridge-04", "AccentAndMain"], graph: "strand2" }]
       .each_with_index do |cfg, idx|
         vertical_slider("int#{idx}", cfg[:position], int_size, colors: INTENSITY_COLORS,
                                                                default: int_size / 2) do |val|
           mid, spread = INTENSITY_POINTS[val]
-          NODES["int#{idx}"].set_range(*mid, spread)
+          graph(cfg[:graph]).node("int#{idx}").set_range(*mid, spread)
         end
       end
 
@@ -159,7 +216,17 @@ screens do
                                                 allow_off: true) do |val|
       val = SPOTLIGHT_POSITIONS.flatten[val] if val
       LOGGER.info { val ? "Spot ##{val}" : "Spot Off" }
-      NODES["spotlighting"].spotlight!(val)
+      if val
+        if val < 14
+          graph("strand1").node("spotlighting").spotlight!(val)
+        else
+          # TODO: How best to handle this?
+          graph("strand2").node("spotlighting").spotlight!(val - 14)
+        end
+      else
+        graph("strand1").node("spotlighting").spotlight!(nil)
+        graph("strand2").node("spotlighting").spotlight!(nil)
+      end
     end
   end
 

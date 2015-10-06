@@ -5,10 +5,11 @@ module SparkleMotion
       include SparkleMotion::Hue::HTTP
       attr_accessor :widgets, :state, :logger
 
-      def initialize(screen_set, controller, state, logger)
+      def initialize(screen_set, graph_set, controller, state, logger)
         @screen_set = screen_set
-        @state      = state
+        @graph_set  = graph_set
         @controller = controller
+        @state      = state
         @logger     = logger
         @widgets    = {}
         @defaults   = {}
@@ -36,6 +37,8 @@ module SparkleMotion
         instance_eval(&callback)
         self
       end
+
+      def graph(name); @graph_set[name]; end
 
       def vertical_slider(name, position, size, colors:, default: 0, &handler)
         widget = SparkleMotion::LaunchPad::Widgets::VerticalSlider
