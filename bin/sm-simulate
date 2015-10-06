@@ -470,7 +470,7 @@ def launch_graph_threads!(logger); [launch_graph_thread!(logger)]; end
 
 def launch_all_threads!(config, global_results, debug, logger)
   command_queue = launch_command_queue_thread!(logger)
-  PENDING_COMMANDS << command_queue
+  PENDING_COMMANDS << command_queue if command_queue
   tmp = { input:   launch_input_threads!(command_queue, logger),
           graph:   launch_graph_threads!(logger),
           sweep:   launch_sweep_threads!(config["sweepers"], command_queue, logger),
