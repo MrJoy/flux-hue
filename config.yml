@@ -239,7 +239,7 @@ simulation:
     # is still changing, then it will simply start moving from whatever
     # brightness it's currently at to the new value, again spread over the full
     # transition time.
-    transition: 0.2
+    transition: 0.3
   nodes:
     perlin:
       # The speed parameter as a multiplier on `(x, time)` to map the Perlin
