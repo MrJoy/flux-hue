@@ -115,7 +115,7 @@ else
 end
 INT_STATES              = []
 NODES                   = {}
-PENDING_COMMANDS        = Queue.new
+PENDING_COMMANDS        = []
 CURRENT_STATE           = {}
 STATE_FILENAME          = "/tmp/sparkle-motion.state"
 SKIP_STATE_PERSISTENCE  = [false]
@@ -146,6 +146,11 @@ def update_state!(key, value)
   # TODO: Maybe keep the file open, and rewind?
   File.open(STATE_FILENAME, "w") do |fh|
     fh.write(CURRENT_STATE.to_yaml)
+  end
+end
+
+class PersistentState
+  def initialize(filename)
   end
 end
 
@@ -226,7 +231,7 @@ sat_cfg["positions_lp"].each_with_index do |pos, idx|
                                  NODES[int_key].clamp_to(bri_max)
                                  # TODO: Delay the saturation update until the
                                  # brightness has taken effect.
-                                 PENDING_COMMANDS << req
+                                 PENDING_COMMANDS.each { |queue| queue << req }
                                  update_state!(sat_key, val)
                                end)
 end
@@ -351,8 +356,8 @@ def setup_exit_controls!
   EXIT_BUTTON.update(false)
 end
 
-def launch_input_threads!(logger)
-  setup_control_state!
+def launch_input_threads!(command_queue, logger)
+  setup_control_state!(command_queue)
 
   return [] unless USE_INPUT
 
@@ -361,7 +366,7 @@ def launch_input_threads!(logger)
     .compact
 end
 
-def setup_control_state!
+def setup_control_state!(command_queue)
   without_persistence do
     setup_intensity_controls!
     setup_saturation_controls!
@@ -369,9 +374,9 @@ def setup_control_state!
     setup_exit_controls!
   end
 
-  # Don't send updates from our attempts at setting things up when we're
-  # picking up where we left of...
-  PENDING_COMMANDS.clear if HAVE_STATE_FILE
+  # Don't send updates from our attempts at setting things up when we're picking up where we left
+  # off...
+  command_queue.clear if command_queue
 end
 
 def launch_graph_thread!(logger)
@@ -379,14 +384,7 @@ def launch_graph_thread!(logger)
   SparkleMotion::Simulation::GraphTask.new("Main", logger)
 end
 
-def add_group_command!(bridge, group_id, data)
-  # TODO: Hoist the hash into something reusable?
-  PENDING_COMMANDS << { method:   :put,
-                        url:      group_update_url(bridge, group_id),
-                        put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
-end
-
-def launch_sweep_threads!(sweep_cfgs, logger)
+def launch_sweep_threads!(sweep_cfgs, command_queue, logger)
   return [] unless USE_LIGHTS && USE_SWEEP
   sweep_cfgs.map do |config|
     targets = config["targets"]
@@ -394,9 +392,10 @@ def launch_sweep_threads!(sweep_cfgs, logger)
                 bridge = CONFIG["bridges"][name]
                 [bridge, bridge["groups"][group]]
               end
-    SparkleMotion::Simulation::SweeperTask.new(targets: targets,
-                                               config:  config,
-                                               logger:  logger)
+    SparkleMotion::Simulation::SweeperTask.new(targets:       targets,
+                                               config:        config,
+                                               logger:        logger,
+                                               command_queue: command_queue)
   end
 end
 
@@ -419,6 +418,7 @@ end
 
 class CommandQueueTask < SparkleMotion::ManagedTask
   def initialize(logger)
+    @queue = Queue.new
     super("CommandQueueTask", :early, logger) do
       requests = pending_commands
       next if requests.length == 0
@@ -431,6 +431,10 @@ class CommandQueueTask < SparkleMotion::ManagedTask
     end
   end
 
+  def <<(val); @queue << val; end
+
+  def clear; @queue.clear; end
+
 protected
 
   def error?(easy)
@@ -438,11 +442,16 @@ protected
   end
 
   def pending_commands
-    sleep 0.1 if PENDING_COMMANDS.empty?
+    sleep 0.1 if @queue.empty?
     requests = []
-    requests << PENDING_COMMANDS.pop until PENDING_COMMANDS.empty?
+    requests << @queue.pop until @queue.empty?
     requests
   end
+end
+
+def launch_command_queue_thread!(logger)
+  return nil unless USE_LIGHTS
+  CommandQueueTask.new(logger)
 end
 
 def launch_light_threads!(cfg, global_results, debug, logger)
@@ -454,21 +463,22 @@ def launch_light_threads!(cfg, global_results, debug, logger)
     light_thread!(bridge, transition, global_results, debug, logger)
   end
 
-  threads << CommandQueueTask.new(LOGGER)
-
   threads
 end
 
 def launch_graph_threads!(logger); [launch_graph_thread!(logger)]; end
 
 def launch_all_threads!(config, global_results, debug, logger)
-  tmp = { input:  launch_input_threads!(logger),
-          graph:  launch_graph_threads!(logger),
-          sweep:  launch_sweep_threads!(config["sweepers"], logger),
-          lights: launch_light_threads!(config["simulation"]["output"],
-                                        global_results,
-                                        debug["OUTPUT"],
-                                        logger) }
+  command_queue = launch_command_queue_thread!(logger)
+  PENDING_COMMANDS << command_queue
+  tmp = { input:   launch_input_threads!(command_queue, logger),
+          graph:   launch_graph_threads!(logger),
+          sweep:   launch_sweep_threads!(config["sweepers"], command_queue, logger),
+          command: [command_queue],
+          lights:  launch_light_threads!(config["simulation"]["output"],
+                                         global_results,
+                                         debug["OUTPUT"],
+                                         logger) }
   tmp.values.map(&:compact!)
   tmp[:all] = tmp.values.flatten.compact
   tmp
@@ -523,7 +533,7 @@ end
 
 def stop!(threads)
   LOGGER.unknown { "Stopping threads..." }
-  %i(lights sweep graph input).each do |thread_group|
+  %i(lights command sweep graph input).each do |thread_group|
     threads[thread_group].each(&:stop)
   end
   threads[:all].map(&:await)
