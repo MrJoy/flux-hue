@@ -406,12 +406,13 @@ class RenderTask < SparkleMotion::ManagedTask
     @bridge         = bridge
     @lights         = lights
     @transition     = transition
+    @data           = with_transition_time(@transition, "bri" => 0)
     @global_results = global_results
     @stats          = SparkleMotion::Results.new(logger: LOGGER) if @global_results
     @debug          = debug
     @requests       = @lights.map { |(idx, lid)| light_req(idx, lid, logger) }
     # TODO: Restore ITERATIONS functionality...
-    super("RenderTask[#{bridge["name"]}]", :early, logger) { render }
+    super("RenderTask[#{bridge['name']}]", :early, logger) { render }
   end
 
   def render
@@ -426,10 +427,9 @@ protected
 
   def light_req(idx, lid, logger)
     url = hue_light_endpoint(@bridge, lid)
-    data = { "bri" => 0 }
     SparkleMotion::Hue::LazyRequestConfig.new(logger, @bridge, :put, url, @stats, debug: @debug) do
-      data["bri"] = (FINAL_RESULT[idx] * 255).round
-      with_transition_time(@transition, data)
+      @data["bri"] = (FINAL_RESULT[idx] * 255).round
+      @data
     end
   end
 end
