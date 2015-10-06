@@ -264,6 +264,7 @@ class Screen
   end
 
   def start
+    # TODO: Want to gate this...
     @widgets.each do |name, widget|
       # TODO: Enable button listeners.
       next unless @defaults.key?(name)
