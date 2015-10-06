@@ -15,6 +15,7 @@ module SparkleMotion
 
       def enable
         attach_handler!
+        render
       end
 
       def disable

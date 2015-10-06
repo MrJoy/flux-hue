@@ -255,15 +255,74 @@ def kick!
   TIME_TO_DIE[0] = true
 end
 
+class TabSet
+  def initialize(screen_set, controller, colors, default, &handler)
+    @screen_set = screen_set
+    @controller = controller
+    @tabs       = []
+    @active     = default
+    @colors     = colors
+    @screens    = []
+    instance_eval(&handler)
+  end
+
+  def enable
+    @tabs.each(&:enable)
+    # @tabs[@active].update(true)
+  end
+
+  def disable
+    @tabs.each(&:disable)
+  end
+
+  def tab(position, screen = nil, &handler)
+    idx           = @tabs.length
+    @screens[idx] = screen if screen
+    @tabs[idx]    = SparkleMotion::LaunchPad::Widgets::Toggle
+                    .new(launchpad:  @controller,
+                         position:   position.to_sym,
+                         colors:     @colors,
+                         on_press:   proc do |val|
+                           if val == 0 && idx == @active
+                             # Don't allow de-selection!
+                             @tabs[idx].update(true)
+                           else
+                             update(idx)
+                             @screens.each do |sc|
+                               if sc == screen
+                                 sc.start
+                               else
+                                 sc.stop
+                               end
+                             end
+                             handler.call(idx, val) if handler
+                           end
+                         end)
+  end
+
+  def screens; @screen_set.screens; end
+
+  def update(val)
+    @active = val
+    @tabs.each_with_index do |tab, i|
+      tab.update(i == @active)
+    end
+  end
+end
+
 class Screen
-  def initialize(controller, logger)
+  def initialize(screen_set, controller, logger)
+    @screen_set = screen_set
     @controller = controller
     @logger     = logger
     @widgets    = {}
     @defaults   = {}
+    @started    = false
   end
 
   def start
+    return if @started
+    @started = true
     # TODO: Want to gate this...
     @widgets.each do |name, widget|
       widget.enable
@@ -273,7 +332,8 @@ class Screen
   end
 
   def stop
-    # TODO: Disable button listeners.
+    return unless @started
+    @started = false
     @widgets.values.each(&:disable)
   end
 
@@ -317,99 +377,80 @@ class Screen
     widget
   end
 
-  class TabSet
-    def initialize(screen, colors, default, &handler)
-      @screen     = screen
-      @tabs       = []
-      @active     = default
-      @colors     = colors
-      @screens    = []
-      instance_eval(&handler)
-    end
-
-    def enable; end
-
-    def disable; end
-
-    def tab(name, position, screen = nil, &handler)
-      idx           = @tabs.length
-      active        = idx == @active
-      @screens[idx] = screen if screen
-      @tabs[idx]  = @screen.toggle(name, position, colors: @colors, default: active) do |val|
-        if val == 0 && idx == @active
-          # Don't allow de-selection!
-          @tabs[idx].update(true)
-        else
-          update(idx)
-          @screens.each do |sc|
-            if sc == screen
-              sc.start
-            else
-              sc.stop
-            end
-          end
-          handler.call(idx, val) if handler
-        end
-      end
-    end
-
-    def update(val)
-      @active = val
-      @tabs.each_with_index do |tab, i|
-        tab.update(i == @active)
-      end
-    end
-  end
-
   def tab_set(name, colors:, default:, &handler)
-    @widgets[name] = TabSet.new(self, colors, default, &handler)
+    @widgets[name] = TabSet.new(@screen_set, @controller, colors, default, &handler)
   end
 end
 
-SCREENS = {}
+class ScreenSet
+  attr_accessor :screens
 
-SCREENS["simulation"] = Screen
-                        .new(INTERACTIONS["launchpad"], LOGGER)
-                        .draw do
-                          # Sometimes the process(es) on Hue Bridge that a thread is connected to
-                          # (or possibly `libcurl` on our end) just seem to get... stuck.  It's
-                          # very rare but it does happen.  Also, you may find heap growth to be an
-                          # issue, and swapping might cause you some problems.  This allows a quick
-                          # (under 0.5s last I measured) restart of the process.  It preserves state
-                          # to disk as it goes, so it will come back quickly and gracefully with no
-                          # more than a tiny hiccup in the simulation.
-                          #
-                          # Alternatively,  you may just want to do a quick reload after making a
-                          # configuration change.
-                          #
-                          # Position is which of the control buttons to use for this
-                          # kick-in-the-head function.
-                          # TODO: Make this optional.
-                          button("exit", :mixer, colors: { color: :dark_gray,
-                                                           down:  :white }) { kick! }
-                        end
+  def initialize(controllers, logger)
+    @controllers  = controllers
+    @screens      = {}
+    @default      = nil
+    @logger       = logger
+  end
 
-SCREENS["tuning"] = Screen
-                    .new(INTERACTIONS["launchpad"], LOGGER)
-                    .draw do
-                      # TODO: Controls for tuning white lights, accent lights, etc...
-                    end
+  def start; @screens.values.each(&:start); end
+  def stop; @screens.values.each(&:stop); end
 
-SCREENS["tabset"] = Screen
-                    .new(INTERACTIONS["launchpad"], LOGGER)
-                    .draw do
-                      tab_set("screen_selector",
-                              default: 0,
-                              colors: { off:  :dark_gray,
-                                        down: :white,
-                                        on:   :light_gray }) do
-                        tab("simulation_tab", :up,    SCREENS["simulation"])
-                        tab("dance_tab",      :down,  SCREENS["tuning"])
-                        # tab("custom_tab") do
-                        #   puts "PING!"
-                        # end
-                      end
-                    end
+  def draw(&handler)
+    instance_eval(&handler)
+    @screens[@default].start if @default
+  end
+
+  def screen(name, controller_name, default: false, &handler)
+    @default    = name if default
+    controller  = @controllers[controller_name]
+    @logger.error { "No such controller: '#{controller_name}'!" } unless controller
+
+    @screens[name] = Screen.new(self, controller, @logger).draw(&handler)
+  end
+end
+
+SCREENS = ScreenSet.new(INTERACTIONS, LOGGER)
+
+SCREENS.draw do
+  screen("simulation", "launchpad") do
+    # Sometimes the process(es) on Hue Bridge that a thread is connected to
+    # (or possibly `libcurl` on our end) just seem to get... stuck.  It's
+    # very rare but it does happen.  Also, you may find heap growth to be an
+    # issue, and swapping might cause you some problems.  This allows a quick
+    # (under 0.5s last I measured) restart of the process.  It preserves state
+    # to disk as it goes, so it will come back quickly and gracefully with no
+    # more than a tiny hiccup in the simulation.
+    #
+    # Alternatively,  you may just want to do a quick reload after making a
+    # configuration change.
+    #
+    # Position is which of the control buttons to use for this
+    # kick-in-the-head function.
+    # TODO: Make this optional.
+    button("exit", :mixer, colors: { color: :dark_gray,
+                                     down:  :white }) { kick! }
+  end
+
+  screen("tuning", "launchpad") do
+    # TODO: Controls for tuning white lights, accent lights, etc...
+  end
+
+  screen("tabset", "launchpad", default: true) do
+    tab_set("screen_selector",
+            default: 0,
+            colors: { off:  :dark_gray,
+                      down: :white,
+                      on:   :light_gray }) do
+      tab(:up,    screens["simulation"])
+      tab(:down,  screens["tuning"])
+      tab(:left) do
+        puts "PING!"
+      end
+    end
+  end
+end
+
+SCREENS.screens["tabset"].start
 
 ###############################################################################
 # Profiling Support
@@ -450,7 +491,7 @@ def clear_board!
   sleep 0.01 # 88 updates/sec input limit!
   SL_STATE.blank
   sleep 0.01
-  SCREENS.values.map(&:stop)
+  SCREENS.stop
 end
 
 def without_persistence(command_queue, &block)
@@ -476,7 +517,7 @@ end
 def setup_control_state!(command_queue)
   without_persistence(command_queue) do
     STATE.load!
-    SCREENS.values.map(&:start)
+    SCREENS.start
     STATE.init!
   end
   STATE.enabled = true
