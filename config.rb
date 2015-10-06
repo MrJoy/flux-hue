@@ -249,7 +249,7 @@ screens do
     end
   end
 
-  screen("tabset", "launchpad", default: true) do
+  screen("tabset", "launchpad") do
     tab_set("screen_selector",
             colors: { off:  :dark_gray,
                       down: :white,
@@ -279,5 +279,3 @@ screens do
                                      down:  :white }) { SIM.kick! }
   end
 end
-
-screen("tabset").start

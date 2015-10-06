@@ -9,7 +9,6 @@ module SparkleMotion
         @graph_set    = graph_set
         @state        = state
         @screens      = {}
-        @default      = nil
         @logger       = logger
       end
 
@@ -29,11 +28,9 @@ module SparkleMotion
 
       def draw(&handler)
         instance_eval(&handler)
-        @screens[@default].start if @default
       end
 
-      def screen(name, controller_name, default: false, &handler)
-        @default    = name if default
+      def screen(name, controller_name, &handler)
         controller  = @controllers[controller_name]
         @logger.error { "No such controller: '#{controller_name}'!" } unless controller
 
