@@ -380,7 +380,7 @@ end
 def add_group_command!(bridge, group_id, data)
   # TODO: Hoist the hash into something reusable?
   PENDING_COMMANDS << { method:   :put,
-                        url:      group_update_url(config, group_id),
+                        url:      group_update_url(bridge, group_id),
                         put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
 end
 
@@ -463,7 +463,7 @@ protected
   def light_req(idx, lid, logger)
     url = hue_light_endpoint(@bridge, lid)
     data = { "bri" => 0 }
-    SparkleMotion::Hue::LazyRequestConfig.new(logger, @bridge, url, @stats, debug: @debug) do
+    SparkleMotion::Hue::LazyRequestConfig.new(logger, @bridge, :put, url, @stats, debug: @debug) do
       data["bri"] = (FINAL_RESULT[idx] * 255).round
       with_transition_time(@transition, data)
     end
@@ -482,7 +482,7 @@ def light_thread!(bridge, transition, global_results, debug, logger)
                  lights:         lights,
                  transition:     transition,
                  global_results: global_results,
-                 logger:         LOGGER,
+                 logger:         logger,
                  debug:          debug)
 end
 

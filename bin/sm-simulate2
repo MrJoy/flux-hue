@@ -54,6 +54,7 @@ require "sparkle_motion"
 require "set"
 
 SparkleMotion.init!
+SparkleMotion.use_config!
 # We load the following unconditionally because so much plugs into the graph
 # we don't currently have a good way of decoupling things gracefully.  So all
 # USE_GRAPH=0 really means is that we don't run the simulation thread.
