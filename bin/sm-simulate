@@ -210,25 +210,24 @@ sat_colors  = sat_cfg["colors"]
 sat_vals    = sat_cfg["values"]
 sat_grps    = sat_cfg["groups"]
 sat_widget  = Kernel.const_get(sat_cfg["widget"])
-sat_cfg["positions_lp"].each_with_index do |pos, idx|
+sat_cfg["positions"].each_with_index do |pos, idx|
+  # TODO: Restore functionality for Orbit!
   sat_grp_info  = sat_grps[idx]
   sat_bridge    = CONFIG["bridges"][sat_grp_info[0]]
   sat_group     = sat_grp_info[1]
   sat_key       = "SAT_STATES[#{idx}]"
-  sat_pos_lp    = SparkleMotion::Vector2.new(pos)
-  sat_pos_no    = SparkleMotion::Vector2.new(sat_cfg["positions_no"][idx])
+  sat_pos       = SparkleMotion::Vector2.new(pos)
+  # sat_pos_no    = SparkleMotion::Vector2.new(sat_cfg["positions_no"][idx])
   int_key       = "SHIFTED_#{idx}"
   SAT_STATES << sat_widget.new(launchpad:     INTERACTIONS["launchpad"],
-                               orbit:         INTERACTIONS["orbit"],
-                               position_lp:   sat_pos_lp,
-                               position_no:   sat_pos_no,
+                               position:      sat_pos,
                                size:          sat_vals.length,
                                colors:        sat_colors,
                                on_change:     proc do |val|
                                  ival, bri_max  = sat_vals[val]
                                  req            = sat_req(ival, sat_len, sat_bridge, sat_group)
                                  LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
-                                 NODES[int_key].clamp_to(bri_max)
+                                 NODES[int_key].clamp_to(bri_max) if NODES.key?(int_key)
                                  # TODO: Delay the saturation update until the
                                  # brightness has taken effect.
                                  PENDING_COMMANDS.each { |queue| queue << req }

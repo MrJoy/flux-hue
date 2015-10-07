@@ -372,13 +372,14 @@ simulation:
       # via group update, the brightness is done per-bulb in the main rendering
       # loop -- and you probably don't want to blind everyone during the
       # transition time.
-      widget: SparkleMotion::LaunchPad::Widgets::VerticalSlider
+      widget: SparkleMotion::LaunchPad::Widgets::HorizontalSlider
       transition: 0.5
-      positions_lp:
+      positions:
+      - [4, 7]
+      - [4, 6]
+      - [4, 5]
       - [4, 4]
-      - [5, 4]
-      - [6, 4]
-      - [7, 4]
+      - [4, 3]
       positions_no:
       - [0, 0]
       - [1, 0]
@@ -392,6 +393,7 @@ simulation:
       - ["Bridge-02", 0]
       - ["Bridge-03", 0]
       - ["Bridge-04", 0]
+      - ["Bridge-01", 1]
       values:
       # Values are [saturation, maximum brightness] -- and null means "don't
       # clamp brightness"
