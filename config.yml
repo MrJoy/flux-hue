@@ -2,9 +2,10 @@
 def color_step(steps); ((((90.0 / 360.0) * 65536) * steps) % 65536).round; end
 def random_color(steps); Random.rand(65536); end
 
-base_hue  = 50_000
-min_hue   = base_hue - 2_000
-max_hue   = base_hue + 2_000
+base_hue    = 50_000
+hue_spread  = 2_000
+min_hue     = base_hue - hue_spread
+max_hue     = base_hue + hue_spread
 
 shared_sweep_transition = 0.5
 shared_sweep_wait       = 2.0
