@@ -209,7 +209,11 @@ module SparkleMotion
           url = URI("http://#{bridge['ip']}:#{bridge['port'] || 80}#{uri}")
           case http_method
           when "GET"    then response = Net::HTTP.get_response(url)
-          when "DELETE" then response = Net::HTTP.delete(url)
+          when "DELETE" then
+            req = Net::HTTP::Delete.new(url)
+            response = Net::HTTP.start(url.hostname, url.port) do |http|
+              http.request(req)
+            end
           when "PUT", "POST"
             if http_method == "PUT"
               req = Net::HTTP::Put.new(url)
@@ -218,7 +222,7 @@ module SparkleMotion
             end
             req.content_type = "application/json"
             response = Net::HTTP.start(url.hostname, url.port) do |http|
-              req.body = Oj.dump(payload || callback.call)
+              req.body = Oj.dump(payload || @callback.call)
               req.content_length = req.body.length
               http.request(req)
             end
@@ -343,7 +347,7 @@ module SparkleMotion
         if error
           LOGGER.error { "#{request.uri} => #{status} / #{body.join("\n")}" }
           failures << request
-          next
+          return
         end
 
         callback.call(request, status, body) if block_given?
