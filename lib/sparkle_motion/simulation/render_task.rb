@@ -15,7 +15,7 @@ module SparkleMotion
         @debug          = debug
         # TODO: Restore ITERATIONS functionality...
         super("RenderTask[#{bridge['name']}]", :early, logger) { render }
-        @requests = @lights.map { |(idx, lid)| light_req(idx, lid) }
+        @requests = @lights.map { |(idx, lid)| light_req(idx, lid) }.compact
       end
 
       def render
@@ -33,6 +33,7 @@ module SparkleMotion
     protected
 
       def light_req(idx, lid)
+        return nil unless @node[idx]
         url = hue_light_endpoint(@bridge, lid)
         SparkleMotion::Hue::LazyRequestConfig.new(@logger, @bridge, :put, url, @stats,
                                                   debug: @debug) do
