@@ -293,7 +293,7 @@ module SparkleMotion
                   &callback)
         payload = with_transition_time(transition, payload) if payload && transition
         NetHTTPRequest.new(bridge, action, light_id: light_id, group_id: group_id, payload: payload,
-                    &callback)
+                           &callback)
       end
 
       def bridge_query(bridge, &callback)
@@ -333,21 +333,23 @@ module SparkleMotion
       def perform_once(requests, &callback)
         failures = []
         requests.each do |request|
-          begin
-            error, status, body = request.perform
-            if error
-              LOGGER.error { "#{request.uri} => #{status} / #{body.join("\n")}" }
-              failures << request
-              next
-            end
-
-            callback.call(request, status, body) if block_given?
-          rescue StandardError => se
-            LOGGER.error { "Exception handling request to: #{request.uri}" }
-            LOGGER.error { se }
-          end
+          perform_request(request, failures, &callback)
         end
         failures
+      end
+
+      def perform_request(request, failures, &callback)
+        error, status, body = request.perform
+        if error
+          LOGGER.error { "#{request.uri} => #{status} / #{body.join("\n")}" }
+          failures << request
+          next
+        end
+
+        callback.call(request, status, body) if block_given?
+      rescue StandardError => se
+        LOGGER.error { "Exception handling request to: #{request.uri}" }
+        LOGGER.error { se }
       end
 
       def perform_with_retries(requests, max_retries: nil, &callback)
