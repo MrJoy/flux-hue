@@ -273,14 +273,6 @@ sweepers:
   wait:       1.0
   values: *dance_wedding
 simulation:
-  output:
-    # This controls the amount of time (in seconds, but only to a precision of
-    # 1/10th of a second) that it takes for the brightness of the lights to
-    # change when they're updated.  If a new update comes along while the light
-    # is still changing, then it will simply start moving from whatever
-    # brightness it's currently at to the new value, again spread over the full
-    # transition time.
-    transition: 0.3
   nodes:
     perlin:
       # The speed parameter as a multiplier on `(x, time)` to map the Perlin

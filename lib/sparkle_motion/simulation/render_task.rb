@@ -4,16 +4,17 @@ module SparkleMotion
     class RenderTask < SparkleMotion::ManagedTask
       include SparkleMotion::Hue::HTTP
 
-      def initialize(node:, bridge:, lights:, transition:, global_results:, logger:, debug: false)
+      def initialize(node:, bridge:, lights:, global_results:, logger:, debug: false)
         @node           = node
         @bridge         = bridge
         @lights         = lights
-        @transition     = transition
-        @data           = with_transition_time(@transition, "bri" => 0)
+        @data           = { "bri" => 0 }
         @global_results = global_results
         @stats          = SparkleMotion::Results.new(logger: LOGGER) if @global_results
         @debug          = debug
-        # TODO: Restore ITERATIONS functionality...
+        @samples        = []
+        @sample_idx     = 0
+        @avg            = 0.0
         super("RenderTask[#{bridge['name']}]", :early, logger) { render }
         @requests = @lights.map { |(idx, lid)| light_req(idx, lid) }.compact
       end
@@ -23,8 +24,15 @@ module SparkleMotion
           sleep 0.05 * @requests.length
           return
         end
+        before = Time.now.to_f
         Curl::Multi.http(@requests.dup, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do
         end
+        after = Time.now.to_f
+        elapsed = after - before
+        @samples[@sample_idx] = elapsed
+        @sample_idx += 1
+        @sample_idx = 0 if @sample_idx >= 30
+        @avg = (@samples.inject(:+) / @samples.length.to_f).round(1)
         sleep 0.075
         return unless @global_results
         @global_results.add_from(@stats)
@@ -39,7 +47,7 @@ module SparkleMotion
         SparkleMotion::Hue::LazyRequestConfig.new(@logger, @bridge, :put, url, @stats,
                                                   debug: @debug) do
           @data["bri"] = (@node[idx] * 255).round
-          @data
+          with_transition_time(@avg, @data)
         end
       end
     end

@@ -405,7 +405,7 @@ def launch_sweep_threads!(sweep_cfgs, command_queue, logger)
   end
 end
 
-def light_thread!(bridge, transition, global_results, debug, logger)
+def light_thread!(bridge, global_results, debug, logger)
   lights = LIGHTS_FOR_THREADS.lights[bridge["name"]]
 
   LOGGER.unknown do
@@ -416,7 +416,6 @@ def light_thread!(bridge, transition, global_results, debug, logger)
   SparkleMotion::Simulation::RenderTask.new(node:           FINAL_RESULT,
                                             bridge:         bridge,
                                             lights:         lights,
-                                            transition:     transition,
                                             global_results: global_results,
                                             logger:         logger,
                                             debug:          debug)
@@ -426,12 +425,11 @@ def launch_command_queue_thread!(logger)
   SparkleMotion::Simulation::CommandQueueTask.new(logger)
 end
 
-def launch_light_threads!(cfg, global_results, debug, logger)
+def launch_light_threads!(global_results, debug, logger)
   threads = []
 
-  transition  = cfg["transition"]
-  threads    += LIGHTS_FOR_THREADS.bridges.values.map do |bridge|
-    light_thread!(bridge, transition, global_results, debug, logger)
+  threads += LIGHTS_FOR_THREADS.bridges.values.map do |bridge|
+    light_thread!(bridge, global_results, debug, logger)
   end
 
   threads
@@ -446,10 +444,7 @@ def launch_all_threads!(config, global_results, debug, logger)
           graph:   launch_graph_threads!(logger),
           sweep:   launch_sweep_threads!(config["sweepers"], command_queue, logger),
           command: [command_queue],
-          lights:  launch_light_threads!(config["simulation"]["output"],
-                                         global_results,
-                                         debug["OUTPUT"],
-                                         logger) }
+          lights:  launch_light_threads!(global_results, debug["OUTPUT"], logger) }
   tmp.values.map(&:compact!)
   tmp[:all] = tmp.values.flatten.compact
   tmp
