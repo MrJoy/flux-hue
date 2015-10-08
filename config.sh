@@ -26,9 +26,6 @@ export SKIP_INPUTS=orbit #orbit,launchpad
 ###############################################################################
 # Debugging
 ###############################################################################
-# Run for a fixed number of iterations, or until we're killed (0):
-export ITERATIONS=0
-
 # Forcibly disable Ruby GC:
 export SKIP_GC=0
 

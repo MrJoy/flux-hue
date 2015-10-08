@@ -277,8 +277,7 @@ end
 ###############################################################################
 # Operational Configuration
 ###############################################################################
-ITERATIONS                = env_int("ITERATIONS", true) || 0
-TIME_TO_DIE               = [false, :terminate]
+TIME_TO_DIE = [false, :terminate]
 
 ###############################################################################
 # Profiling Support
@@ -489,7 +488,6 @@ def spin!(threads)
   loop do
     # Someone hit the exit button:
     break if TIME_TO_DIE[0]
-    # We went through and did `ITERATIONS` update loops over the lights:
     # ... the `- 1` is for the command queue thread!
     unfinished = (threads.length - threads.count { |th| th.status == false }) - 1
     break if USE_LIGHTS && unfinished == 0
@@ -507,8 +505,6 @@ end
 
 def main
   pre_init!
-
-  announce_iteration_config(ITERATIONS)
 
   global_results  = SparkleMotion::Results.new(logger: LOGGER) if defined?(SparkleMotion::Results)
   threads         = launch_all_threads!(CONFIG, global_results, DEBUG_FLAGS, LOGGER)
