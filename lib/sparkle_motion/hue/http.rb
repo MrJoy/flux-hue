@@ -24,13 +24,6 @@ module SparkleMotion
       def hue_light_endpoint(config, light_id); "#{hue_base(config)}/lights/#{light_id}/state"; end
       def hue_group_endpoint(config, group); "#{hue_base(config)}/groups/#{group}/action"; end
 
-      def endpoint_url(bridge); "http://#{bridge['ip']}"; end
-      def bridge_query_url(bridge); "#{endpoint_url(bridge)}/api/#{bridge['username']}"; end
-      def light_query_url(bridge, light_id); "#{bridge_query_url(bridge)}/lights/#{light_id}"; end
-      def light_update_url(bridge, light_id); "#{light_query_url(bridge, light_id)}/state"; end
-      def group_query_url(bridge, group_id); "#{bridge_query_url(bridge)}/groups/#{group_id}"; end
-      def group_update_url(bridge, group_id); "#{group_query_url(bridge, group_id)}/action"; end
-
       # Class to encapsulate a request to the Hue Bridge, using `TCPSocket` for low-overhead
       # communication.
       class TCPSocketRequest
