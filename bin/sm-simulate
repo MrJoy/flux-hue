@@ -100,10 +100,8 @@ DEBUG_FLAGS   = Hash[(ENV["DEBUG_NODES"] || "")
 # Shared State Setup
 ###############################################################################
 # TODO: Run all simulations, and use a mixer to blend between them...
-num_lights         = CONFIG["light_groups"]["main_lights"].length +
-                     CONFIG["light_groups"]["dance_lights"].length
-LIGHTS_FOR_THREADS = SparkleMotion::LightConfig.new(config: CONFIG, groups: %w(main_lights
-                                                                               dance_lights))
+num_lights         = CONFIG["light_groups"]["main_lights"].length
+LIGHTS_FOR_THREADS = SparkleMotion::LightConfig.new(config: CONFIG, groups: %w(main_lights))
 if USE_INPUT
   controllers = {}
   CONFIG["controllers"].each do |name, config|
