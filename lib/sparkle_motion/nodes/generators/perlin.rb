@@ -14,7 +14,7 @@ module SparkleMotion
 
         def update(t)
           @lights.times do |n|
-            self[n] = @perlin[n * @speed.x, t * @speed.y]
+            self[n] = @perlin[n * @speed[0], t * @speed[1]]
           end
           super(t)
         end
