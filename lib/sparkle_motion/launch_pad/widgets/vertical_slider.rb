@@ -44,13 +44,13 @@ module SparkleMotion
           yy = (pos_no.y..(pos_no.y + size.y - 1))
           orbit.response_to(:grid, :down, x: xx, y: yy) do |_inter, action|
             local_x = action[:control][:x] - pos_no.x
-            local_y = (size.y - 1) - (action[:control][:y] - pos_no.y)
+            local_y = (action[:control][:y] - pos_no.y)
             pressed!(x: local_x, y: local_y)
             on_down(x: local_x, y: local_y)
           end
           orbit.response_to(:grid, :up, x: xx, y: yy) do |_inter, action|
             local_x = action[:control][:x] - pos_no.x
-            local_y = (size.y - 1) - (action[:control][:y] - pos_no.y)
+            local_y = (action[:control][:y] - pos_no.y)
             released!(x: local_x, y: local_y)
             on_up(x: local_x, y: local_y)
           end
