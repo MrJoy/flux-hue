@@ -69,73 +69,72 @@ light_groups:
   # plan groups out for saturation controls.
   # TODO: Break this into separate simulations per table?
   main_lights:
-    # Strand 1:
-  - ["Bridge-01", 26, color] # 0  -- Strand 1, Group 1
-  - ["Bridge-01", 37, color] # 1  -- Strand 1, Group 1
-  - ["Bridge-01", 36, color] # 2  -- Strand 1, Group 1
-  - ["Bridge-01", 38, color] # 3  -- Strand 1, Group 1
-  - ["Bridge-01", 39, color] # 4  -- Strand 1, Group 1
-  - ["Bridge-01", 40, color] # 5  -- Strand 1, Group 1
-  - ["Bridge-01", 35, color] # 6  -- Strand 1, Group 1
-  - ["Bridge-01", 41, color] # 7  -- Dance Floor
-  - ["Bridge-01", 42, color] # 8  -- Dance Floor
+    - ["Bridge-01", 26, color] # 0  -- Strand 1, Group 1
+    - ["Bridge-01", 37, color] # 1  -- Strand 1, Group 1
+    - ["Bridge-01", 36, color] # 2  -- Strand 1, Group 1
+    - ["Bridge-01", 38, color] # 3  -- Strand 1, Group 1
+    - ["Bridge-01", 39, color] # 4  -- Strand 1, Group 1
+    - ["Bridge-01", 40, color] # 5  -- Strand 1, Group 1
+    - ["Bridge-01", 35, color] # 6  -- Strand 1, Group 1
+    - ["Bridge-01", 41, color] # 7  -- Dance Floor
+    - ["Bridge-01", 42, color] # 8  -- Dance Floor
 
-  - ["Bridge-02", 12, color] # 9  -- Strand 1, Group 2
-  - ["Bridge-02", 21, color] # 10 -- Strand 1, Group 2
-  - ["Bridge-02", 20, color] # 11 -- Strand 1, Group 2
-  - ["Bridge-02", 19, color] # 12 -- Strand 1, Group 2
-  - ["Bridge-02", 15, color] # 13 -- Strand 1, Group 2
-  - ["Bridge-02", 18, color] # 14 -- Strand 1, Group 2
-  - ["Bridge-02", 11, color] # 15 -- Strand 1, Group 2
-  - ["Bridge-02", 22, color] # 16 -- Dance Floor
-  - ["Bridge-02", 23, color] # 17 -- Dance Floor
+    - ["Bridge-02", 12, color] # 9  -- Strand 1, Group 2
+    - ["Bridge-02", 21, color] # 10 -- Strand 1, Group 2
+    - ["Bridge-02", 20, color] # 11 -- Strand 1, Group 2
+    - ["Bridge-02", 19, color] # 12 -- Strand 1, Group 2
+    - ["Bridge-02", 15, color] # 13 -- Strand 1, Group 2
+    - ["Bridge-02", 18, color] # 14 -- Strand 1, Group 2
+    - ["Bridge-02", 11, color] # 15 -- Strand 1, Group 2
+    - ["Bridge-02", 22, color] # 16 -- Dance Floor
+    - ["Bridge-02", 23, color] # 17 -- Dance Floor
 
-  - ["Bridge-03",  7, color] # 18 -- Strand 2, Group 1
-  - ["Bridge-03",  2, color] # 19 -- Strand 2, Group 1
-  - ["Bridge-03",  3, color] # 20 -- Strand 2, Group 1
-  - ["Bridge-03",  8, color] # 21 -- Strand 2, Group 1
-  - ["Bridge-03", 10, color] # 22 -- Strand 2, Group 1
-  - ["Bridge-03",  9, color] # 23 -- Strand 2, Group 1
-  - ["Bridge-03",  6, color] # 24 -- Strand 2, Group 1
-  - ["Bridge-03", 11, color] # 25 -- Dance Floor
-  - ["Bridge-03", 12, color] # 26 -- Dance Floor
+    - ["Bridge-03",  7, color] # 18 -- Strand 2, Group 1
+    - ["Bridge-03",  2, color] # 19 -- Strand 2, Group 1
+    - ["Bridge-03",  3, color] # 20 -- Strand 2, Group 1
+    - ["Bridge-03",  8, color] # 21 -- Strand 2, Group 1
+    - ["Bridge-03", 10, color] # 22 -- Strand 2, Group 1
+    - ["Bridge-03",  9, color] # 23 -- Strand 2, Group 1
+    - ["Bridge-03",  6, color] # 24 -- Strand 2, Group 1
+    - ["Bridge-03", 11, color] # 25 -- Dance Floor
+    - ["Bridge-03", 12, color] # 26 -- Dance Floor
 
-  - ["Bridge-04",  7, color] # 27 -- Strand 2, Group 2
-  - ["Bridge-04", 11, color] # 28 -- Strand 2, Group 2
-  - ["Bridge-04", 12, color] # 29 -- Strand 2, Group 2
-  - ["Bridge-04",  1, color] # 30 -- Strand 2, Group 2
-  - ["Bridge-04",  9, color] # 31 -- Strand 2, Group 2
-  - ["Bridge-04",  8, color] # 32 -- Strand 2, Group 2
-  - ["Bridge-04",  5, color] # 33 -- Strand 2, Group 2
-  - ["Bridge-04", 13, color] # 34 -- Dance Floor
-  - ["Bridge-04", 14, color] # 35 -- Dance Floor
+    - ["Bridge-04",  7, color] # 27 -- Strand 2, Group 2
+    - ["Bridge-04", 11, color] # 28 -- Strand 2, Group 2
+    - ["Bridge-04", 12, color] # 29 -- Strand 2, Group 2
+    - ["Bridge-04",  1, color] # 30 -- Strand 2, Group 2
+    - ["Bridge-04",  9, color] # 31 -- Strand 2, Group 2
+    - ["Bridge-04",  8, color] # 32 -- Strand 2, Group 2
+    - ["Bridge-04",  5, color] # 33 -- Strand 2, Group 2
+    - ["Bridge-04", 13, color] # 34 -- Dance Floor
+    - ["Bridge-04", 14, color] # 35 -- Dance Floor
   # Accent lights are just... other lights in the system.  Not part of any
   # simulation, they get their base color and that's it.
   accent_lights:
-  - ["Bridge-01",  9, color]
-  - ["Bridge-01", 10, color]
-  - ["Bridge-01", 11, color]
-  - ["Bridge-01", 12, color]
-  - ["Bridge-01", 13, color]
-  - ["Bridge-01", 33, color]
-  - ["Bridge-01", 34, color]
+    - ["Bridge-01",  9, color]
+    - ["Bridge-01", 10, color]
+    - ["Bridge-01", 11, color]
+    - ["Bridge-01", 12, color]
+    - ["Bridge-01", 13, color]
+    - ["Bridge-01", 33, color]
+    - ["Bridge-01", 34, color]
 
-  - ["Bridge-02",  7, color]
-  - ["Bridge-02",  8, color]
+    - ["Bridge-02",  7, color]
+    - ["Bridge-02",  8, color]
   food_lights:
-  # TODO: Allow specifying both a group ID and individual light IDs.  While we're at it, break this
-  # TODO: out into a separate file, and use it as a cache -- with a way to regenerate from the
-  # TODO: lights, and/or apply it to the lights.
-  - ["Bridge-01",  3, white]
-  - ["Bridge-01",  4, white]
-  - ["Bridge-01",  5, white]
-  - ["Bridge-01", 16, white]
-  - ["Bridge-01", 24, white]
-  - ["Bridge-01", 25, white]
+    # TODO: Allow specifying both a group ID and individual light IDs.  While we're at it, break this
+    # TODO: out into a separate file, and use it as a cache -- with a way to regenerate from the
+    # TODO: lights, and/or apply it to the lights.
+    - ["Bridge-01",  3, white]
+    - ["Bridge-01",  4, white]
+    - ["Bridge-01",  5, white]
+    - ["Bridge-01", 16, white]
+    - ["Bridge-01", 24, white]
+    - ["Bridge-01", 25, white]
 
-  - ["Bridge-02",  4, white]
-  - ["Bridge-02",  5, white]
-  - ["Bridge-02",  6, white]
+    - ["Bridge-02",  4, white]
+    - ["Bridge-02",  5, white]
+    - ["Bridge-02",  6, white]
 initial_state:
   # This defines what state the lights will be set to when running `sm-on`.
   # It's important you run `sm-on` *before* running `sparkle-motion`, as the
@@ -167,111 +166,111 @@ controllers:
 color_configs:
   strand1_1:
     wedding: &strand1_1_wedding
-    - <%= base_hue %>
-    - <%= min_hue %>
-    - <%= base_hue %>
-    - <%= max_hue %>
+      - <%= base_hue %>
+      - <%= min_hue %>
+      - <%= base_hue %>
+      - <%= max_hue %>
     debug: &strand1_1_debug
-    - <%= random_color(0) %>
-    - <%= random_color(1) %>
-    - <%= random_color(2) %>
-    - <%= random_color(3) %>
-    - <%= random_color(4) %>
-    - <%= random_color(5) %>
-    - <%= random_color(6) %>
-    - <%= random_color(7) %>
+      - <%= random_color(0) %>
+      - <%= random_color(1) %>
+      - <%= random_color(2) %>
+      - <%= random_color(3) %>
+      - <%= random_color(4) %>
+      - <%= random_color(5) %>
+      - <%= random_color(6) %>
+      - <%= random_color(7) %>
   strand1_2:
     wedding: &strand1_2_wedding
-    - <%= min_hue %>
-    - <%= base_hue %>
-    - <%= max_hue %>
-    - <%= base_hue %>
+      - <%= min_hue %>
+      - <%= base_hue %>
+      - <%= max_hue %>
+      - <%= base_hue %>
     debug: &strand1_2_debug
-    - <%= random_color(1) %>
-    - <%= random_color(2) %>
-    - <%= random_color(3) %>
-    - <%= random_color(4) %>
-    - <%= random_color(5) %>
-    - <%= random_color(6) %>
-    - <%= random_color(7) %>
-    - <%= random_color(8) %>
+      - <%= random_color(1) %>
+      - <%= random_color(2) %>
+      - <%= random_color(3) %>
+      - <%= random_color(4) %>
+      - <%= random_color(5) %>
+      - <%= random_color(6) %>
+      - <%= random_color(7) %>
+      - <%= random_color(8) %>
   strand2_1:
     wedding: &strand2_1_wedding
-    - <%= base_hue %>
-    - <%= max_hue %>
-    - <%= base_hue %>
-    - <%= min_hue %>
+      - <%= base_hue %>
+      - <%= max_hue %>
+      - <%= base_hue %>
+      - <%= min_hue %>
     debug: &strand2_1_debug
-    - <%= random_color(2) %>
-    - <%= random_color(3) %>
-    - <%= random_color(4) %>
-    - <%= random_color(5) %>
-    - <%= random_color(6) %>
-    - <%= random_color(7) %>
-    - <%= random_color(8) %>
-    - <%= random_color(9) %>
+      - <%= random_color(2) %>
+      - <%= random_color(3) %>
+      - <%= random_color(4) %>
+      - <%= random_color(5) %>
+      - <%= random_color(6) %>
+      - <%= random_color(7) %>
+      - <%= random_color(8) %>
+      - <%= random_color(9) %>
   strand2_2:
     wedding: &strand2_2_wedding
-    - <%= max_hue %>
-    - <%= base_hue %>
-    - <%= min_hue %>
-    - <%= base_hue %>
+      - <%= max_hue %>
+      - <%= base_hue %>
+      - <%= min_hue %>
+      - <%= base_hue %>
     debug: &strand2_2_debug
-    - <%= random_color(3) %>
-    - <%= random_color(4) %>
-    - <%= random_color(5) %>
-    - <%= random_color(6) %>
-    - <%= random_color(7) %>
-    - <%= random_color(8) %>
-    - <%= random_color(9) %>
-    - <%= random_color(10) %>
+      - <%= random_color(3) %>
+      - <%= random_color(4) %>
+      - <%= random_color(5) %>
+      - <%= random_color(6) %>
+      - <%= random_color(7) %>
+      - <%= random_color(8) %>
+      - <%= random_color(9) %>
+      - <%= random_color(10) %>
   dance:
     wedding: &dance_wedding
-    - <%= max_hue %>
-    - <%= min_hue %>
+      - <%= max_hue %>
+      - <%= min_hue %>
     debug: &dance_debug
-    - <%= random_color(4) %>
-    - <%= random_color(5) %>
-    - <%= random_color(6) %>
-    - <%= random_color(7) %>
-    - <%= random_color(8) %>
-    - <%= random_color(9) %>
-    - <%= random_color(10) %>
-    - <%= random_color(11) %>
+      - <%= random_color(4) %>
+      - <%= random_color(5) %>
+      - <%= random_color(6) %>
+      - <%= random_color(7) %>
+      - <%= random_color(8) %>
+      - <%= random_color(9) %>
+      - <%= random_color(10) %>
+      - <%= random_color(11) %>
 sweepers:
-- name: "Strand1Group1"
-  targets:
-  - [Bridge-01, AccentMain]
-  transition: <%= shared_sweep_transition %>
-  wait:       <%= shared_sweep_wait %>
-  values: *strand1_1_wedding
-- name: "Strand1Group2"
-  targets:
-  - [Bridge-02, AccentMain]
-  transition: <%= shared_sweep_transition %>
-  wait:       <%= shared_sweep_wait %>
-  values: *strand1_2_wedding
-- name: "Strand2Group1"
-  targets:
-  - [Bridge-03, Main]
-  transition: <%= shared_sweep_transition %>
-  wait:       <%= shared_sweep_wait %>
-  values: *strand2_1_wedding
-- name: "Strand2Group2"
-  targets:
-  - [Bridge-04, Main]
-  transition: <%= shared_sweep_transition %>
-  wait:       <%= shared_sweep_wait %>
-  values: *strand2_2_wedding
-- name: "Dance"
-  targets:
-  - [Bridge-01, Dance]
-  - [Bridge-02, Dance]
-  - [Bridge-03, Dance]
-  - [Bridge-04, Dance]
-  transition: 0.1
-  wait:       1.0
-  values: *dance_wedding
+  - name: "Strand1Group1"
+    targets:
+      - [Bridge-01, AccentMain]
+    transition: <%= shared_sweep_transition %>
+    wait:       <%= shared_sweep_wait %>
+    values: *strand1_1_wedding
+  - name: "Strand1Group2"
+    targets:
+      - [Bridge-02, AccentMain]
+    transition: <%= shared_sweep_transition %>
+    wait:       <%= shared_sweep_wait %>
+    values: *strand1_2_wedding
+  - name: "Strand2Group1"
+    targets:
+      - [Bridge-03, Main]
+    transition: <%= shared_sweep_transition %>
+    wait:       <%= shared_sweep_wait %>
+    values: *strand2_1_wedding
+  - name: "Strand2Group2"
+    targets:
+      - [Bridge-04, Main]
+    transition: <%= shared_sweep_transition %>
+    wait:       <%= shared_sweep_wait %>
+    values: *strand2_2_wedding
+  - name: "Dance"
+    targets:
+      - [Bridge-01, Dance]
+      - [Bridge-02, Dance]
+      - [Bridge-03, Dance]
+      - [Bridge-04, Dance]
+    transition: 0.1
+    wait:       1.0
+    values: *dance_wedding
 simulation:
   nodes:
     perlin:
@@ -332,27 +331,27 @@ simulation:
       # when you compute your y coordinates (or x for horizontal).
       widget: SparkleMotion::LaunchPad::Widgets::VerticalSlider
       positions:
-      - [0, 2]
-      - [1, 2]
-      - [2, 2]
-      - [3, 2]
-      - [4, 2]
+        - [0, 2]
+        - [1, 2]
+        - [2, 2]
+        - [3, 2]
+        - [4, 2]
       lights:
-      - [ 0,  1,  2,  3,  4,  5,  6] # Strand 1, Group 1 (Bridge 1)
-      - [ 9, 10, 11, 12, 13, 14, 15] # Strand 1, Group 2 (Bridge 2)
-      - [18, 19, 20, 21, 22, 23, 24] # Strand 2, Group 1 (Bridge 3)
-      - [27, 28, 29, 30, 31, 32, 33] # Strand 2, Group 2 (Bridge 4)
-      - [ 7,  8, 16, 17, 25, 26, 34, 35] # Dance Lights (Bridge 1..4)
+        - [ 0,  1,  2,  3,  4,  5,  6] # Strand 1, Group 1 (Bridge 1)
+        - [ 9, 10, 11, 12, 13, 14, 15] # Strand 1, Group 2 (Bridge 2)
+        - [18, 19, 20, 21, 22, 23, 24] # Strand 2, Group 1 (Bridge 3)
+        - [27, 28, 29, 30, 31, 32, 33] # Strand 2, Group 2 (Bridge 4)
+        - [ 7,  8, 16, 17, 25, 26, 34, 35] # Dance Lights (Bridge 1..4)
       values:
-      # [Mid-point, delta].  Minimum brightness is `mid-point - delta` and max
-      # is `mid-point + delta`.
-      # - [0.000, 0.000]
-      - [0.150, 0.075]
-      - [0.200, 0.100]
-      - [0.400, 0.150]
-      - [0.500, 0.175]
-      - [0.600, 0.200]
-      - [0.700, 0.300]
+        # [Mid-point, delta].  Minimum brightness is `mid-point - delta` and max
+        # is `mid-point + delta`.
+        # - [0.000, 0.000]
+        - [0.200, 0.075]
+        - [0.300, 0.100]
+        - [0.400, 0.150]
+        - [0.500, 0.175]
+        - [0.600, 0.200]
+        - [0.700, 0.300]
       colors:
         "on":   0x22003F
         "off":  0x05000A
@@ -369,36 +368,36 @@ simulation:
       widget: SparkleMotion::LaunchPad::Widgets::HorizontalSlider
       transition: 0.5
       positions:
-      - [5, 7]
-      - [5, 6]
-      - [5, 5]
-      - [5, 4]
-      - [5, 3]
+        - [5, 7]
+        - [5, 6]
+        - [5, 5]
+        - [5, 4]
+        - [5, 3]
       positions_no:
-      - [0, 0]
-      - [1, 0]
-      - [2, 0]
-      - [3, 0]
+        - [0, 0]
+        - [1, 0]
+        - [2, 0]
+        - [3, 0]
       # This defines which Hue Bridge, and which group on that bridge a control
       # should affect.  It would be a bit nonsensical if this didn't correspond
       # to the arrangement of lights for the intensity controls though.
       groups:
-      - - ["Bridge-01", "AccentMain"]
-      - - ["Bridge-02", "AccentMain"]
-      - - ["Bridge-03", "Main"]
-      - - ["Bridge-04", "Main"]
-      - - ["Bridge-01", "Dance"]
-        - ["Bridge-02", "Dance"]
-        - ["Bridge-03", "Dance"]
-        - ["Bridge-04", "Dance"]
+        - - ["Bridge-01", "AccentMain"]
+        - - ["Bridge-02", "AccentMain"]
+        - - ["Bridge-03", "Main"]
+        - - ["Bridge-04", "Main"]
+        - - ["Bridge-01", "Dance"]
+          - ["Bridge-02", "Dance"]
+          - ["Bridge-03", "Dance"]
+          - ["Bridge-04", "Dance"]
       values:
-      # Values are [saturation, maximum brightness] -- and null means "don't
-      # clamp brightness"
-      - [0.2, 0.00]
-      # - [0.4, 0.10]
-      - [0.6, 0.30]
-      # - [0.8, 0.70]
-      - [1.0, null]
+        # Values are [saturation, maximum brightness] -- and null means "don't
+        # clamp brightness"
+        - [0.2, 0.00]
+        # - [0.4, 0.10]
+        - [0.6, 0.30]
+        # - [0.8, 0.70]
+        - [1.0, null]
       colors:
         "on":   0x1C103F
         "off":  0x03030C
@@ -413,19 +412,19 @@ simulation:
       base:     0.9
       exponent: 2
       mappings:
-      # NOTE: Values are indexes into main_lights array.
-      #
-      # Excluding outermost lights because they extend beyond the seating area.
-      # This configuration gives two rows, one corresponding to each of the two
-      # light strands I'm putting up.
-      #
-      # TODO: Automatically suss out lights by using padding / widget size settings and spreading
-      # TODO: across the simulations.
-      #
-      # Bridge 3/4:
-      - [20, 21, 22, 23,   24, 27, 28, 29]
-      # Bridge 1/2:
-      - [ 4,  5,  6,  9,   10, 11, 12, 13]
+        # NOTE: Values are indexes into main_lights array.
+        #
+        # Excluding outermost lights because they extend beyond the seating area.
+        # This configuration gives two rows, one corresponding to each of the two
+        # light strands I'm putting up.
+        #
+        # TODO: Automatically suss out lights by using padding / widget size settings and spreading
+        # TODO: across the simulations.
+        #
+        # Bridge 3/4:
+        - [20, 21, 22, 23,   24, 27, 28, 29]
+        # Bridge 1/2:
+        - [ 4,  5,  6,  9,   10, 11, 12, 13]
       colors:
         "on":   0x032727
         "off":  0x000202
