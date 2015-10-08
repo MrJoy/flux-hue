@@ -148,8 +148,17 @@ module SparkleMotion
       end
 
       def normalize_color!(color)
-        black = SparkleMotion::LaunchPad::Color::BLACK.to_h
-        color.is_a?(Array) ? color.map { |oo| black.merge(oo) } : black.merge(color)
+        case color
+        when Array  then color.map { |cc| normalize_color!(cc) }
+        when Symbol then SparkleMotion::LaunchPad::Color.const_get(color.to_s.upcase).to_h
+        when Color  then color.to_h
+        when Fixnum then
+          { r: ((color >> 16) & 0xFF),
+            g: ((color >> 8) & 0xFF),
+            b: (color & 0xFF) }
+        else
+          SparkleMotion::LaunchPad::Color::BLACK.to_h.merge(color)
+        end
       end
 
       def attach_handler!

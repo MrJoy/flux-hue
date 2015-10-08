@@ -82,7 +82,9 @@ module SparkleMotion
                 "sparkle_motion/audio/stream_filter"]
   def self.use_audio!; AUDIO_DEPS.each { |name| require name }; end
 
-  CONFIG_DEPS = ["sparkle_motion/config",
+  CONFIG_DEPS = ["sparkle_motion/vector2",
+                 "sparkle_motion/launch_pad/color",
+                 "sparkle_motion/config",
                  "sparkle_motion/light_config"]
   def self.use_config!; CONFIG_DEPS.each { |name| require name }; end
 end
