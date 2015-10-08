@@ -181,14 +181,15 @@ intensity_cfg["lights"].each_with_index do |light_ids, idx|
                                                             mask:       mask,
                                                             logger:     LOGGER)
   NODES[int_key]  = last
-  int_colors      = intensity_cfg["colors"]
   pos             = SparkleMotion::Vector2.new(intensity_cfg["positions"][idx])
   size            = int_vals.length
   int_widget      = Kernel.const_get(intensity_cfg["widget"])
   INT_STATES[idx] = int_widget.new(launchpad: INTERACTIONS["launchpad"],
                                    position:  pos,
                                    size:      size,
-                                   colors:    int_colors,
+                                   colors:    { "on":   0x22003F,
+                                                "off":  0x05000A,
+                                                "down": 0x27103F },
                                    on_change: proc do |val|
                                      ival = int_vals[val]
                                      LOGGER.info { "Intensity[#{idx},#{val}]: #{ival}" }
@@ -227,7 +228,9 @@ sat_cfg["positions"].each_with_index do |pos, idx|
   SAT_STATES << sat_widget.new(launchpad:     INTERACTIONS["launchpad"],
                                position:      sat_pos,
                                size:          sat_vals.length,
-                               colors:        sat_colors,
+                               colors:        { "on":   0x1C103F,
+                                                "off":  0x03030C,
+                                                "down": 0x10103F },
                                on_change:     proc do |val|
                                  ival, bri_max = sat_vals[val]
                                  NODES[int_key].clamp_to(bri_max)
@@ -249,7 +252,6 @@ last = NODES["SPOTLIT"] = SparkleMotion::Nodes::Transforms::Spotlight.new(source
                                                                           base:     sl_base,
                                                                           exponent: sl_exp)
 FINAL_RESULT            = last # The end node that will be rendered to the lights.
-sl_colors               = sl_cfg["colors"]
 sl_map                  = sl_cfg["mappings"]
 sl_pos_map              = sl_map.flatten
 sl_key                  = "SPOTLIT"
@@ -259,7 +261,9 @@ sl_widget               = Kernel.const_get(sl_cfg["class"])
 SL_STATE                = sl_widget.new(launchpad:   INTERACTIONS["launchpad"],
                                         position:    sl_pos,
                                         size:        sl_size,
-                                        colors:      sl_colors,
+                                        colors:      { "on":   0x032727,
+                                                       "off":  0x000202,
+                                                       "down": 0x103F3F },
                                         on_select:   proc do |x|
                                           LOGGER.info { "Spot ##{sl_pos_map[x]}" }
                                           NODES[sl_key].spotlight!(sl_pos_map[x])
@@ -288,7 +292,8 @@ TIME_TO_DIE               = [false, :terminate]
 e_cfg = CONFIG["simulation"]["controls"]["exit"]
 EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTIONS["launchpad"],
                                                             position:  e_cfg["position"].to_sym,
-                                                            colors:    e_cfg["colors"],
+                                                            colors:    { "color": :dark_gray,
+                                                                         "down":  :white },
                                                             on_press:  lambda do |value|
                                                               return unless value != 0
                                                               LOGGER.unknown { "Kick!" }
