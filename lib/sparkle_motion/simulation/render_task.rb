@@ -25,6 +25,7 @@ module SparkleMotion
         end
         Curl::Multi.http(@requests.dup, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do
         end
+        sleep 0.075
         return unless @global_results
         @global_results.add_from(@stats)
         @stats.clear!
