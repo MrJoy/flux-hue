@@ -231,7 +231,7 @@ color_configs:
       - <%= random_color(9) %>
       - <%= random_color(10) %>
       - <%= random_color(11) %>
-# This defines individual sweepers.  Each is comprised of a list of colors, the time take (in
+# This defines individual sweepers.  Each is comprised of a list of colors, the time taken (in
 # seconds) LERPing from color to color, and the time to wait between steps.
 # WARNING: Don't set wait much below 1.0!  ZigBee spec only allows 1 group update/sec, but Hue
 # Bridge/lights seem to be *mostly* OK with about 1 every 0.75 sec.  Further, I don't do any
