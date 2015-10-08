@@ -104,7 +104,8 @@ DEBUG_FLAGS   = Hash[(ENV["DEBUG_NODES"] || "")
 ###############################################################################
 # TODO: Run all simulations, and use a mixer to blend between them...
 num_lights         = CONFIG["light_groups"]["main_lights"].length
-LIGHTS_FOR_THREADS = SparkleMotion::LightConfig.new(config: CONFIG, group: "main_lights")
+LIGHTS_FOR_THREADS = SparkleMotion::LightConfig.new(config: CONFIG, groups: %w(main_lights
+                                                                               dance_lights))
 if USE_INPUT
   controllers = {}
   CONFIG["controllers"].each do |name, config|
@@ -258,7 +259,6 @@ end
 
 def launch_light_threads!(cfg, global_results, debug, logger)
   threads = []
-  return [] unless USE_LIGHTS
 
   transition  = cfg["transition"]
   threads    += LIGHTS_FOR_THREADS.bridges.values.map do |bridge|

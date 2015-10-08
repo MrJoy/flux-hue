@@ -10,6 +10,10 @@ module SparkleMotion
           next if requests.length == 0
           @logger.debug { "Processing #{requests.length} pending commands." }
           # TODO: Gather stats about success/failure...
+          unless USE_LIGHTS
+            sleep 0.1
+            next
+          end
 
           # TODO: Only do batches that are spread across bridges?
           Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|

@@ -39,6 +39,6 @@ Gem::Specification.new do |s|
   s.add_dependency "logger-better",   "~> 0.2.1"
   s.add_dependency "frisky",          "~> 0.1.1"
   s.add_dependency "surface_master",  "~> 0.6.0"
-  s.add_dependency "ruby-fftw3",      "~> 0.4.2"
-  s.add_dependency "coreaudio",       "~> 0.0.11"
+  # s.add_dependency "ruby-fftw3",      "~> 0.4.2"
+  # s.add_dependency "coreaudio",       "~> 0.0.11"
 end
