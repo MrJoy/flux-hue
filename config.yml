@@ -14,7 +14,8 @@ shared_sweep_wait       = 2.0
 # The username for the Philips Hue Bridge(s).  You can either create one and
 # set it here, or obtain generated ones and set them below.
 common_username: &common_username "1234567890"
-# The `max_connects`
+# The `max_connects` variable controls request concurrency when talking to each bridge.  This is
+# an important number in light of rate limits!
 max_connects: 3
 bridges:
   # List all of your Philips Hue Bridge(s) here.  I suggest keeping the ID info

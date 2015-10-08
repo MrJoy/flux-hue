@@ -201,14 +201,13 @@ end
 def sat_req(ival, sat_len, sat_bridge, sat_group)
   data = with_transition_time(sat_len, "sat" => (255 * ival).round)
   { method:   :put,
-    url:      group_update_url(sat_bridge, sat_group),
+    url:      hue_group_endpoint(sat_bridge, sat_group),
     put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
 end
 
 SAT_STATES = []
 sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
 sat_len     = sat_cfg["transition"]
-sat_colors  = sat_cfg["colors"]
 sat_vals    = sat_cfg["values"]
 sat_grps    = sat_cfg["groups"]
 sat_widget  = Kernel.const_get(sat_cfg["widget"])
