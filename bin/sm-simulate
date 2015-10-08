@@ -104,10 +104,10 @@ num_lights         = CONFIG["light_groups"]["main_lights"].length
 LIGHTS_FOR_THREADS = SparkleMotion::LightConfig.new(config: CONFIG, groups: %w(main_lights))
 if USE_INPUT
   controllers = {}
-  CONFIG["controllers"].each do |name, config|
+  [["launchpad", SurfaceMaster::Launchpad::Interaction],
+   ["orbit", SurfaceMaster::Orbit::Interaction]].each do |name, klass|
     next if SKIP_INPUTS.include?(name.upcase)
-    klass = config.delete("class")
-    controllers[name] = Kernel.const_get(klass).new(config)
+    controllers[name] = klass.new
   end
   INTERACTIONS = controllers
 else
@@ -158,44 +158,39 @@ end
 # Simulation Graph Configuration / Setup
 ###############################################################################
 # Root nodes (don't act as modifiers on other nodes' output):
-n_cfg           = CONFIG["simulation"]["nodes"]
-p_speed         = n_cfg["perlin"]["speed"]
+p_speed         = [0.1, 4.0]
 NODES["PERLIN"] = SparkleMotion::Nodes::Generators::Perlin.new(lights: num_lights, speed: p_speed)
 last            = NODES["PERLIN"]
 
 # Transform nodes (act as a chain of modifiers):
-c_cfg               = n_cfg["contrast"]
-c_fun               = c_cfg["function"]
-c_iter              = c_cfg["iterations"]
+c_fun               = "cubic"
+c_iter              = 3
 NODES["STRETCHED"]  = last = SparkleMotion::Nodes::Transforms::Contrast.new(function:   c_fun,
                                                                             iterations: c_iter,
                                                                             source:     last)
 # Create one control group here per "quadrant"...
 intensity_cfg = CONFIG["simulation"]["controls"]["intensity"]
-# LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), idx|
 intensity_cfg["lights"].each_with_index do |light_ids, idx|
   mask        = Hash[light_ids.map { |light_id| [light_id, true] }]
   int_vals    = intensity_cfg["values"]
   int_key     = "SHIFTED_#{idx}"
-  last        = SparkleMotion::Nodes::Transforms::Range.new(source:     last,
-                                                            mask:       mask,
-                                                            logger:     LOGGER)
+  last        = SparkleMotion::Nodes::Transforms::Range.new(source: last,
+                                                            mask:   mask,
+                                                            logger: LOGGER)
   NODES[int_key]  = last
-  pos             = SparkleMotion::Vector2.new(intensity_cfg["positions"][idx])
-  size            = int_vals.length
-  int_widget      = Kernel.const_get(intensity_cfg["widget"])
-  INT_STATES[idx] = int_widget.new(launchpad: INTERACTIONS["launchpad"],
-                                   position:  pos,
-                                   size:      size,
-                                   colors:    { "on":   0x22003F,
-                                                "off":  0x05000A,
-                                                "down": 0x27103F },
-                                   on_change: proc do |val|
-                                     ival = int_vals[val]
-                                     LOGGER.info { "Intensity[#{idx},#{val}]: #{ival}" }
-                                     NODES[int_key].set_range(ival[0], ival[1])
-                                     update_state!(int_key, val)
-                                   end)
+  INT_STATES[idx] = SparkleMotion::LaunchPad::Widgets::VerticalSlider
+                    .new(launchpad: INTERACTIONS["launchpad"],
+                         position:  SparkleMotion::Vector2.new(intensity_cfg["positions"][idx]),
+                         size:      int_vals.length,
+                         colors:    { "on":   0x22003F,
+                                      "off":  0x05000A,
+                                      "down": 0x27103F },
+                         on_change: proc do |val|
+                           ival = int_vals[val]
+                           LOGGER.info { "Intensity[#{idx},#{val}]: #{ival}" }
+                           NODES[int_key].set_range(ival[0], ival[1])
+                           update_state!(int_key, val)
+                         end)
 end
 
 def sat_req(ival, sat_len, sat_bridge, sat_group)
@@ -210,7 +205,6 @@ sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
 sat_len     = sat_cfg["transition"]
 sat_vals    = sat_cfg["values"]
 sat_grps    = sat_cfg["groups"]
-sat_widget  = Kernel.const_get(sat_cfg["widget"])
 sat_cfg["positions"].each_with_index do |pos, idx|
   # TODO: Restore functionality for Orbit!
   sat_grp_info  = sat_grps[idx]
@@ -224,24 +218,26 @@ sat_cfg["positions"].each_with_index do |pos, idx|
   sat_pos       = SparkleMotion::Vector2.new(pos)
   # sat_pos_no    = SparkleMotion::Vector2.new(sat_cfg["positions_no"][idx])
   int_key       = "SHIFTED_#{idx}"
-  SAT_STATES << sat_widget.new(launchpad:     INTERACTIONS["launchpad"],
-                               position:      sat_pos,
-                               size:          sat_vals.length,
-                               colors:        { "on":   0x1C103F,
-                                                "off":  0x03030C,
-                                                "down": 0x10103F },
-                               on_change:     proc do |val|
-                                 ival, bri_max = sat_vals[val]
-                                 NODES[int_key].clamp_to(bri_max)
-                                 sat_groups.each do |(sat_bridge, sat_group)|
-                                   req = sat_req(ival, sat_len, sat_bridge, sat_group)
-                                   LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
-                                   # TODO: Delay the saturation update until the
-                                   # brightness has taken effect.
-                                   PENDING_COMMANDS.each { |queue| queue << req }
-                                 end
-                                 update_state!(sat_key, val)
-                               end)
+  widget        = SparkleMotion::LaunchPad::Widgets::HorizontalSlider
+                  .new(launchpad:     INTERACTIONS["launchpad"],
+                       position:      sat_pos,
+                       size:          sat_vals.length,
+                       colors:        { "on":   0x1C103F,
+                                        "off":  0x03030C,
+                                        "down": 0x10103F },
+                       on_change:     proc do |val|
+                         ival, bri_max = sat_vals[val]
+                         NODES[int_key].clamp_to(bri_max)
+                         sat_groups.each do |(sat_bridge, sat_group)|
+                           req = sat_req(ival, sat_len, sat_bridge, sat_group)
+                           LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
+                           # TODO: Delay the saturation update until the
+                           # brightness has taken effect.
+                           PENDING_COMMANDS.each { |queue| queue << req }
+                         end
+                         update_state!(sat_key, val)
+                       end)
+  SAT_STATES << widget
 end
 
 sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
@@ -256,23 +252,23 @@ sl_pos_map              = sl_map.flatten
 sl_key                  = "SPOTLIT"
 sl_pos                  = SparkleMotion::Vector2.new(sl_cfg["position"])
 sl_size                 = SparkleMotion::Vector2.new(sl_map.map(&:length).sort[-1], sl_map.length)
-sl_widget               = Kernel.const_get(sl_cfg["class"])
-SL_STATE                = sl_widget.new(launchpad:   INTERACTIONS["launchpad"],
-                                        position:    sl_pos,
-                                        size:        sl_size,
-                                        colors:      { "on":   0x032727,
-                                                       "off":  0x000202,
-                                                       "down": 0x103F3F },
-                                        on_select:   proc do |x|
-                                          LOGGER.info { "Spot ##{sl_pos_map[x]}" }
-                                          NODES[sl_key].spotlight!(sl_pos_map[x])
-                                          update_state!(sl_key, x)
-                                        end,
-                                        on_deselect: proc do
-                                          LOGGER.info { "Spot Off" }
-                                          NODES[sl_key].spotlight!(nil)
-                                          update_state!(sl_key, nil)
-                                        end)
+SL_STATE                = SparkleMotion::LaunchPad::Widgets::RadioGroup
+                          .new(launchpad:   INTERACTIONS["launchpad"],
+                               position:    sl_pos,
+                               size:        sl_size,
+                               colors:      { "on":   0x032727,
+                                              "off":  0x000202,
+                                              "down": 0x103F3F },
+                               on_select:   proc do |x|
+                                 LOGGER.info { "Spot ##{sl_pos_map[x]}" }
+                                 NODES[sl_key].spotlight!(sl_pos_map[x])
+                                 update_state!(sl_key, x)
+                               end,
+                               on_deselect: proc do
+                                 LOGGER.info { "Spot Off" }
+                                 NODES[sl_key].spotlight!(nil)
+                                 update_state!(sl_key, nil)
+                               end)
 
 NODES.each do |name, node|
   node.debug = DEBUG_FLAGS[name]

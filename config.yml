@@ -18,10 +18,13 @@ common_username: &common_username "1234567890"
 # an important number in light of rate limits!
 max_connects: 3
 bridges:
-  # List all of your Philips Hue Bridge(s) here.  I suggest keeping the ID info
-  # produced by `sm-discovery` in a comment next to the name so that when you're
-  # setting things up on-site and all your bridges get new DHCP-assigned
-  # addresses, you can quickly update the IP field here.
+  # List all of your Philips Hue Bridge(s) here.  We do this instead of dynamic discovery to
+  # facilitate quick startup and not getting hung up if discovery gets flaky.
+  #
+  # To find bridges, use bin/sm-discover-bridges, or as a fallback, nmap your LAN's subnet.
+  #
+  # Groups:  The name is used further down but need not actually match the name as the bridge knows
+  # it.  The number is a group ID on the bridge.
   "Bridge-01":
     id: "0017881226f3"
     ip: "192.168.2.10"
@@ -61,56 +64,60 @@ bridges:
       Dance: 2
       Main: 1
 light_groups:
-  # Groups of lights for different purposes.
+  # Groups of lights for different purposes.  The groups are, at present, magical and special!
+  # * `bin/sm-mark-lights` will create a progression of brightness across lights in a group, and
+  #   will run over all groups.
+  # * `bin/sm-simulate` will use groups as follows:
+  #   * `main_lights`: Simulation.
+  #   * `food_lights`: Separate group-addressed brightness control.
   #
   # The numeric portion is the ID as *assigned by the Philips Hue Bridge*.
   #
-  # Main Lights is the group for which the main simulation will be applied.
-  # It can be any number of lights from any number of bridges but you'll need to
-  # plan groups out for saturation controls.
-  # TODO: Break this into separate simulations per table?
+  # Main Lights is the group for which the main simulation will be applied. It can be any number of
+  # lights from any number of bridges but you'll need to plan groups out for saturation controls.
   main_lights:
-    - ["Bridge-01", 26, color] # 0  -- Strand 1, Group 1
-    - ["Bridge-01", 37, color] # 1  -- Strand 1, Group 1
-    - ["Bridge-01", 36, color] # 2  -- Strand 1, Group 1
-    - ["Bridge-01", 38, color] # 3  -- Strand 1, Group 1
-    - ["Bridge-01", 39, color] # 4  -- Strand 1, Group 1
-    - ["Bridge-01", 40, color] # 5  -- Strand 1, Group 1
-    - ["Bridge-01", 35, color] # 6  -- Strand 1, Group 1
-    - ["Bridge-01", 41, color] # 7  -- Dance Floor
-    - ["Bridge-01", 42, color] # 8  -- Dance Floor
+    - ["Bridge-01", 26, color] # 0 --\
+    - ["Bridge-01", 37, color] # 1   |
+    - ["Bridge-01", 36, color] # 2   |
+    - ["Bridge-01", 38, color] # 3   +-- Strand 1, Group 2
+    - ["Bridge-01", 39, color] # 4   |
+    - ["Bridge-01", 40, color] # 5   |
+    - ["Bridge-01", 35, color] # 6 --/
+    - ["Bridge-01", 41, color] # 7 --\
+    - ["Bridge-01", 42, color] # 8 --+-- Dance Floor
 
-    - ["Bridge-02", 12, color] # 9  -- Strand 1, Group 2
-    - ["Bridge-02", 21, color] # 10 -- Strand 1, Group 2
-    - ["Bridge-02", 20, color] # 11 -- Strand 1, Group 2
-    - ["Bridge-02", 19, color] # 12 -- Strand 1, Group 2
-    - ["Bridge-02", 15, color] # 13 -- Strand 1, Group 2
-    - ["Bridge-02", 18, color] # 14 -- Strand 1, Group 2
-    - ["Bridge-02", 11, color] # 15 -- Strand 1, Group 2
-    - ["Bridge-02", 22, color] # 16 -- Dance Floor
-    - ["Bridge-02", 23, color] # 17 -- Dance Floor
+    - ["Bridge-02", 12, color] # 9  --\
+    - ["Bridge-02", 21, color] # 10   |
+    - ["Bridge-02", 20, color] # 11   |
+    - ["Bridge-02", 19, color] # 12   +-- Strand 1, Group 2
+    - ["Bridge-02", 15, color] # 13   |
+    - ["Bridge-02", 18, color] # 14   |
+    - ["Bridge-02", 11, color] # 15 --/
+    - ["Bridge-02", 22, color] # 16 --\
+    - ["Bridge-02", 23, color] # 17 --+-- Dance Floor
 
-    - ["Bridge-03",  7, color] # 18 -- Strand 2, Group 1
-    - ["Bridge-03",  2, color] # 19 -- Strand 2, Group 1
-    - ["Bridge-03",  3, color] # 20 -- Strand 2, Group 1
-    - ["Bridge-03",  8, color] # 21 -- Strand 2, Group 1
-    - ["Bridge-03", 10, color] # 22 -- Strand 2, Group 1
-    - ["Bridge-03",  9, color] # 23 -- Strand 2, Group 1
-    - ["Bridge-03",  6, color] # 24 -- Strand 2, Group 1
-    - ["Bridge-03", 11, color] # 25 -- Dance Floor
-    - ["Bridge-03", 12, color] # 26 -- Dance Floor
+    - ["Bridge-03",  7, color] # 18 --\
+    - ["Bridge-03",  2, color] # 19   |
+    - ["Bridge-03",  3, color] # 20   |
+    - ["Bridge-03",  8, color] # 21   +-- Strand 2, Group 1
+    - ["Bridge-03", 10, color] # 22   |
+    - ["Bridge-03",  9, color] # 23   |
+    - ["Bridge-03",  6, color] # 24 --/
+    - ["Bridge-03", 11, color] # 25 --\
+    - ["Bridge-03", 12, color] # 26 --+-- Dance Floor
 
-    - ["Bridge-04",  7, color] # 27 -- Strand 2, Group 2
-    - ["Bridge-04", 11, color] # 28 -- Strand 2, Group 2
-    - ["Bridge-04", 12, color] # 29 -- Strand 2, Group 2
-    - ["Bridge-04",  1, color] # 30 -- Strand 2, Group 2
-    - ["Bridge-04",  9, color] # 31 -- Strand 2, Group 2
-    - ["Bridge-04",  8, color] # 32 -- Strand 2, Group 2
-    - ["Bridge-04",  5, color] # 33 -- Strand 2, Group 2
-    - ["Bridge-04", 13, color] # 34 -- Dance Floor
-    - ["Bridge-04", 14, color] # 35 -- Dance Floor
-  # Accent lights are just... other lights in the system.  Not part of any
-  # simulation, they get their base color and that's it.
+    - ["Bridge-04",  7, color] # 27 --\
+    - ["Bridge-04", 11, color] # 28   |
+    - ["Bridge-04", 12, color] # 29   |
+    - ["Bridge-04",  1, color] # 30   +-- Strand 2, Group 2
+    - ["Bridge-04",  9, color] # 31   |
+    - ["Bridge-04",  8, color] # 32   |
+    - ["Bridge-04",  5, color] # 33 --/
+    - ["Bridge-04", 13, color] # 34 --\
+    - ["Bridge-04", 14, color] # 35 --+-- Dance Floor
+  # Accent lights are just... other lights in the system.  Not part of any simulation, they get
+  # their base color and that's it.  They *are* affected by sweepers and saturation as we refer to
+  # the `AccentMain` groups in the relevant config blocks.
   accent_lights:
     - ["Bridge-01",  9, color]
     - ["Bridge-01", 10, color]
@@ -123,9 +130,9 @@ light_groups:
     - ["Bridge-02",  7, color]
     - ["Bridge-02",  8, color]
   food_lights:
-    # TODO: Allow specifying both a group ID and individual light IDs.  While we're at it, break this
-    # TODO: out into a separate file, and use it as a cache -- with a way to regenerate from the
-    # TODO: lights, and/or apply it to the lights.
+    # TODO: Allow specifying both a group ID and individual light IDs.  While we're at it, break
+    # TODO: this out into a separate file, and use it as a cache -- with a way to regenerate from
+    # TODO: the lights, and/or apply it to the lights.
     - ["Bridge-01",  3, white]
     - ["Bridge-01",  4, white]
     - ["Bridge-01",  5, white]
@@ -137,35 +144,17 @@ light_groups:
     - ["Bridge-02",  5, white]
     - ["Bridge-02",  6, white]
 initial_state:
-  # This defines what state the lights will be set to when running `sm-on`.
-  # It's important you run `sm-on` *before* running `sparkle-motion`, as the
+  # This defines what state the lights will be set to when running `bin/sm-on`.
+  # It's important you run `bin/sm-on` *before* running `sparkle-motion`, as the
   # latter makes no attempt to actually switch lights on, or bring them into
   # a desired baseline state -- it merely assumes that they're in decent shape.
   hue: <%= base_hue %>
-  #
-  # Also, the values here are the values that the accent lights will hold for the whole evening:
+  # Also, the values here are the values that the accent lights will hold for the whole evening,
+  # with the exception that saturation can be overridden of course.
   sat: 255
   bri: 63
-controllers:
-  # Specify which controllers you want to use here.  You can refer to them via
-  # the hash key later on.  Any field other than `class` is sent as a parameter
-  # to the constructor, so if you want to control multiple Novation Launchpads,
-  # for example, you could add a `name` attribute to differentiate them when
-  # the code searches for the devices.
-  #
-  # At the moment there's some notable hard-coding and a generally poor
-  # structural model for this stuff.  It needs a massive refactor.
-  launchpad:
-    class: SurfaceMaster::Launchpad::Interaction
-  orbit:
-    class: SurfaceMaster::Orbit::Interaction
-  # This defines the color-swirl effect, per group.  It's a list of
-  # steps, the time take (in seconds) LERPing from color to color, and the
-  # time to wait between steps.
-  #
-  # Don't set wait much below 1.0!  ZigBee spec only allows 1 group
-  # update/sec, but Hue Bridge/lights seem to be *mostly* OK with about 1
-  # every 0.75 sec...
+# These are meta-configuration defining the color-swirl effects, per group.  They exist solely to
+# be referenced in the `sweepers` section.
 color_configs:
   strand1_1:
     wedding: &strand1_1_wedding
@@ -242,6 +231,13 @@ color_configs:
       - <%= random_color(9) %>
       - <%= random_color(10) %>
       - <%= random_color(11) %>
+# This defines individual sweepers.  Each is comprised of a list of colors, the time take (in
+# seconds) LERPing from color to color, and the time to wait between steps.
+# WARNING: Don't set wait much below 1.0!  ZigBee spec only allows 1 group update/sec, but Hue
+# Bridge/lights seem to be *mostly* OK with about 1 every 0.75 sec.  Further, I don't do any
+# gating / scheduling to prevent you from going too fast so you can easily overwhelm the bridge!
+# If you see a lot of failed requests, you're hitting rate limits and need to throttle things a
+# bit!
 sweepers:
   - name: "Strand1Group1"
     targets:
@@ -273,52 +269,18 @@ sweepers:
       - [Bridge-02, Dance]
       - [Bridge-03, Dance]
       - [Bridge-04, Dance]
+    # Note that dance lights get their own separate schedule!
     transition: 0.1
     wait:       1.0
     values: *dance_wedding
 simulation:
-  nodes:
-    perlin:
-      # The speed parameter as a multiplier on `(x, time)` to map the Perlin
-      # surface onto the lights.  Smaller values for the x component bring the
-      # lights closer together on that surface, and larger ones move them
-      # further apart.
-      #
-      # Similarly, smaller values for the y component cause the lights to move
-      # down the surface more slowly as time passes -- and larger ones cause
-      # quicker movement.
-      #
-      # Be mindful of how this plays out given how slow the Hue lights are to
-      # update!
-      #
-      # NOTE: I'm ignoring octaves and persitence for the moment as the low
-      # NOTE: precision for brightness and slow light updates make it easy for
-      # NOTE: that to just get in the way.
-      speed: [0.1, 4.0]
-    contrast:
-      # Performs a contrast-stretch on the Perlin noise generated above.
-      # This has the effect of spreading the values out across the range of
-      # brightnesses somewhat more evenly, as they'll tend to be centered
-      # pretty heavily around 0.5 otherwise.
-      #
-      # Function: LINEAR, CUBIC, QUINTIC -- don't bother using iterations > 1
-      # with LINEAR, as LINEAR is a no-op.
-      #
-      # The iteration count is how many times to stretch the value in successtion.
-      function:   cubic
-      iterations: 3
   controls:
     exit:
       # Position is which of the control buttons to use for the kick-in-the-head function.
       position: mixer
     intensity:
-      # This is the set of controls for adjusting the intensity of the lights.
-      # You should define one position for each Philips Hue Bridge (as this is
-      # controlled via a group message to all lights).  The size defines the
-      # height or width of the widgets (depending on choice of
-      # vertical/horizontal slider), so leave room for one button per value
-      # when you compute your y coordinates (or x for horizontal).
-      widget: SparkleMotion::LaunchPad::Widgets::VerticalSlider
+      # Brightness (intensity) controls.  The size of the `values` array defines the height of the
+      # widgets, so leave room for one button per value when you compute your `y` coordinates!
       positions:
         - [0, 2]
         - [1, 2]
@@ -326,14 +288,14 @@ simulation:
         - [3, 2]
         - [4, 2]
       lights:
+        # These are LOGICAL indexes of lights, not light IDs as assigned by the Hue Bridges!
         - [ 0,  1,  2,  3,  4,  5,  6] # Strand 1, Group 1 (Bridge 1)
         - [ 9, 10, 11, 12, 13, 14, 15] # Strand 1, Group 2 (Bridge 2)
         - [18, 19, 20, 21, 22, 23, 24] # Strand 2, Group 1 (Bridge 3)
         - [27, 28, 29, 30, 31, 32, 33] # Strand 2, Group 2 (Bridge 4)
         - [ 7,  8, 16, 17, 25, 26, 34, 35] # Dance Lights (Bridge 1..4)
       values:
-        # [Mid-point, delta].  Minimum brightness is `mid-point - delta` and max
-        # is `mid-point + delta`.
+        # [Mid-point, delta].  Brightness varies from `mid-point - delta`..`mid-point + delta`.
         # - [0.000, 0.000]
         - [0.200, 0.075]
         - [0.300, 0.100]
@@ -342,15 +304,12 @@ simulation:
         - [0.600, 0.200]
         - [0.700, 0.300]
     saturation:
-      # The desaturation controller.  As above, it's one control per bridge and
-      # the `size` defines the height/width of the control.
+      # Desaturation controller.  As above, the `size` defines the height/width of the control.
       #
-      # Transition time is how quickly to transition the saturation.  I suggest
-      # not going too quickly because while the saturation is updated en masse
-      # via group update, the brightness is done per-bulb in the main rendering
-      # loop -- and you probably don't want to blind everyone during the
-      # transition time.
-      widget: SparkleMotion::LaunchPad::Widgets::HorizontalSlider
+      # Transition time is how quickly to transition the saturation.  I suggest not going too
+      # quickly because while the saturation is updated en masse via group update, the brightness
+      # is done per-bulb in the main rendering loop -- and you probably don't want to blind
+      # everyone during the transition!
       transition: 0.5
       positions:
         - [5, 7]
@@ -358,14 +317,14 @@ simulation:
         - [5, 5]
         - [5, 4]
         - [5, 3]
-      positions_no:
+      positions_no: # Positions on the Numark Orbit controller.
         - [0, 0]
         - [1, 0]
         - [2, 0]
         - [3, 0]
-      # This defines which Hue Bridge, and which group on that bridge a control
-      # should affect.  It would be a bit nonsensical if this didn't correspond
-      # to the arrangement of lights for the intensity controls though.
+      # This defines which Hue Bridge, and which group on that bridge a control affects.  It would
+      # be nonsensical if this didn't correspond to the arrangement of lights for the intensity
+      # controls, so be sure that they match!
       groups:
         - - ["Bridge-01", "AccentMain"]
         - - ["Bridge-02", "AccentMain"]
@@ -376,8 +335,7 @@ simulation:
           - ["Bridge-03", "Dance"]
           - ["Bridge-04", "Dance"]
       values:
-        # Values are [saturation, maximum brightness] -- and null means "don't
-        # clamp brightness"
+        # Values are [saturation, max-brightness] -- null means "don't clamp brightness":
         - [0.2, 0.00]
         # - [0.4, 0.10]
         - [0.6, 0.30]
