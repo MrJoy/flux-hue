@@ -405,8 +405,6 @@ simulation:
         - [ 4,  5,  6,  9,   10, 11, 12, 13]
 # TODO: Reallocate accent lights.
 # TODO: Either break white lights up across bridges, or consolidate them to Bridge-01 -- I'm... not really sure which.
-# TODO: Intensity/saturation controls for dance lights.
-# TODO: Intensity/saturation controls for accent lights.
 # TODO: Brightness controls for eating lights.
 # TODO: X/Y mapping of lights vs. simulation.
 # TODO:   Is time Z, or do we still slide across X?
@@ -425,5 +423,4 @@ simulation:
 
 # TODO: Finish simulation visualization tool.  (Needs debugging!)
 # TODO: Interactive tool for testing bulb positioning. (Be able to blink a specific light)
-# TODO: Does Hue Bridge raw interface have any value here?
 # TODO: Handy for persistence? http://ruby-doc.org/stdlib-2.2.3/libdoc/yaml/rdoc/YAML/Store.html
