@@ -218,7 +218,7 @@ sat_cfg["positions"].each_with_index do |pos, idx|
   sat_grp_info.each do |sat_grp|
     sat_bridge = CONFIG["bridges"][sat_grp[0]]
     sat_group  = sat_grp[1]
-    sat_groups << [sat_bridge, sat_group]
+    sat_groups << [sat_bridge, sat_bridge["groups"][sat_group]]
   end
   sat_key       = "SAT_STATES[#{idx}]"
   sat_pos       = SparkleMotion::Vector2.new(pos)
