@@ -26,7 +26,7 @@ module SparkleMotion
 
       def print_other_stats(results)
         SparkleMotion.logger.unknown { "* #{format_float(results.failure_rate)}% failure rate" }
-        SparkleMotion.logger.unknown { "* #{format_float(results.elapsed)} sec. elapsed#{suffix}" }
+        SparkleMotion.logger.unknown { "* #{format_float(results.elapsed)} sec. elapsed" }
       end
 
       # TODO: Show per-bridge and aggregate stats.
