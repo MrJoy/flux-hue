@@ -230,6 +230,8 @@ color_configs:
     wedding: &dance_wedding
       - <%= max_hue %>
       - <%= min_hue %>
+      - <%= base_hue %>
+      - <%= min_hue %>
     debug: &dance_debug
       - <%= random_color(4) %>
       - <%= random_color(5) %>
