@@ -342,7 +342,6 @@ simulation:
         # - [0.8, 0.70]
         - [1.0, null]
     spotlighting:
-      class: SparkleMotion::LaunchPad::Widgets::RadioGroup
       # This defines the spotlighting effect.  The width and height of the
       # widget are defined by the `mappings` configuration.  The choice of
       # widget class is not configurable because at the moment there's only
