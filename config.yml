@@ -139,9 +139,11 @@ initial_state:
   # It's important you run `sm-on` *before* running `sparkle-motion`, as the
   # latter makes no attempt to actually switch lights on, or bring them into
   # a desired baseline state -- it merely assumes that they're in decent shape.
+  #
+  # Also, the values here are the values that the accent lights will hold for the whole evening:
   hue: <%= base_hue %>
   sat: 255
-  bri: 0
+  bri: 63
 controllers:
   # Specify which controllers you want to use here.  You can refer to them via
   # the hash key later on.  Any field other than `class` is sent as a parameter
