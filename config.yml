@@ -8,7 +8,6 @@ max_hue   = base_hue + 2_000
 
 shared_sweep_transition = 0.5
 shared_sweep_wait       = 2.0
-
 -%>
 ---
 # The username for the Philips Hue Bridge(s).  You can either create one and
@@ -430,10 +429,6 @@ simulation:
         "off":  0x000202
         "down": 0x103F3F
 # TODO: Reallocate accent lights.
-# TODO: Allow sweepers to address a particular *group or light* at each step.
-# TODO: Allow arbitrary sweeper definitions.
-# TODO: Simulation for dance lights.
-# TODO: Simulation for accent lights.
 # TODO: Either break white lights up across bridges, or consolidate them to Bridge-01 -- I'm... not really sure which.
 # TODO: Intensity/saturation controls for dance lights.
 # TODO: Intensity/saturation controls for accent lights.
