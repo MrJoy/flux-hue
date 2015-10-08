@@ -101,7 +101,8 @@ DEBUG_FLAGS   = Hash[(ENV["DEBUG_NODES"] || "")
 ###############################################################################
 # TODO: Run all simulations, and use a mixer to blend between them...
 num_lights              = CONFIG["light_groups"]["main_lights"].length
-LIGHTS_FOR_THREADS      = SparkleMotion::LightConfig.new(config: CONFIG, group: "main_lights")
+LIGHTS_FOR_THREADS      = SparkleMotion::LightConfig.new(config: CONFIG, groups: %w(main_lights
+                                                                                    dance_lights))
 if USE_INPUT
   controllers = {}
   CONFIG["controllers"].each do |name, config|
@@ -172,8 +173,9 @@ NODES["STRETCHED"]  = last = SparkleMotion::Nodes::Transforms::Contrast.new(func
                                                                             source:     last)
 # Create one control group here per "quadrant"...
 intensity_cfg = CONFIG["simulation"]["controls"]["intensity"]
-LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), idx|
-  mask        = LIGHTS_FOR_THREADS.masks[bridge_name]
+# LIGHTS_FOR_THREADS.bridges.each_with_index do |(bridge_name, _bridge_config), idx|
+intensity_cfg["lights"].each_with_index do |light_ids, idx|
+  mask        = Hash[light_ids.map { |light_id| [light_id, true] }]
   int_vals    = intensity_cfg["values"]
   int_key     = "SHIFTED_#{idx}"
   last        = SparkleMotion::Nodes::Transforms::Range.new(source:     last,
@@ -213,8 +215,12 @@ sat_widget  = Kernel.const_get(sat_cfg["widget"])
 sat_cfg["positions"].each_with_index do |pos, idx|
   # TODO: Restore functionality for Orbit!
   sat_grp_info  = sat_grps[idx]
-  sat_bridge    = CONFIG["bridges"][sat_grp_info[0]]
-  sat_group     = sat_grp_info[1]
+  sat_groups    = []
+  sat_grp_info.each do |sat_grp|
+    sat_bridge = CONFIG["bridges"][sat_grp[0]]
+    sat_group  = sat_grp[1]
+    sat_groups << [sat_bridge, sat_group]
+  end
   sat_key       = "SAT_STATES[#{idx}]"
   sat_pos       = SparkleMotion::Vector2.new(pos)
   # sat_pos_no    = SparkleMotion::Vector2.new(sat_cfg["positions_no"][idx])
@@ -224,13 +230,15 @@ sat_cfg["positions"].each_with_index do |pos, idx|
                                size:          sat_vals.length,
                                colors:        sat_colors,
                                on_change:     proc do |val|
-                                 ival, bri_max  = sat_vals[val]
-                                 req            = sat_req(ival, sat_len, sat_bridge, sat_group)
-                                 LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
-                                 NODES[int_key].clamp_to(bri_max) if NODES.key?(int_key)
-                                 # TODO: Delay the saturation update until the
-                                 # brightness has taken effect.
-                                 PENDING_COMMANDS.each { |queue| queue << req }
+                                 ival, bri_max = sat_vals[val]
+                                 NODES[int_key].clamp_to(bri_max)
+                                 sat_groups.each do |(sat_bridge, sat_group)|
+                                   req = sat_req(ival, sat_len, sat_bridge, sat_group)
+                                   LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
+                                   # TODO: Delay the saturation update until the
+                                   # brightness has taken effect.
+                                   PENDING_COMMANDS.each { |queue| queue << req }
+                                 end
                                  update_state!(sat_key, val)
                                end)
 end

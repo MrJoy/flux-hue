@@ -3,14 +3,23 @@ module SparkleMotion
   class LightConfig
     attr_accessor :bridges, :lights, :masks
 
-    def initialize(config:, group:)
-      group_config  = config["light_groups"][group]
-      num_lights    = group_config.length
+    def initialize(config:, groups:)
+      groups = Array(groups)
 
-      lights_by_bridge  = group_lights_by_bridge(group_config)
+      index             = 0
+      masks_by_bridge   = {}
+      lights_by_bridge  = {}
+      num_lights        = 0
+      groups.each do |group|
+        group_config  = config["light_groups"][group]
+        num_lights   += group_config.length
 
-      index           = 0
-      masks_by_bridge = {}
+        group_lights_by_bridge(group_config).each do |bridge_name, lights|
+          lights_by_bridge[bridge_name] ||= []
+          lights_by_bridge[bridge_name] += lights
+        end
+      end
+
       lights_by_bridge.each do |(bridge_name, lights)|
         lights_by_bridge[bridge_name], index = index_lights(lights, index)
         masks_by_bridge[bridge_name] = mask_lights(lights_by_bridge[bridge_name], num_lights)

@@ -69,53 +69,53 @@ light_groups:
   # plan groups out for saturation controls.
   # TODO: Break this into separate simulations per table?
   main_lights:
-  - ["Bridge-01", 26, color]
-  - ["Bridge-01", 37, color]
-  - ["Bridge-01", 36, color]
-  - ["Bridge-01", 38, color]
-  - ["Bridge-01", 39, color]
-  - ["Bridge-01", 40, color]
-  - ["Bridge-01", 35, color]
+  - ["Bridge-01", 26, color] # 0
+  - ["Bridge-01", 37, color] # 1
+  - ["Bridge-01", 36, color] # 2
+  - ["Bridge-01", 38, color] # 3
+  - ["Bridge-01", 39, color] # 4
+  - ["Bridge-01", 40, color] # 5
+  - ["Bridge-01", 35, color] # 6
 
-  - ["Bridge-02", 12, color]
-  - ["Bridge-02", 21, color]
-  - ["Bridge-02", 20, color]
-  - ["Bridge-02", 19, color]
-  - ["Bridge-02", 15, color]
-  - ["Bridge-02", 18, color]
-  - ["Bridge-02", 11, color]
+  - ["Bridge-02", 12, color] # 7
+  - ["Bridge-02", 21, color] # 8
+  - ["Bridge-02", 20, color] # 9
+  - ["Bridge-02", 19, color] # 10
+  - ["Bridge-02", 15, color] # 11
+  - ["Bridge-02", 18, color] # 12
+  - ["Bridge-02", 11, color] # 13
 
-  - ["Bridge-03",  7, color]
-  - ["Bridge-03",  2, color]
-  - ["Bridge-03",  3, color]
-  - ["Bridge-03",  8, color]
-  - ["Bridge-03", 10, color]
-  - ["Bridge-03",  9, color]
-  - ["Bridge-03",  6, color]
+  - ["Bridge-03",  7, color] # 14
+  - ["Bridge-03",  2, color] # 15
+  - ["Bridge-03",  3, color] # 16
+  - ["Bridge-03",  8, color] # 17
+  - ["Bridge-03", 10, color] # 18
+  - ["Bridge-03",  9, color] # 19
+  - ["Bridge-03",  6, color] # 20
 
-  - ["Bridge-04",  7, color]
-  - ["Bridge-04", 11, color]
-  - ["Bridge-04", 12, color]
-  - ["Bridge-04",  1, color]
-  - ["Bridge-04",  9, color]
-  - ["Bridge-04",  8, color]
-  - ["Bridge-04",  5, color]
+  - ["Bridge-04",  7, color] # 21
+  - ["Bridge-04", 11, color] # 22
+  - ["Bridge-04", 12, color] # 23
+  - ["Bridge-04",  1, color] # 24
+  - ["Bridge-04",  9, color] # 25
+  - ["Bridge-04",  8, color] # 26
+  - ["Bridge-04",  5, color] # 27
   # Dance Lights is the group of lights above the dance floor, which will
   # (ultimately) get their own simulation, although updates will be interleaved
   # with the main lights per-bridge.  It should be a positional map affording
   # spatial coherence.
   dance_lights:
-  - ["Bridge-01", 41, color]
-  - ["Bridge-01", 42, color]
+  - ["Bridge-01", 41, color] # 28
+  - ["Bridge-01", 42, color] # 29
 
-  - ["Bridge-02", 22, color]
-  - ["Bridge-02", 23, color]
+  - ["Bridge-02", 22, color] # 30
+  - ["Bridge-02", 23, color] # 31
 
-  - ["Bridge-03", 11, color]
-  - ["Bridge-03", 12, color]
+  - ["Bridge-03", 11, color] # 32
+  - ["Bridge-03", 12, color] # 33
 
-  - ["Bridge-04", 13, color]
-  - ["Bridge-04", 14, color]
+  - ["Bridge-04", 13, color] # 34
+  - ["Bridge-04", 14, color] # 35
   # Accent lights are just... other lights in the system.  Not part of any
   # simulation, they get their base color and that's it.
   accent_lights:
@@ -351,6 +351,13 @@ simulation:
       - [1, 3]
       - [2, 3]
       - [3, 3]
+      - [4, 3]
+      lights:
+      - [ 0,  1,  2,  3,  4,  5,  6] # Bridge 1 main lights.
+      - [ 7,  8,  9, 10, 11, 12, 13] # Bridge 2 main lights.
+      - [14, 15, 16, 17, 18, 19, 20] # Bridge 3 main lights.
+      - [21, 22, 23, 24, 25, 26, 27] # Bridge 4 main lights.
+      - [28, 29, 30, 31, 32, 33, 34, 35] # Dance lights, all bridges.
       values:
       # [Mid-point, delta].  Minimum brightness is `mid-point - delta` and max
       # is `mid-point + delta`.
@@ -375,11 +382,11 @@ simulation:
       widget: SparkleMotion::LaunchPad::Widgets::HorizontalSlider
       transition: 0.5
       positions:
-      - [4, 7]
-      - [4, 6]
-      - [4, 5]
-      - [4, 4]
-      - [4, 3]
+      - [5, 7]
+      - [5, 6]
+      - [5, 5]
+      - [5, 4]
+      - [5, 3]
       positions_no:
       - [0, 0]
       - [1, 0]
@@ -389,18 +396,21 @@ simulation:
       # should affect.  It would be a bit nonsensical if this didn't correspond
       # to the arrangement of lights for the intensity controls though.
       groups:
-      - ["Bridge-01", 0]
-      - ["Bridge-02", 0]
-      - ["Bridge-03", 0]
-      - ["Bridge-04", 0]
-      - ["Bridge-01", 1]
+      - - ["Bridge-01", "AccentMain"]
+      - - ["Bridge-02", "AccentMain"]
+      - - ["Bridge-03", "Main"]
+      - - ["Bridge-04", "Main"]
+      - - ["Bridge-01", "Dance"]
+        - ["Bridge-02", "Dance"]
+        - ["Bridge-03", "Dance"]
+        - ["Bridge-04", "Dance"]
       values:
       # Values are [saturation, maximum brightness] -- and null means "don't
       # clamp brightness"
       - [0.2, 0.00]
       # - [0.4, 0.10]
       - [0.6, 0.30]
-      - [0.8, 0.70]
+      # - [0.8, 0.70]
       - [1.0, null]
       colors:
         "on":   0x1C103F
