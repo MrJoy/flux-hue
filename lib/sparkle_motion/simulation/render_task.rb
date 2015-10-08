@@ -19,6 +19,10 @@ module SparkleMotion
       end
 
       def render
+        unless USE_LIGHTS
+          sleep 0.05 * @requests.length
+          return
+        end
         Curl::Multi.http(@requests.dup, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do
         end
         return unless @global_results

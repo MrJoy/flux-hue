@@ -424,13 +424,11 @@ def light_thread!(bridge, transition, global_results, debug, logger)
 end
 
 def launch_command_queue_thread!(logger)
-  return nil unless USE_LIGHTS
   SparkleMotion::Simulation::CommandQueueTask.new(logger)
 end
 
 def launch_light_threads!(cfg, global_results, debug, logger)
   threads = []
-  return [] unless USE_LIGHTS
 
   transition  = cfg["transition"]
   threads    += LIGHTS_FOR_THREADS.bridges.values.map do |bridge|

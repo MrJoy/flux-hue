@@ -8,6 +8,10 @@ module SparkleMotion
           next if requests.length == 0
           LOGGER.debug { "Processing #{requests.length} pending commands." }
           # TODO: Gather stats about success/failure...
+          unless USE_LIGHTS
+            sleep 0.1
+            next
+          end
           Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|
             next unless error?(easy)
             LOGGER.warn { "#{@name}: Request failed: #{easy.url} => #{rc}; #{body}" }
