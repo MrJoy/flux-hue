@@ -69,19 +69,6 @@ module SparkleMotion
   CLI_DEPS = ["sparkle_motion/cli/argument_parser"]
   def self.use_cli!; CLI_DEPS.each { |name| require name }; end
 
-  # Load code/widgets for processing audio data and interacting with audio devices.
-  AUDIO_DEPS = ["coreaudio",
-                "numru/fftw3",
-                "sparkle_motion/audio/input_stream",
-                "sparkle_motion/audio/device_input_stream",
-                "sparkle_motion/audio/file_input_stream",
-                "sparkle_motion/audio/output_stream",
-                "sparkle_motion/audio/device_output_stream",
-                "sparkle_motion/audio/band_pass_filter",
-                "sparkle_motion/audio/stream_reporter",
-                "sparkle_motion/audio/stream_filter"]
-  def self.use_audio!; AUDIO_DEPS.each { |name| require name }; end
-
   CONFIG_DEPS = ["sparkle_motion/vector2",
                  "sparkle_motion/launch_pad/color",
                  "sparkle_motion/config",
