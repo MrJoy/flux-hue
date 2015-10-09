@@ -158,6 +158,38 @@ p_speed         = [0.1, 4.0]
 NODES["PERLIN"] = SparkleMotion::Nodes::Generators::Perlin.new(lights: num_lights, speed: p_speed)
 last            = NODES["PERLIN"]
 
+# Create a means of controlling brightness in the food area.
+def bri_req(ival, bri_len, bri_bridge, bri_group)
+  data = with_transition_time(bri_len, "bri" => (255 * ival).round)
+  { method:   :put,
+    url:      hue_group_endpoint(bri_bridge, bri_group),
+    put_data: Oj.dump(data) }.merge(SparkleMotion::Hue::HTTP::EASY_OPTIONS)
+end
+bri_cfg     = CONFIG["controls"]["food_area"]
+bri_groups  = bri_cfg["groups"]
+              .map do |(bridge_name, group_name)|
+                bridge  = CONFIG["bridges"][bridge_name]
+                group   = bridge["groups"][group_name]
+                [bridge, group]
+              end
+BRI_STATE   = SparkleMotion::LaunchPad::Widgets::VerticalSlider
+              .new(launchpad: INTERACTIONS["launchpad"],
+                   position:  SparkleMotion::Vector2.new(bri_cfg["position"]),
+                   size:      bri_cfg["values"].length,
+                   colors:    { "on":   :light_gray,
+                                "off":  :dark_gray,
+                                "down": :white },
+                   on_change: proc do |val|
+                     ival = bri_cfg["values"][val]
+                     LOGGER.info { "Brightness[#{val}]: #{ival}" }
+
+                     update_state!("BRIGHTNESS", val)
+                     bri_groups.each do |(bridge, group_id)|
+                       req = bri_req(ival, bri_cfg["transition"], bridge, group_id)
+                       PENDING_COMMANDS.each { |queue| queue << req }
+                     end
+                   end)
+
 # Transform nodes (act as a chain of modifiers):
 c_fun               = "cubic"
 c_iter              = 3

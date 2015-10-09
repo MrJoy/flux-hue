@@ -274,6 +274,20 @@ sweepers:
     transition: 0.1
     wait:       1.0
     values: *dance_wedding
+controls:
+  food_area:
+    transition: 0.5
+    position: [7, 2]
+    groups:
+      - [Bridge-01, White]
+      - [Bridge-02, White]
+    values:
+      - 0.0
+      - 0.2
+      - 0.4
+      - 0.6
+      - 0.8
+      - 1.0
 simulation:
   controls:
     exit:
