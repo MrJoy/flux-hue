@@ -9,9 +9,16 @@ module SparkleMotion
     def initialize(name, logger, &callback)
       @name   = name
       @logger = logger
-      @thread = guarded_thread(name) do
-        Thread.stop
-        callback.call
+      @thread = Thread.new do
+        begin
+          Thread.stop
+          callback.call
+        rescue StandardError => e
+          SparkleMotion.logger.error { "#{prefix}: Got Exception: #{e.message}" }
+          e.backtrace.each do |line|
+            SparkleMotion.logger.error { "#{prefix}:\t#{line}" }
+          end
+        end
       end
     end
 

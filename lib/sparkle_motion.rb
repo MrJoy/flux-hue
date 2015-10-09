@@ -90,7 +90,6 @@ module SparkleMotion
 end
 
 require "sparkle_motion/version"
-require "sparkle_motion/flow_control"
 require "sparkle_motion/task"
 require "sparkle_motion/managed_task"
 require "sparkle_motion/unmanaged_task"
