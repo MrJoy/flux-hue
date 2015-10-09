@@ -350,7 +350,7 @@ controls:
         - ["Bridge-04", "Dance"]
     values:
       # Values are [saturation, max-brightness] -- null means "don't clamp brightness":
-      - [0.2, 0.00]
+      - [0.2, 0.20]
       # - [0.4, 0.10]
       # - [0.6, 0.30]
       # - [0.8, 0.70]
