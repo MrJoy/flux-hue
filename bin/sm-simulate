@@ -202,7 +202,7 @@ sat_len     = sat_cfg["transition"]
 sat_vals    = sat_cfg["values"]
 sat_grps    = sat_cfg["groups"]
 sat_cfg["positions"].each_with_index do |pos, idx|
-  # TODO: Restore functionality for Orbit!
+  pos           = pos.to_sym
   sat_grp_info  = sat_grps[idx]
   sat_groups    = []
   sat_grp_info.each do |sat_grp|
@@ -214,7 +214,7 @@ sat_cfg["positions"].each_with_index do |pos, idx|
   int_key       = "SHIFTED_#{idx}"
   widget        = SparkleMotion::LaunchPad::Widgets::Toggle
                   .new(launchpad:     INTERACTIONS["launchpad"],
-                       position:      pos.to_sym,
+                       position:      pos,
                        colors:        { "on":   0x1C103F,
                                         "off":  0x03030C,
                                         "down": 0x10103F },
@@ -234,20 +234,14 @@ sat_cfg["positions"].each_with_index do |pos, idx|
   orbit_pos = sat_cfg["positions_no"][idx]
   next unless orbit_pos && INTERACTIONS["orbit"]
   xx = orbit_pos[0]
-  yy = (orbit_pos[1]..(orbit_pos[1] + sat_vals.length - 1))
-  INTERACTIONS["orbit"].response_to(:grid, :down, x: xx, y: yy) do |_inter, action|
-    local_x = action[:control][:x] - orbit_pos[0]
-    local_y = (action[:control][:y] - orbit_pos[1])
-    # Coordinates reversed because vertical slider on Orbit, horizontal on Launchpad!
-    SAT_STATES[idx].send(:pressed!, x: local_y, y: local_x)
-    SAT_STATES[idx].send(:on_down, x: local_y, y: local_x)
+  yy = orbit_pos[1]
+  INTERACTIONS["orbit"].response_to(:grid, :down, x: xx, y: yy) do |_inter, _action|
+    SAT_STATES[idx].send(:pressed!, position: pos)
+    SAT_STATES[idx].send(:on_down, position: pos)
   end
-  INTERACTIONS["orbit"].response_to(:grid, :up, x: xx, y: yy) do |_inter, action|
-    local_x = action[:control][:x] - orbit_pos[0]
-    local_y = (action[:control][:y] - orbit_pos[1])
-    # Coordinates reversed because vertical slider on Orbit, horizontal on Launchpad!
-    SAT_STATES[idx].send(:released!, x: local_y, y: local_x)
-    SAT_STATES[idx].send(:on_up, x: local_y, y: local_x)
+  INTERACTIONS["orbit"].response_to(:grid, :up, x: xx, y: yy) do |_inter, _action|
+    SAT_STATES[idx].send(:released!, position: pos)
+    SAT_STATES[idx].send(:on_up, position: pos)
   end
 end
 

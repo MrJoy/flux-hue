@@ -320,9 +320,10 @@ simulation:
         - user1
       positions_no: # Positions on the Numark Orbit controller.
         - [0, 0]
+        - [0, 1]
+        - [0, 2]
+        - [0, 3]
         - [1, 0]
-        - [2, 0]
-        - [3, 0]
       # This defines which Hue Bridge, and which group on that bridge a control affects.  It would
       # be nonsensical if this didn't correspond to the arrangement of lights for the intensity
       # controls, so be sure that they match!
