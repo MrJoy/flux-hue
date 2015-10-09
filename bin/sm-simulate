@@ -242,9 +242,9 @@ sat_cfg["positions"].each_with_index do |pos, idx|
   widget        = SparkleMotion::LaunchPad::Widgets::Toggle
                   .new(launchpad:     INTERACTIONS["launchpad"],
                        position:      pos,
-                       colors:        { "on":   0x3F103F,
-                                        "off":  0x030303,
-                                        "down": 0x1C103F },
+                       colors:        { "on":   :blue,
+                                        "off":  :dark_blue,
+                                        "down": :light_blue },
                        on_press:     proc do |val|
                          ival, bri_max = sat_vals[val]
                          NODES[int_key].clamp_to(bri_max)
@@ -288,9 +288,9 @@ SL_STATE                = SparkleMotion::LaunchPad::Widgets::RadioGroup
                           .new(launchpad:   INTERACTIONS["launchpad"],
                                position:    sl_pos,
                                size:        sl_size,
-                               colors:      { "on":   0x032727,
-                                              "off":  0x000202,
-                                              "down": 0x103F3F },
+                               colors:      { "on":   :green,
+                                              "off":  :dark_green,
+                                              "down": :light_green },
                                on_select:   proc do |x|
                                  LOGGER.info { "Spot ##{sl_pos_map[x]}" }
                                  NODES[sl_key].spotlight!(sl_pos_map[x])
@@ -318,8 +318,8 @@ TIME_TO_DIE = [false, :terminate]
 e_cfg = CONFIG["controls"]["exit"]
 EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTIONS["launchpad"],
                                                             position:  e_cfg["position"].to_sym,
-                                                            colors:    { "color": :dark_gray,
-                                                                         "down":  :white },
+                                                            colors:    { "color": :dark_red,
+                                                                         "down":  :red },
                                                             on_press:  lambda do |value|
                                                               return unless value != 0
                                                               LOGGER.unknown { "Kick!" }
