@@ -83,38 +83,39 @@ light_groups:
     - ["Bridge-01", 39, color] # 4   |
     - ["Bridge-01", 40, color] # 5   |
     - ["Bridge-01", 35, color] # 6 --/
-    - ["Bridge-01", 41, color] # 7 --\
-    - ["Bridge-01", 42, color] # 8 --+-- Dance Floor
 
-    - ["Bridge-02", 12, color] # 9  --\
-    - ["Bridge-02", 21, color] # 10   |
-    - ["Bridge-02", 20, color] # 11   |
-    - ["Bridge-02", 19, color] # 12   +-- Strand 1, Group 2
-    - ["Bridge-02", 15, color] # 13   |
-    - ["Bridge-02", 18, color] # 14   |
-    - ["Bridge-02", 11, color] # 15 --/
-    - ["Bridge-02", 22, color] # 16 --\
-    - ["Bridge-02", 23, color] # 17 --+-- Dance Floor
+    - ["Bridge-02", 12, color] # 7  --\
+    - ["Bridge-02", 21, color] # 8    |
+    - ["Bridge-02", 20, color] # 9    |
+    - ["Bridge-02", 19, color] # 10   +-- Strand 1, Group 2
+    - ["Bridge-02", 15, color] # 11   |
+    - ["Bridge-02", 18, color] # 12   |
+    - ["Bridge-02", 11, color] # 13 --/
 
-    - ["Bridge-03",  7, color] # 18 --\
-    - ["Bridge-03",  2, color] # 19   |
-    - ["Bridge-03",  3, color] # 20   |
-    - ["Bridge-03",  8, color] # 21   +-- Strand 2, Group 1
-    - ["Bridge-03", 10, color] # 22   |
-    - ["Bridge-03",  9, color] # 23   |
-    - ["Bridge-03",  6, color] # 24 --/
-    - ["Bridge-03", 11, color] # 25 --\
-    - ["Bridge-03", 12, color] # 26 --+-- Dance Floor
+    - ["Bridge-03",  7, color] # 14 --\
+    - ["Bridge-03",  2, color] # 15   |
+    - ["Bridge-03",  3, color] # 16   |
+    - ["Bridge-03",  8, color] # 17   +-- Strand 2, Group 1
+    - ["Bridge-03", 10, color] # 18   |
+    - ["Bridge-03",  9, color] # 19   |
+    - ["Bridge-03",  6, color] # 20 --/
 
-    - ["Bridge-04",  7, color] # 27 --\
-    - ["Bridge-04", 11, color] # 28   |
-    - ["Bridge-04", 12, color] # 29   |
-    - ["Bridge-04",  1, color] # 30   +-- Strand 2, Group 2
-    - ["Bridge-04",  9, color] # 31   |
-    - ["Bridge-04",  8, color] # 32   |
-    - ["Bridge-04",  5, color] # 33 --/
-    - ["Bridge-04", 13, color] # 34 --\
-    - ["Bridge-04", 14, color] # 35 --+-- Dance Floor
+    - ["Bridge-04",  7, color] # 21 --\
+    - ["Bridge-04", 11, color] # 22   |
+    - ["Bridge-04", 12, color] # 23   |
+    - ["Bridge-04",  1, color] # 24   +-- Strand 2, Group 2
+    - ["Bridge-04",  9, color] # 25   |
+    - ["Bridge-04",  8, color] # 26   |
+    - ["Bridge-04",  5, color] # 27 --/
+
+    - ["Bridge-01", 41, color] # 28 --\
+    - ["Bridge-01", 42, color] # 29   |
+    - ["Bridge-02", 22, color] # 30   |
+    - ["Bridge-02", 23, color] # 31   +-- Dance Floor
+    - ["Bridge-03", 11, color] # 32   |
+    - ["Bridge-03", 12, color] # 33   |
+    - ["Bridge-04", 13, color] # 34   |
+    - ["Bridge-04", 14, color] # 35 --/
   # Accent lights are just... other lights in the system.  Not part of any simulation, they get
   # their base color and that's it.  They *are* affected by sweepers and saturation as we refer to
   # the `AccentMain` groups in the relevant config blocks.
@@ -290,10 +291,10 @@ simulation:
       lights:
         # These are LOGICAL indexes of lights, not light IDs as assigned by the Hue Bridges!
         - [ 0,  1,  2,  3,  4,  5,  6] # Strand 1, Group 1 (Bridge 1)
-        - [ 9, 10, 11, 12, 13, 14, 15] # Strand 1, Group 2 (Bridge 2)
-        - [18, 19, 20, 21, 22, 23, 24] # Strand 2, Group 1 (Bridge 3)
-        - [27, 28, 29, 30, 31, 32, 33] # Strand 2, Group 2 (Bridge 4)
-        - [ 7,  8, 16, 17, 25, 26, 34, 35] # Dance Lights (Bridge 1..4)
+        - [ 7,  8,  9, 10, 11, 12, 13] # Strand 1, Group 2 (Bridge 2)
+        - [14, 15, 16, 17, 18, 19, 20] # Strand 2, Group 1 (Bridge 3)
+        - [21, 22, 23, 24, 25, 26, 27] # Strand 2, Group 2 (Bridge 4)
+        - [28, 29, 30, 31, 32, 33, 34, 35] # Dance Lights (Bridge 1..4)
       values:
         # [Mid-point, delta].  Brightness varies from `mid-point - delta`..`mid-point + delta`.
         # - [0.000, 0.000]
@@ -360,9 +361,9 @@ simulation:
         # TODO: across the simulations.
         #
         # Bridge 3/4:
-        - [20, 21, 22, 23,   24, 27, 28, 29]
+        - [17, 18, 19, 20,   21, 22, 23, 24]
         # Bridge 1/2:
-        - [ 4,  5,  6,  9,   10, 11, 12, 13]
+        - [ 3,  4,  5,  6,    7,  8,  9, 10]
 # TODO: Reallocate accent lights.
 # TODO: Either break white lights up across bridges, or consolidate them to Bridge-01 -- I'm... not really sure which.
 # TODO: Brightness controls for eating lights.
