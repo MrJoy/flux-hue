@@ -358,10 +358,12 @@ def clear_board!
   INT_STATES.map(&:blank)
   sleep 0.01 # 88 updates/sec input limit!
   SAT_STATES.map(&:blank)
+  # sleep 0.01 # 88 updates/sec input limit!
+  BRI_STATE.blank
+  # sleep 0.01 # 88 updates/sec input limit!
+  EXIT_BUTTON.blank
   sleep 0.01 # 88 updates/sec input limit!
   SL_STATE.blank
-  sleep 0.01
-  EXIT_BUTTON.blank
 end
 
 def without_persistence(&block)
