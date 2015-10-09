@@ -395,7 +395,6 @@ def setup_control_state!(command_queue)
 end
 
 def launch_graph_thread!(logger)
-  return nil unless USE_GRAPH
   SparkleMotion::Simulation::GraphTask.new("Simulation",
                                            FINAL_RESULT,
                                            SparkleMotion::Node::FRAME_PERIOD,
