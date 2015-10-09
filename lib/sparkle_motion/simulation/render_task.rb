@@ -1,7 +1,7 @@
 module SparkleMotion
   module Simulation
     # Task to render to lights more or less as quickly as feasibl.
-    class RenderTask < SparkleMotion::ManagedTask
+    class RenderTask < ManagedTask
       include SparkleMotion::Hue::HTTP
 
       def initialize(node:, bridge:, lights:, global_results:, logger:, debug: false)
