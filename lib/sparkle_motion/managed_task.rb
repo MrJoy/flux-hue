@@ -1,5 +1,5 @@
 module SparkleMotion
-  # Extend `UnmanagedTask` to loop and terminate gracefully when signalled to do so.
+  # Extend `Task` to loop and terminate gracefully when signalled to do so.
   class ManagedTask < Task
     def initialize(name, when_to_signal, logger, &callback)
       @when_to_signal = when_to_signal
