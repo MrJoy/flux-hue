@@ -53,6 +53,8 @@ bridges:
     username: *common_username
     debug_hue: <%= color_step(2) %>
     groups:
+      Accent: 3
+      AccentMain: 4 # All lights from Accent and Main
       Dance: 1
       Main: 2
   "Bridge-04":
@@ -61,6 +63,8 @@ bridges:
     username: *common_username
     debug_hue: <%= color_step(3) %>
     groups:
+      Accent: 3
+      AccentMain: 4 # All lights from Accent and Main
       Dance: 2
       Main: 1
 light_groups:
@@ -124,12 +128,17 @@ light_groups:
     - ["Bridge-01", 10, color]
     - ["Bridge-01", 11, color]
     - ["Bridge-01", 12, color]
-    - ["Bridge-01", 13, color]
-    - ["Bridge-01", 33, color]
-    - ["Bridge-01", 34, color]
+    # - ["Bridge-01", 13, color]
+    # - ["Bridge-01", 33, color]
+    # - ["Bridge-01", 34, color]
 
     - ["Bridge-02",  7, color]
     - ["Bridge-02",  8, color]
+    - ["Bridge-02", 24, color]
+
+    - ["Bridge-03", 13, color]
+
+    - ["Bridge-04", 15, color]
   food_lights:
     # TODO: Allow specifying both a group ID and individual light IDs.  While we're at it, break
     # TODO: this out into a separate file, and use it as a cache -- with a way to regenerate from
