@@ -574,6 +574,10 @@ def profile!(&block)
 
   LOGGER.unknown { "Enabling memory_profiler, be careful!" }
   require "memory_profiler"
+  Thread.new do
+    sleep 60
+    TIME_TO_DIE[0] = true
+  end
   report = MemoryProfiler.report do
     block.call
     LOGGER.unknown { "Preparing MemoryProfiler report." }
