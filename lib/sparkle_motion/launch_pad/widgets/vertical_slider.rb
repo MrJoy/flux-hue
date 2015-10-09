@@ -11,7 +11,7 @@ module SparkleMotion
                 size:      Vector2.new(1, size),
                 colors:    colors,
                 value:     value)
-          @on_change    = on_change
+          @on_change = on_change
         end
 
         def render
