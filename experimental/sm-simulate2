@@ -62,13 +62,11 @@ SparkleMotion.use_graph!
 
 # Code loading / modular behavior configuration:
 USE_LIGHTS  = env_bool("USE_LIGHTS")
-USE_INPUT   = env_bool("USE_INPUT")
-SKIP_INPUTS = Set.new((ENV["SKIP_INPUTS"] || "").split(/\s*,\s*/).map(&:upcase))
 USE_SWEEP   = env_bool("USE_SWEEP")
 USE_GRAPH   = env_bool("USE_GRAPH")
 SparkleMotion.use_hue!(api: true)
 # SparkleMotion.use_widgets!
-# SparkleMotion.use_input! if USE_INPUT
+# SparkleMotion.use_input!
 
 # Crufty common code:
 extend SparkleMotion::Hue::HTTP
