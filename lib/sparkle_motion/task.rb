@@ -4,8 +4,6 @@ module SparkleMotion
   class Task
     attr_accessor :name
 
-    include FlowControl
-
     def initialize(name, logger)
       @name   = name
       @logger = logger

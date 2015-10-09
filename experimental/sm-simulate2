@@ -71,10 +71,7 @@ SparkleMotion.use_hue!(api: true)
 # SparkleMotion.use_input! if USE_INPUT
 
 # Crufty common code:
-# require "sparkle_motion/simulation/output"
-# extend SparkleMotion::Simulation::Output
 extend SparkleMotion::Hue::HTTP
-# extend SparkleMotion::FlowControl
 
 ###############################################################################
 # Profiling and Debugging
