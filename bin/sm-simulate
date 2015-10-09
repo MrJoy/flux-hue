@@ -396,7 +396,10 @@ end
 
 def launch_graph_thread!(logger)
   return nil unless USE_GRAPH
-  SparkleMotion::Simulation::GraphTask.new("Main", logger)
+  SparkleMotion::Simulation::GraphTask.new("Simulation",
+                                           FINAL_RESULT,
+                                           SparkleMotion::Node::FRAME_PERIOD,
+                                           logger)
 end
 
 def launch_sweep_threads!(sweep_cfgs, command_queue, logger)
