@@ -35,10 +35,17 @@ LIGHT_PARAMS  = { "on"     => true,
 # TODO: Allow specifying bridges, groups of lights, or just lights.
 # TODO: Run this in parallel, one thread per bridge.
 bridges = CONFIG["bridges"].values
-desired_bridges = ARGV.map { |name| bridges.find { |bridge| bridge["name"] == name } }.compact
+desired_bridges = ARGV
+                  .map { |param| param.split(/\s*,\s*/) }
+                  .map do |(name, group_name)|
+                    bridge = bridges.find { |bb| bb["name"] == name }
+                    group_id = bridge["groups"][group_name]
+                    [bridge, group_id || 0]
+                  end
+                  .compact
 desired_bridges = bridges unless desired_bridges.length > 0
 requests = desired_bridges
-           .map { |bridge| group_update(bridge, 0, payload: LIGHT_PARAMS) }
+           .map { |(bridge, group_id)| group_update(bridge, group_id, payload: LIGHT_PARAMS) }
 perform_with_retries(requests) do |request, _status, _body|
   LOGGER.info { "Broadcast to all-lights group sent to #{request.bridge['name']}!" }
 end
