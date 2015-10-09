@@ -323,8 +323,12 @@ EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTI
                                                             on_press:  lambda do |value|
                                                               return unless value != 0
                                                               LOGGER.unknown { "Kick!" }
-                                                              TIME_TO_DIE[1] = :restart
-                                                              TIME_TO_DIE[0] = true
+                                                              # If we try to die *graceully*, we can get caught behind
+                                                              # backlogs of failed hardware -- so die UN-gracefully.
+                                                              clear_board! # Just for visual feedback...
+                                                              exit 127
+                                                              # TIME_TO_DIE[1] = :restart
+                                                              # TIME_TO_DIE[0] = true
                                                             end)
 
 def start_ruby_prof!
