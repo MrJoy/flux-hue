@@ -25,16 +25,16 @@ module SparkleMotion
         end
 
         def update(new_val)
-          @value = new_val ? 1 : 0
+          @value = (new_val && (new_val != 0)) ? 1 : 0
           render
         end
 
       protected
 
         def on_down(x: nil, y: :nil, position: nil)
-          @value = (value == 0) ? 1 : 0
+          @value = (@value == 0) ? 1 : 0
           super(x: x, y: y, position: position)
-          on_press.call(value) if on_press
+          on_press.call(@value) if on_press
         end
       end
     end

@@ -352,7 +352,10 @@ end
 
 def setup_saturation_controls!
   SAT_STATES.each_with_index do |ctrl, idx|
-    ctrl.update(CURRENT_STATE.fetch("SAT_STATES[#{idx}]", ctrl.max_v))
+    tmp = CURRENT_STATE.fetch("SAT_STATES[#{idx}]", 1)
+    ctrl.update(tmp == 0 ? 1 : 0)
+    ctrl.send(:on_down, position: ctrl.position)
+    ctrl.send(:on_up, position: ctrl.position)
   end
 end
 
