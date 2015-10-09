@@ -221,9 +221,9 @@ sat_cfg["positions"].each_with_index do |pos, idx|
                        on_press:     proc do |val|
                          ival, bri_max = sat_vals[val]
                          NODES[int_key].clamp_to(bri_max)
+                         LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
                          sat_groups.each do |(sat_bridge, sat_group)|
                            req = sat_req(ival, sat_len, sat_bridge, sat_group)
-                           LOGGER.info { "Saturation[#{idx},#{val}]: #{ival}" }
                            # TODO: Delay the saturation update until the
                            # brightness has taken effect.
                            PENDING_COMMANDS.each { |queue| queue << req }
