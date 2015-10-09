@@ -9,7 +9,7 @@ module SparkleMotion
 
       def iterate
         requests = pending_commands
-        return if requests.length == 0
+        return unless requests && requests.length > 0
         @logger.debug { "Processing #{requests.length} pending commands." }
         # TODO: Gather stats about success/failure...
         unless USE_LIGHTS
@@ -37,7 +37,10 @@ module SparkleMotion
       end
 
       def pending_commands
-        sleep 0.1 if @queue.empty?
+        if @queue.empty?
+          sleep 0.1
+          return nil
+        end
         requests = []
         requests << @queue.pop until @queue.empty?
         requests
