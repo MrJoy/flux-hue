@@ -388,6 +388,10 @@ def setup_saturation_controls!
   end
 end
 
+def setup_brightness_controls!
+  BRI_STATE.update(CURRENT_STATE.fetch("BRIGHTNESS", BRI_STATE.max_v / 2))
+end
+
 def setup_spotlight_controls!
   SL_STATE.update(CURRENT_STATE.fetch("SPOTLIT", nil))
 end
@@ -408,6 +412,7 @@ def setup_control_state!(command_queue)
   without_persistence do
     setup_intensity_controls!
     setup_saturation_controls!
+    setup_brightness_controls!
     setup_spotlight_controls!
     setup_exit_controls!
   end
