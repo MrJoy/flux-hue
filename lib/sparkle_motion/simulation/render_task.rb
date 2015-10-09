@@ -27,12 +27,12 @@ module SparkleMotion
         before = Time.now.to_f
         Curl::Multi.http(@requests.dup, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do
         end
-        after = Time.now.to_f
-        elapsed = after - before
+        after                 = Time.now.to_f
+        elapsed               = after - before
         @samples[@sample_idx] = elapsed
-        @sample_idx += 1
-        @sample_idx = 0 if @sample_idx >= 30
-        @avg = (@samples.inject(:+) / @samples.length.to_f).round(1)
+        @sample_idx          += 1
+        @sample_idx           = 0 if @sample_idx >= 30
+        @avg                  = (@samples.inject(:+) / @samples.length.to_f).round(1)
         sleep 0.075
         return unless @global_results
         @global_results.add_from(@stats)
