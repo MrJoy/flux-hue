@@ -158,10 +158,10 @@ module SparkleMotion
 
       def normalize_color!(color)
         case color
-        when Array  then color.map { |cc| normalize_color!(cc) }
-        when Symbol then SparkleMotion::LaunchPad::Color.const_get(color.to_s.upcase).to_h
-        when Color  then color.to_h
-        when Fixnum then
+        when Array          then color.map { |cc| normalize_color!(cc) }
+        when Symbol, String then SparkleMotion::LaunchPad::Color.const_get(color.to_s.upcase).to_h
+        when Color          then color.to_h
+        when Fixnum
           { r: ((color >> 16) & 0xFF),
             g: ((color >> 8) & 0xFF),
             b: (color & 0xFF) }

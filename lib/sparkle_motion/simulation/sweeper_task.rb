@@ -1,7 +1,7 @@
 module SparkleMotion
   module Simulation
     # Task to sweep through various hues on one or more bridges.
-    class SweeperTask < SparkleMotion::TickTask
+    class SweeperTask < TickTask
       attr_accessor :command_queue
 
       include SparkleMotion::Hue::HTTP
@@ -27,10 +27,9 @@ module SparkleMotion
 
       def tick(time)
         idx = ((time / @wait) % @hues.length).floor
-        # TODO: Recycle hashes?
-        return unless USE_SWEEP
         @targets.each do |req|
           @data["hue"] = @hues[idx]
+          next unless USE_SWEEP
           @command_queue << req if @command_queue
         end
       end

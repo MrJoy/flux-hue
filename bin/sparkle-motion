@@ -4,15 +4,11 @@
 # Default Behavior
 # Use `config.sh` to override.
 ###############################################################################
-export ITERATIONS=0
 export SPARKLEMOTION_LOGLEVEL=INFO
 
 export USE_SWEEP=1
 export USE_LIGHTS=1
 export USE_GRAPH=1
-export USE_INPUT=1
-export SKIP_INPUTS=
-export ITERATIONS=0
 export SKIP_GC=0
 export PROFILE_RUN=
 export RUBY_PROF_MODE=

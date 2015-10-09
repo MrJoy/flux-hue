@@ -24,13 +24,6 @@ module SparkleMotion
       def hue_light_endpoint(config, light_id); "#{hue_base(config)}/lights/#{light_id}/state"; end
       def hue_group_endpoint(config, group); "#{hue_base(config)}/groups/#{group}/action"; end
 
-      def endpoint_url(bridge); "http://#{bridge['ip']}"; end
-      def bridge_query_url(bridge); "#{endpoint_url(bridge)}/api/#{bridge['username']}"; end
-      def light_query_url(bridge, light_id); "#{bridge_query_url(bridge)}/lights/#{light_id}"; end
-      def light_update_url(bridge, light_id); "#{light_query_url(bridge, light_id)}/state"; end
-      def group_query_url(bridge, group_id); "#{bridge_query_url(bridge)}/groups/#{group_id}"; end
-      def group_update_url(bridge, group_id); "#{group_query_url(bridge, group_id)}/action"; end
-
       # Class to encapsulate a request to the Hue Bridge, using `TCPSocket` for low-overhead
       # communication.
       class TCPSocketRequest
@@ -209,7 +202,11 @@ module SparkleMotion
           url = URI("http://#{bridge['ip']}:#{bridge['port'] || 80}#{uri}")
           case http_method
           when "GET"    then response = Net::HTTP.get_response(url)
-          when "DELETE" then response = Net::HTTP.delete(url)
+          when "DELETE" then
+            req = Net::HTTP::Delete.new(url)
+            response = Net::HTTP.start(url.hostname, url.port) do |http|
+              http.request(req)
+            end
           when "PUT", "POST"
             if http_method == "PUT"
               req = Net::HTTP::Put.new(url)
@@ -218,7 +215,7 @@ module SparkleMotion
             end
             req.content_type = "application/json"
             response = Net::HTTP.start(url.hostname, url.port) do |http|
-              req.body = Oj.dump(payload || callback.call)
+              req.body = Oj.dump(payload || @callback.call)
               req.content_length = req.body.length
               http.request(req)
             end
@@ -293,7 +290,7 @@ module SparkleMotion
                   &callback)
         payload = with_transition_time(transition, payload) if payload && transition
         NetHTTPRequest.new(bridge, action, light_id: light_id, group_id: group_id, payload: payload,
-                    &callback)
+                           &callback)
       end
 
       def bridge_query(bridge, &callback)
@@ -333,21 +330,23 @@ module SparkleMotion
       def perform_once(requests, &callback)
         failures = []
         requests.each do |request|
-          begin
-            error, status, body = request.perform
-            if error
-              LOGGER.error { "#{request.uri} => #{status} / #{body.join("\n")}" }
-              failures << request
-              next
-            end
-
-            callback.call(request, status, body) if block_given?
-          rescue StandardError => se
-            LOGGER.error { "Exception handling request to: #{request.uri}" }
-            LOGGER.error { se }
-          end
+          perform_request(request, failures, &callback)
         end
         failures
+      end
+
+      def perform_request(request, failures, &callback)
+        error, status, body = request.perform
+        if error
+          LOGGER.error { "#{request.uri} => #{status} / #{body.join("\n")}" }
+          failures << request
+          return
+        end
+
+        callback.call(request, status, body) if block_given?
+      rescue StandardError => se
+        LOGGER.error { "Exception handling request to: #{request.uri}" }
+        LOGGER.error { se }
       end
 
       def perform_with_retries(requests, max_retries: nil, &callback)

@@ -66,13 +66,11 @@ SparkleMotion.use_graph!
 
 # Code loading / modular behavior configuration:
 USE_LIGHTS  = env_bool("USE_LIGHTS")
-USE_INPUT   = env_bool("USE_INPUT")
-SKIP_INPUTS = Set.new((ENV["SKIP_INPUTS"] || "").split(/\s*,\s*/).map(&:upcase))
 USE_SWEEP   = env_bool("USE_SWEEP")
 USE_GRAPH   = env_bool("USE_GRAPH")
 SparkleMotion.use_hue!(api: true)
 SparkleMotion.use_widgets!
-SparkleMotion.use_input! if USE_INPUT
+SparkleMotion.use_input!
 
 # Crufty common code:
 require "sparkle_motion/simulation/parameters"
@@ -104,18 +102,15 @@ DEBUG_FLAGS   = Hash[(ENV["DEBUG_NODES"] || "")
 ###############################################################################
 # TODO: Run all simulations, and use a mixer to blend between them...
 num_lights         = CONFIG["light_groups"]["main_lights"].length
-LIGHTS_FOR_THREADS = SparkleMotion::LightConfig.new(config: CONFIG, groups: %w(main_lights
-                                                                               dance_lights))
-if USE_INPUT
-  controllers = {}
-  CONFIG["controllers"].each do |name, config|
-    next if SKIP_INPUTS.include?(name.upcase)
-    klass = config.delete("class")
-    controllers[name] = Kernel.const_get(klass).new(config)
+LIGHTS_FOR_THREADS = SparkleMotion::LightConfig.new(config: CONFIG, groups: %w(main_lights))
+INTERACTIONS = {}
+[["launchpad", SurfaceMaster::Launchpad::Interaction],
+ ["orbit", SurfaceMaster::Orbit::Interaction]].each do |name, klass|
+  begin
+    INTERACTIONS[name] = klass.new(logger: LOGGER)
+  rescue SurfaceMaster::NoSuchDeviceError
+    LOGGER.error { "Couldn't talk to device: '#{name}'!  Ignoring it, and proceeding!" }
   end
-  INTERACTIONS = controllers
-else
-  INTERACTIONS = {}
 end
 
 ###############################################################################
@@ -251,7 +246,6 @@ def light_thread!(bridge, transition, global_results, debug, logger)
   # SparkleMotion::Simulation::RenderTask.new(node:           FINAL_RESULT,
   #                                           bridge:         bridge,
   #                                           lights:         lights,
-  #                                           transition:     transition,
   #                                           global_results: global_results,
   #                                           logger:         logger,
   #                                           debug:          debug)
@@ -322,7 +316,6 @@ def spin!(threads)
   loop do
     # Someone hit the exit button:
     break if TIME_TO_DIE[0]
-    # We went through and did `ITERATIONS` update loops over the lights:
     # ... the `- 1` is for the command queue thread!
     unfinished = (threads.length - threads.count { |th| th.status == false }) - 1
     break if USE_LIGHTS && unfinished == 0
@@ -340,8 +333,6 @@ end
 
 def main
   pre_init!
-
-  announce_iteration_config(ITERATIONS)
 
   global_results  = SparkleMotion::Results.new(logger: LOGGER) if defined?(SparkleMotion::Results)
   threads         = launch_all_threads!(CONFIG, global_results, DEBUG_FLAGS, LOGGER)

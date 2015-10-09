@@ -1,11 +1,13 @@
 module SparkleMotion
   module Simulation
     # Task that handles input from a SurfaceMaster device.
-    class SurfaceMasterTask < SparkleMotion::UnmanagedTask
+    class SurfaceMasterTask < UnmanagedTask
       def initialize(name, controller, logger)
         @controller = controller
-        super("InputHandlerTask[#{name}]", logger) { @controller.start }
+        super("SurfaceMasterTask[#{name}]", logger)
       end
+
+      def perform; @controller.start; end
     end
   end
 end

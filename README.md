@@ -11,9 +11,10 @@ It's designed to use multiple Philips Hue Bridges, with about 6-7 lights per bri
 While it can be made to use much less, the example configuration assumes:
 
 * 4 Philips Hue Bridges
-* 6-7 "Main" lights *per bridge*
-* 1 Dance-Floor light *per bridge*
-* 9 Accent lights in total.
+* 7 "Main" lights *per bridge*
+* 2 Dance-Floor light *per bridge*
+* 9 Accent lights.
+* 9 White lights.
 
 Control of the system is currently done with a Novation Launchpad Mark 2.  (The Mark 1 will *not* work -- if you have RGB LEDs, you should be good to go.  If you only have red+green -- no go, sorry.)
 

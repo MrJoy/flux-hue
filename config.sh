@@ -17,18 +17,11 @@ export USE_SWEEP=1
 export USE_LIGHTS=1
 # Whether or not to run the simulation graph:
 export USE_GRAPH=1
-# Whether or not to use Novation LaunchPad for controls:
-export USE_INPUT=1
-# ... but skip the controls with these names:
-export SKIP_INPUTS=orbit #orbit,launchpad
 
 
 ###############################################################################
 # Debugging
 ###############################################################################
-# Run for a fixed number of iterations, or until we're killed (0):
-export ITERATIONS=0
-
 # Forcibly disable Ruby GC:
 export SKIP_GC=0
 

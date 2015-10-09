@@ -2,16 +2,6 @@ module SparkleMotion
   module Simulation
     # Helper functionality for `sm-simulate`.  Needs to be refactored like crazy of course.
     module Output
-      def announce_iteration_config(iters)
-        SparkleMotion.logger.unknown do
-          if iters > 0
-            "Running for #{iters} iterations."
-          else
-            "Running until we're killed.  Send SIGHUP to terminate with stats."
-          end
-        end
-      end
-
       def format_float(num); num ? num.round(2) : "-"; end
 
       def format_rate(rate); "#{format_float(rate)}/sec"; end
@@ -36,8 +26,7 @@ module SparkleMotion
 
       def print_other_stats(results)
         SparkleMotion.logger.unknown { "* #{format_float(results.failure_rate)}% failure rate" }
-        suffix = " (#{format_float(results.elapsed / ITERATIONS.to_f)}/iteration)" if ITERATIONS > 0
-        SparkleMotion.logger.unknown { "* #{format_float(results.elapsed)} sec. elapsed#{suffix}" }
+        SparkleMotion.logger.unknown { "* #{format_float(results.elapsed)} sec. elapsed" }
       end
 
       # TODO: Show per-bridge and aggregate stats.

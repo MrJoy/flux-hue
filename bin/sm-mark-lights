@@ -25,8 +25,12 @@ CONFIG["light_groups"].keys.each do |group_name|
 
   config.bridges.each do |bridge_name, bridge|
     requests    = []
-    c_light_ids = config.lights[bridge_name].select { |ll| ll.last == "color" }.map { |ll| ll[1] }
-    w_light_ids = config.lights[bridge_name].select { |ll| ll.last == "white" }.map { |ll| ll[1] }
+    c_light_ids = (config.lights[bridge_name] || [])
+                  .select { |ll| ll.last == "color" }
+                  .map { |ll| ll[1] }
+    w_light_ids = (config.lights[bridge_name] || [])
+                  .select { |ll| ll.last == "white" }
+                  .map { |ll| ll[1] }
     num_lights  = c_light_ids.length.to_f
     c_light_ids.each_with_index do |light_id, index|
       light_payload = { "on" => true,
