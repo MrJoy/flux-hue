@@ -238,6 +238,24 @@ sat_cfg["positions"].each_with_index do |pos, idx|
                          update_state!(sat_key, val)
                        end)
   SAT_STATES << widget
+  orbit_pos = sat_cfg["positions_no"][idx]
+  next unless orbit_pos
+  xx = orbit_pos[0]
+  yy = (orbit_pos[1]..(orbit_pos[1] + sat_vals.length - 1))
+  INTERACTIONS["orbit"].response_to(:grid, :down, x: xx, y: yy) do |_inter, action|
+    local_x = action[:control][:x] - orbit_pos[0]
+    local_y = (action[:control][:y] - orbit_pos[1])
+    # Coordinates reversed because vertical slider on Orbit, horizontal on Launchpad!
+    SAT_STATES[idx].send(:pressed!, x: local_y, y: local_x)
+    SAT_STATES[idx].send(:on_down, x: local_y, y: local_x)
+  end
+  INTERACTIONS["orbit"].response_to(:grid, :up, x: xx, y: yy) do |_inter, action|
+    local_x = action[:control][:x] - orbit_pos[0]
+    local_y = (action[:control][:y] - orbit_pos[1])
+    # Coordinates reversed because vertical slider on Orbit, horizontal on Launchpad!
+    SAT_STATES[idx].send(:released!, x: local_y, y: local_x)
+    SAT_STATES[idx].send(:on_up, x: local_y, y: local_x)
+  end
 end
 
 sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
