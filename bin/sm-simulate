@@ -242,8 +242,8 @@ sat_cfg["positions"].each_with_index do |pos, idx|
   widget        = SparkleMotion::LaunchPad::Widgets::Toggle
                   .new(launchpad:     INTERACTIONS["launchpad"],
                        position:      pos,
-                       colors:        { "on":   0x10103F,
-                                        "off":  0x03030C,
+                       colors:        { "on":   0x3F103F,
+                                        "off":  0x030303,
                                         "down": 0x1C103F },
                        on_press:     proc do |val|
                          ival, bri_max = sat_vals[val]
