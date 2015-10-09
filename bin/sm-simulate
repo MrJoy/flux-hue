@@ -211,17 +211,14 @@ sat_cfg["positions"].each_with_index do |pos, idx|
     sat_groups << [sat_bridge, sat_bridge["groups"][sat_group]]
   end
   sat_key       = "SAT_STATES[#{idx}]"
-  sat_pos       = SparkleMotion::Vector2.new(pos)
-  # sat_pos_no    = SparkleMotion::Vector2.new(sat_cfg["positions_no"][idx])
   int_key       = "SHIFTED_#{idx}"
-  widget        = SparkleMotion::LaunchPad::Widgets::HorizontalSlider
+  widget        = SparkleMotion::LaunchPad::Widgets::Toggle
                   .new(launchpad:     INTERACTIONS["launchpad"],
-                       position:      sat_pos,
-                       size:          sat_vals.length,
+                       position:      pos.to_sym,
                        colors:        { "on":   0x1C103F,
                                         "off":  0x03030C,
                                         "down": 0x10103F },
-                       on_change:     proc do |val|
+                       on_press:     proc do |val|
                          ival, bri_max = sat_vals[val]
                          NODES[int_key].clamp_to(bri_max)
                          sat_groups.each do |(sat_bridge, sat_group)|

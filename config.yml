@@ -287,7 +287,7 @@ simulation:
         - [1, 2]
         - [2, 2]
         - [3, 2]
-        - [4, 2]
+        - [5, 2]
       lights:
         # These are LOGICAL indexes of lights, not light IDs as assigned by the Hue Bridges!
         - [ 0,  1,  2,  3,  4,  5,  6] # Strand 1, Group 1 (Bridge 1)
@@ -313,11 +313,11 @@ simulation:
       # everyone during the transition!
       transition: 0.5
       positions:
-        - [5, 7]
-        - [5, 6]
-        - [5, 5]
-        - [5, 4]
-        - [5, 3]
+        - up
+        - down
+        - left
+        - right
+        - user1
       positions_no: # Positions on the Numark Orbit controller.
         - [0, 0]
         - [1, 0]
@@ -339,7 +339,7 @@ simulation:
         # Values are [saturation, max-brightness] -- null means "don't clamp brightness":
         - [0.2, 0.00]
         # - [0.4, 0.10]
-        - [0.6, 0.30]
+        # - [0.6, 0.30]
         # - [0.8, 0.70]
         - [1.0, null]
     spotlighting:
