@@ -1,7 +1,7 @@
 module SparkleMotion
   module Audio
     # Applies a filter to a stream, and optionally allows chaining the output to another stream.
-    class StreamFilter < SparkleMotion::ManagedTask
+    class StreamFilter < ManagedTask
       def initialize(stream, filter, logger, span, &handler)
         @filter   = filter
         @stream   = stream

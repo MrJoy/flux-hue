@@ -1,7 +1,7 @@
 module SparkleMotion
   module Simulation
     # Task to sweep through various hues on one or more bridges.
-    class SweeperTask < SparkleMotion::TickTask
+    class SweeperTask < TickTask
       attr_accessor :command_queue
 
       include SparkleMotion::Hue::HTTP
