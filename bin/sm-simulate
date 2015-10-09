@@ -197,7 +197,7 @@ NODES["STRETCHED"]  = last = SparkleMotion::Nodes::Transforms::Contrast.new(func
                                                                             iterations: c_iter,
                                                                             source:     last)
 # Create one control group here per "quadrant"...
-intensity_cfg = CONFIG["simulation"]["controls"]["intensity"]
+intensity_cfg = CONFIG["controls"]["intensity"]
 intensity_cfg["lights"].each_with_index do |light_ids, idx|
   mask        = Hash[light_ids.map { |light_id| [light_id, true] }]
   int_vals    = intensity_cfg["values"]
@@ -229,7 +229,7 @@ def sat_req(ival, sat_len, sat_bridge, sat_group)
 end
 
 SAT_STATES = []
-sat_cfg     = CONFIG["simulation"]["controls"]["saturation"]
+sat_cfg     = CONFIG["controls"]["saturation"]
 sat_len     = sat_cfg["transition"]
 sat_vals    = sat_cfg["values"]
 sat_grps    = sat_cfg["groups"]
@@ -277,7 +277,7 @@ sat_cfg["positions"].each_with_index do |pos, idx|
   end
 end
 
-sl_cfg                  = CONFIG["simulation"]["controls"]["spotlighting"]
+sl_cfg                  = CONFIG["controls"]["spotlighting"]
 sl_base                 = sl_cfg["base"]
 sl_exp                  = sl_cfg["exponent"]
 last = NODES["SPOTLIT"] = SparkleMotion::Nodes::Transforms::Spotlight.new(source:   last,
@@ -320,7 +320,7 @@ TIME_TO_DIE = [false, :terminate]
 # Profiling Support
 ###############################################################################
 # TODO: Make this optional.
-e_cfg = CONFIG["simulation"]["controls"]["exit"]
+e_cfg = CONFIG["controls"]["exit"]
 EXIT_BUTTON = SparkleMotion::LaunchPad::Widgets::Button.new(launchpad: INTERACTIONS["launchpad"],
                                                             position:  e_cfg["position"].to_sym,
                                                             colors:    { "color": :dark_gray,

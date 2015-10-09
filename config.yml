@@ -288,97 +288,95 @@ controls:
       - 0.6
       - 0.8
       - 1.0
-simulation:
-  controls:
-    exit:
-      # Position is which of the control buttons to use for the kick-in-the-head function.
-      position: mixer
-    intensity:
-      # Brightness (intensity) controls.  The size of the `values` array defines the height of the
-      # widgets, so leave room for one button per value when you compute your `y` coordinates!
-      positions:
-        - [0, 2]
-        - [1, 2]
-        - [2, 2]
-        - [3, 2]
-        - [5, 2]
-      lights:
-        # These are LOGICAL indexes of lights, not light IDs as assigned by the Hue Bridges!
-        - [ 0,  1,  2,  3,  4,  5,  6] # Strand 1, Group 1 (Bridge 1)
-        - [ 7,  8,  9, 10, 11, 12, 13] # Strand 1, Group 2 (Bridge 2)
-        - [14, 15, 16, 17, 18, 19, 20] # Strand 2, Group 1 (Bridge 3)
-        - [21, 22, 23, 24, 25, 26, 27] # Strand 2, Group 2 (Bridge 4)
-        - [28, 29, 30, 31, 32, 33, 34, 35] # Dance Lights (Bridge 1..4)
-      values:
-        # [Mid-point, delta].  Brightness varies from `mid-point - delta`..`mid-point + delta`.
-        # - [0.000, 0.000]
-        - [0.200, 0.075]
-        - [0.300, 0.100]
-        - [0.400, 0.150]
-        - [0.500, 0.175]
-        - [0.600, 0.200]
-        - [0.700, 0.300]
-    saturation:
-      # Desaturation controller.  As above, the `size` defines the height/width of the control.
+  exit:
+    # Position is which of the control buttons to use for the kick-in-the-head function.
+    position: mixer
+  intensity:
+    # Brightness (intensity) controls.  The size of the `values` array defines the height of the
+    # widgets, so leave room for one button per value when you compute your `y` coordinates!
+    positions:
+      - [0, 2]
+      - [1, 2]
+      - [2, 2]
+      - [3, 2]
+      - [5, 2]
+    lights:
+      # These are LOGICAL indexes of lights, not light IDs as assigned by the Hue Bridges!
+      - [ 0,  1,  2,  3,  4,  5,  6] # Strand 1, Group 1 (Bridge 1)
+      - [ 7,  8,  9, 10, 11, 12, 13] # Strand 1, Group 2 (Bridge 2)
+      - [14, 15, 16, 17, 18, 19, 20] # Strand 2, Group 1 (Bridge 3)
+      - [21, 22, 23, 24, 25, 26, 27] # Strand 2, Group 2 (Bridge 4)
+      - [28, 29, 30, 31, 32, 33, 34, 35] # Dance Lights (Bridge 1..4)
+    values:
+      # [Mid-point, delta].  Brightness varies from `mid-point - delta`..`mid-point + delta`.
+      # - [0.000, 0.000]
+      - [0.200, 0.075]
+      - [0.300, 0.100]
+      - [0.400, 0.150]
+      - [0.500, 0.175]
+      - [0.600, 0.200]
+      - [0.700, 0.300]
+  saturation:
+    # Desaturation controller.  As above, the `size` defines the height/width of the control.
+    #
+    # Transition time is how quickly to transition the saturation.  I suggest not going too
+    # quickly because while the saturation is updated en masse via group update, the brightness
+    # is done per-bulb in the main rendering loop -- and you probably don't want to blind
+    # everyone during the transition!
+    transition: 0.5
+    positions:
+      - up
+      - down
+      - left
+      - right
+      - user1
+    positions_no: # Positions on the Numark Orbit controller.
+      - [0, 0]
+      - [0, 1]
+      - [0, 2]
+      - [0, 3]
+      - [1, 0]
+    # This defines which Hue Bridge, and which group on that bridge a control affects.  It would
+    # be nonsensical if this didn't correspond to the arrangement of lights for the intensity
+    # controls, so be sure that they match!
+    groups:
+      - - ["Bridge-01", "AccentMain"]
+      - - ["Bridge-02", "AccentMain"]
+      - - ["Bridge-03", "Main"]
+      - - ["Bridge-04", "Main"]
+      - - ["Bridge-01", "Dance"]
+        - ["Bridge-02", "Dance"]
+        - ["Bridge-03", "Dance"]
+        - ["Bridge-04", "Dance"]
+    values:
+      # Values are [saturation, max-brightness] -- null means "don't clamp brightness":
+      - [0.2, 0.00]
+      # - [0.4, 0.10]
+      # - [0.6, 0.30]
+      # - [0.8, 0.70]
+      - [1.0, null]
+  spotlighting:
+    # This defines the spotlighting effect.  The width and height of the
+    # widget are defined by the `mappings` configuration.  The choice of
+    # widget class is not configurable because at the moment there's only
+    # one option that will work.
+    position: [0, 0]
+    base:     0.9
+    exponent: 2
+    mappings:
+      # NOTE: Values are indexes into main_lights array.
       #
-      # Transition time is how quickly to transition the saturation.  I suggest not going too
-      # quickly because while the saturation is updated en masse via group update, the brightness
-      # is done per-bulb in the main rendering loop -- and you probably don't want to blind
-      # everyone during the transition!
-      transition: 0.5
-      positions:
-        - up
-        - down
-        - left
-        - right
-        - user1
-      positions_no: # Positions on the Numark Orbit controller.
-        - [0, 0]
-        - [0, 1]
-        - [0, 2]
-        - [0, 3]
-        - [1, 0]
-      # This defines which Hue Bridge, and which group on that bridge a control affects.  It would
-      # be nonsensical if this didn't correspond to the arrangement of lights for the intensity
-      # controls, so be sure that they match!
-      groups:
-        - - ["Bridge-01", "AccentMain"]
-        - - ["Bridge-02", "AccentMain"]
-        - - ["Bridge-03", "Main"]
-        - - ["Bridge-04", "Main"]
-        - - ["Bridge-01", "Dance"]
-          - ["Bridge-02", "Dance"]
-          - ["Bridge-03", "Dance"]
-          - ["Bridge-04", "Dance"]
-      values:
-        # Values are [saturation, max-brightness] -- null means "don't clamp brightness":
-        - [0.2, 0.00]
-        # - [0.4, 0.10]
-        # - [0.6, 0.30]
-        # - [0.8, 0.70]
-        - [1.0, null]
-    spotlighting:
-      # This defines the spotlighting effect.  The width and height of the
-      # widget are defined by the `mappings` configuration.  The choice of
-      # widget class is not configurable because at the moment there's only
-      # one option that will work.
-      position: [0, 0]
-      base:     0.9
-      exponent: 2
-      mappings:
-        # NOTE: Values are indexes into main_lights array.
-        #
-        # Excluding outermost lights because they extend beyond the seating area.
-        # This configuration gives two rows, one corresponding to each of the two
-        # light strands I'm putting up.
-        #
-        # TODO: Automatically suss out lights by using padding / widget size settings and spreading
-        # TODO: across the simulations.
-        #
-        # Bridge 3/4:
-        - [17, 18, 19, 20,   21, 22, 23, 24]
-        # Bridge 1/2:
-        - [ 3,  4,  5,  6,    7,  8,  9, 10]
+      # Excluding outermost lights because they extend beyond the seating area.
+      # This configuration gives two rows, one corresponding to each of the two
+      # light strands I'm putting up.
+      #
+      # TODO: Automatically suss out lights by using padding / widget size settings and spreading
+      # TODO: across the simulations.
+      #
+      # Bridge 3/4:
+      - [17, 18, 19, 20,   21, 22, 23, 24]
+      # Bridge 1/2:
+      - [ 3,  4,  5,  6,    7,  8,  9, 10]
 # TODO: Reallocate accent lights.
 # TODO: Either break white lights up across bridges, or consolidate them to Bridge-01 -- I'm... not really sure which.
 # TODO: Brightness controls for eating lights.
