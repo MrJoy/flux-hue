@@ -15,11 +15,11 @@ module SparkleMotion
         @samples        = []
         @sample_idx     = 0
         @avg            = 0.0
-        super("RenderTask[#{bridge['name']}]", :early, logger) { render }
-        @requests = @lights.map { |(idx, lid)| light_req(idx, lid) }.compact
+        @requests       = @lights.map { |(idx, lid)| light_req(idx, lid) }.compact
+        super("RenderTask[#{bridge['name']}]", :early, logger)
       end
 
-      def render
+      def iterate
         unless USE_LIGHTS
           sleep 0.05 * @requests.length
           return

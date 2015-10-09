@@ -8,11 +8,13 @@ module SparkleMotion
       def initialize(name, window, logger)
         @queue  = Queue.new
         @window = window
-        super(name, :early, logger) do
-          data = @input.read(window)
-          @end_signal = true if data.nil?
-          queue.push([data, dropped_frames])
-        end
+        super(name, :early, logger)
+      end
+
+      def iterate
+        data = @input.read(window)
+        @end_signal = true if data.nil?
+        queue.push([data, dropped_frames])
       end
 
       def dropped_frames; fail "Must be implemented by sub-class!"; end

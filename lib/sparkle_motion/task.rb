@@ -6,21 +6,23 @@ module SparkleMotion
 
     include FlowControl
 
-    def initialize(name, logger, &callback)
+    def initialize(name, logger)
       @name   = name
       @logger = logger
       @thread = Thread.new do
         begin
           Thread.stop
-          callback.call
+          perform
         rescue StandardError => e
-          SparkleMotion.logger.error { "#{prefix}: Got Exception: #{e.message}" }
+          SparkleMotion.logger.error { "#{@name}: Got Exception: #{e.message}" }
           e.backtrace.each do |line|
-            SparkleMotion.logger.error { "#{prefix}:\t#{line}" }
+            SparkleMotion.logger.error { "#{@name}:\t#{line}" }
           end
         end
       end
     end
+
+    def perform; fail "Must be implemented by sub-class!"; end
 
     def start
       @logger.info { "#{@name}: Starting task..." }

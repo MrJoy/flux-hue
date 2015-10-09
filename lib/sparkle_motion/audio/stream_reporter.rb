@@ -1,7 +1,7 @@
 module SparkleMotion
   module Audio
     # Class to track signal processing info, and report on it in a readable way.
-    class StreamReporter < Task
+    class StreamReporter < UnmanagedTask
       # Tiny helper just to let us do things like:
       #   some_metric.average[channel]
       # ... without having to vivify the average in advance.
@@ -54,13 +54,15 @@ module SparkleMotion
 
         reset!
 
-        super("StreamReporter", logger) do
-          next if @count == 0
+        super("StreamReporter", logger)
+      end
 
-          print_report
+      def perform
+        return if @count == 0
 
-          sleep @interval
-        end
+        print_report
+
+        sleep @interval
       end
 
       def print_report

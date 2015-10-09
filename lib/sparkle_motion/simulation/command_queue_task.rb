@@ -1,26 +1,28 @@
 module SparkleMotion
   module Simulation
     # Class that accepts group update commands and runs them in sequence.
-    class CommandQueueTask < SparkleMotion::ManagedTask
+    class CommandQueueTask < ManagedTask
       def initialize(logger)
         @queue = Queue.new
-        super("CommandQueueTask", :early, logger) do
-          requests = pending_commands
-          next if requests.length == 0
-          @logger.debug { "Processing #{requests.length} pending commands." }
-          # TODO: Gather stats about success/failure...
-          unless USE_LIGHTS
-            sleep 0.1
-            next
-          end
+        super("CommandQueueTask", :early, logger)
+      end
 
-          # TODO: Only do batches that are spread across bridges?
-          Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|
-            next unless error?(easy)
-            rc    = easy.response_code
-            body  = easy.body
-            @logger.warn { "#{@name}: Request failed: #{easy.url} => #{rc}; #{body}" }
-          end
+      def iterate
+        requests = pending_commands
+        return if requests.length == 0
+        @logger.debug { "Processing #{requests.length} pending commands." }
+        # TODO: Gather stats about success/failure...
+        unless USE_LIGHTS
+          sleep 0.1
+          return
+        end
+
+        # TODO: Only do batches that are spread across bridges?
+        Curl::Multi.http(requests, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do |easy|
+          next unless error?(easy)
+          rc    = easy.response_code
+          body  = easy.body
+          @logger.warn { "#{@name}: Request failed: #{easy.url} => #{rc}; #{body}" }
         end
       end
 
