@@ -263,13 +263,13 @@ sweepers:
     values: *strand1_2_wedding
   - name: "Strand2Group1"
     targets:
-      - [Bridge-03, Main]
+      - [Bridge-03, AccentMain]
     transition: <%= shared_sweep_transition %>
     wait:       <%= shared_sweep_wait %>
     values: *strand2_1_wedding
   - name: "Strand2Group2"
     targets:
-      - [Bridge-04, Main]
+      - [Bridge-04, AccentMain]
     transition: <%= shared_sweep_transition %>
     wait:       <%= shared_sweep_wait %>
     values: *strand2_2_wedding
