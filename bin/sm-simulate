@@ -145,11 +145,6 @@ def update_state!(key, value)
   end
 end
 
-class PersistentState
-  def initialize(filename)
-  end
-end
-
 ###############################################################################
 # Simulation Graph Configuration / Setup
 ###############################################################################
