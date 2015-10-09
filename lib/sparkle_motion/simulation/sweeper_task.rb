@@ -27,10 +27,9 @@ module SparkleMotion
 
       def tick(time)
         idx = ((time / @wait) % @hues.length).floor
-        # TODO: Recycle hashes?
-        return unless USE_SWEEP
         @targets.each do |req|
           @data["hue"] = @hues[idx]
+          next unless USE_SWEEP
           @command_queue << req
         end
       end
