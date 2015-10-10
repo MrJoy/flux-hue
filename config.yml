@@ -27,7 +27,7 @@ bridges:
   # it.  The number is a group ID on the bridge.
   "Bridge-01":
     id: "0017881226f3"
-    ip: "192.168.2.10"
+    ip: "192.168.2.6"
     username: *common_username
     debug_hue: <%= color_step(0) %>
     groups:
@@ -38,7 +38,7 @@ bridges:
       White: 3
   "Bridge-02":
     id: "001788105eda"
-    ip: "192.168.2.6"
+    ip: "192.168.2.8"
     username: *common_username
     debug_hue: <%= color_step(1) %>
     groups:
@@ -49,7 +49,7 @@ bridges:
       White: 3
   "Bridge-03":
     id: "0017881853d0"
-    ip: "192.168.2.7"
+    ip: "192.168.2.3"
     username: *common_username
     debug_hue: <%= color_step(2) %>
     groups:
@@ -59,7 +59,7 @@ bridges:
       Main: 2
   "Bridge-04":
     id: "0017881a1d5c"
-    ip: "192.168.2.9"
+    ip: "192.168.2.4"
     username: *common_username
     debug_hue: <%= color_step(3) %>
     groups:
@@ -319,12 +319,12 @@ controls:
     values:
       # [Mid-point, delta].  Brightness varies from `mid-point - delta`..`mid-point + delta`.
       # - [0.000, 0.000]
-      - [0.200, 0.075]
-      - [0.300, 0.100]
-      - [0.400, 0.150]
-      - [0.500, 0.175]
-      - [0.600, 0.200]
-      - [0.700, 0.300]
+      - [0.250, 0.075]
+      - [0.350, 0.100]
+      - [0.450, 0.150]
+      - [0.550, 0.175]
+      - [0.650, 0.200]
+      - [0.800, 0.200]
   saturation:
     # Desaturation controller.  As above, the `size` defines the height/width of the control.
     #
