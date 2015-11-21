@@ -24,7 +24,7 @@ module SparkleMotion
           @name         = name
           @nodes        = {}
           @logger       = logger
-          @task         = SparkleMotion::Simulation::GraphTask.new(name, logger, self)
+          @task         = SparkleMotion::Simulation::GraphTask.new(name, self, 40, logger)
           @render_node  = nil
         end
 
