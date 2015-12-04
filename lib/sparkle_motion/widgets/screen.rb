@@ -56,6 +56,21 @@ module SparkleMotion
         @widgets[name] = widget
       end
 
+      def horizontal_slider(name, position, size, colors:, default: 0, &handler)
+        widget = SparkleMotion::LaunchPad::Widgets::HorizontalSlider
+                 .new(launchpad:   @controller,
+                      position:    SparkleMotion::Vector2.new(position),
+                      size:        size,
+                      colors:      colors,
+                      on_change:   proc do |val|
+                        state[name] = val
+                        handler.call(val) if handler
+                      end)
+        state.parameter!(name, default) do |_key, value|
+          widget.update(value, false)
+        end
+        @widgets[name] = widget
+      end
       def radio_group(name, position, size, colors:, default: 0, allow_off: true, &handler)
         widget = SparkleMotion::LaunchPad::Widgets::RadioGroup
                  .new(launchpad:   @controller,
