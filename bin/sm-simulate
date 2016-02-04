@@ -175,7 +175,10 @@ class Simulator
     @graph_set.stop
     @sweeper_set.stop
     @screen_set.stop
-    @input_threads.map(&:stop)
+    # TODO: Uh, why is this hanging?
+    # @input_threads.map(&:stop)
+    TIME_TO_DIE[1] = :terminate
+    TIME_TO_DIE[0] = true
   end
 
   def kick!
