@@ -1,0 +1,24 @@
+http://www.amazon.com/dp/B014H2OXYU <-- !!
+http://www.amazon.com/Philips-456210-White-Ambiance-Starter/dp/B014H2P4KW/ref=pd_sim_60_1?ie=UTF8&refRID=0G189Z4MN2NNG1P80RTH&dpID=41UW3RgCakL&dpSrc=sims&preST=_AC_UL320_SR320%2C320_
+http://www.amazon.com/Philips-456186-White-Ambiance-Extension/dp/B014H2OZJS/ref=pd_sim_60_2?ie=UTF8&refRID=0G189Z4MN2NNG1P80RTH&dpID=31wZwpi3ORL&dpSrc=sims&preST=_AC_UL320_SR320%2C320_
+
+
+
+http://www.amazon.com/Logitech-Harmony-Remote-Control-915-000256/dp/B014PDFP9S/ref=pd_sim_60_3?ie=UTF8&refRID=0WJQ23DE0KC3FA1F27B9&dpID=41FMqKFYNVL&dpSrc=sims&preST=_AC_UL160_SR160%2C160_
+http://www.amazon.com/dp/B00PQINDM8?psc=1
+
+
+
+http://www.developers.meethue.com/documentation/color-conversions-rgb-xy
+
+
+http://www.developers.meethue.com/documentation/hue-system-performance
+  Avg latency, single-message: 55 ms (brightness-only)
+  "The available system throughput (from the hue API) is thus restricted by the number of ZigBee messages per second that can be handled by the system, which is approximately 25 ZigBee messages/s."
+  "time between hue API messages" => 40ms
+
+
+http://www.developers.meethue.com/documentation/bridge-v2
+
+
+http://www.developers.meethue.com/documentation/configuration-api#72_get_configuration

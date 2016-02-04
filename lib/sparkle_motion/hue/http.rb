@@ -11,8 +11,8 @@ module SparkleMotion
       # TODO: Disable Curl from sending keepalives by trying HTTP/1.0.
       MULTI_OPTIONS = { pipeline:     false,
                         max_connects: (::CONFIG["max_connects"] || 3) }
-      EASY_OPTIONS = { "timeout" =>         5,
-                       "connect_timeout" => 5,
+      EASY_OPTIONS = { "timeout" =>         2,
+                       "connect_timeout" => 2,
                        "follow_location" => false,
                        "max_redirects" =>   0 } # ,
                        # version:          Curl::HTTP_1_0 }

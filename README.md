@@ -2,13 +2,26 @@
 
 Generative event lighting system using Philips Hue and Novation Launchpad.
 
+tl;dr: [It does this](https://youtu.be/uHnz6tYhiWE).
+
+
 ## Wait, What?
 
-This begins its life as a system I am using to make a nifty lighting system for my wedding reception.
+This began its life as a system I used to make a nifty lighting system for my wedding reception.
 
 It's designed to use multiple Philips Hue Bridges, with about 6-7 lights per bridge in the main "simulation", and physically arranged in a line -- with a handful of other bulbs for the dance floor, and accent lighting.
 
-While it can be made to use much less, the example configuration assumes:
+The simulation provides nodes like Perlin noise, sine-waves, and various transformations.
+
+A Novation Launchpad and/or Numark Orbit can be used to control parameters of the transformation nodes.
+
+My goal is to eventually generalize the UI toolkit, and the simulation framework, and to support more devices including various MIDI control surfaces, and other lighting systems including DMX and commodity programmable LED light strips.
+
+See the `multi_input_stable` for progress on the UI toolkit front.
+
+The current configuration, as provided on the `master` branch, is designed to use multiple Philips Hue Bridges, with about 6-7 lights per bridge in the main "simulation", and physically arranged in a line -- with a handful of other bulbs for the dance floor, and accent lighting.
+
+While it can be made to use much less, this example configuration assumes:
 
 * 4 Philips Hue Bridges
 * 7 "Main" lights *per bridge*
@@ -16,26 +29,33 @@ While it can be made to use much less, the example configuration assumes:
 * 9 Accent lights.
 * 9 White lights.
 
-Control of the system is currently done with a Novation Launchpad Mark 2.  (The Mark 1 will *not* work -- if you have RGB LEDs, you should be good to go.  If you only have red+green -- no go, sorry.)
+Control of the system is currently done with a Novation Launchpad Mark 2 (and optionally a Numark Orbit).  (The Mark 1 will *not* work -- if your Launchpad has RGB LEDs, you should be good to go.  If it only has red+green -- no go, sorry.)
+
+
+## Supported Devices
+
+* Philips Hue (1 or more bridges are required)
+* Novation Launchpad (optional, recommended)
+* Numark Orbit (optional, not recommended)
 
 
 ### Ok...  But What does it DO?
 
 It [does this](https://youtu.be/uHnz6tYhiWE).
 
-1. It swirls the hue of the lighting through a predefined sequence of colors.
+1. It swirls the hue of the lights through a predefined sequence of colors.
 1. It generates a Perlin noise pattern to control the brightness.
     * ... and lets you modulate that for different regions of the room using controls on the Novation Launchpad.
 1. It lets you desaturate the lights in a region of the room so photographers can get good pictures (blue-ish light on skin is terrible for photography).
-    * ... again, controlled from the Novation Launchpad.
+    * ... again, controlled from the Novation Launchpad -- and also a Numark Orbit.
 1. It lets you spotlight one area of the lights.  Handy if, for example, someone wants to give a toast.
 
 You can configure:
 
+1. The graph of operations.  (How the noise pattern is generated and modified.)
 1. How many lights across how many bridges there are, and how they are physically laid out.
 1. What controls, and where, exist on the Novation Launchpad.
 1. How many positions they have, and what values those result in.
-1. How the noise pattern is generated and modified.
 1. What colors swirl around, and in what pattern.
 
 ### So It's Only For Your Wedding?
@@ -58,10 +78,10 @@ My end goal has become:
 
 1. At least 1 Philips Hue Bridge.
 1. At least a few Philips Hue bulbs -- ideally colored, but limited functionality is possible with the Lux bulbs.
-    * Actually, any lights you can address from the Philips Hue Bridge will work, but colored is important.
+    * Actually, any lights you can address from the Philips Hue Bridge will work, but color is important.
 1. A Novation Launchpad Mark 2 -- *absolutely not* a Mark 1.
 
-I strongly suggest not trying to use more than about 7 bulbs per bridge.
+I strongly suggest not trying to use more than about 7 bulbs per bridge due to rate-limitating semantics.
 
 
 ## Installation

@@ -26,7 +26,7 @@ desired_bridges = ARGV
                     [bridge, group_id || 0]
                   end
                   .compact
-desired_bridges = bridges unless desired_bridges.length > 0
+desired_bridges = bridges.map { |bb| [bb, 0] } unless desired_bridges.length > 0
 requests = desired_bridges
            .map { |(bridge, group_id)| group_update(bridge, group_id, payload: { "on" => false }) }
 perform_with_retries(requests) do |request, _status, _body|

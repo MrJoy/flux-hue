@@ -33,7 +33,13 @@ module SparkleMotion
         @sample_idx          += 1
         @sample_idx           = 0 if @sample_idx >= 30
         @avg                  = (@samples.inject(:+) / @samples.length.to_f).round(1)
-        sleep 0.075
+
+
+
+        sleep 0.1 # <-------- ME!
+
+
+
         return unless @global_results
         @global_results.add_from(@stats)
         @stats.clear!

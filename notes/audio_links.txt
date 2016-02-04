@@ -1,0 +1,5 @@
+http://stackoverflow.com/questions/2445756/how-can-i-calculate-audio-db-level
+http://electronics.stackexchange.com/questions/34684/using-fft-for-spectral-analysis-how-to-convert-from-power-to-dbm
+http://betterexplained.com/articles/an-interactive-guide-to-the-fourier-transform/
+http://blog.sigopt.com/post/130275376068/sigopt-fundamentals-intuition-behind-gaussian
+https://github.com/nagachika/ruby-coreaudio/blob/master/examples/ring_modulator.rb
