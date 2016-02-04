@@ -2,7 +2,6 @@ module SparkleMotion
   module Widgets
     # A collection of widgets that can be enabled/disabled together.
     class Screen
-      include SparkleMotion::Hue::HTTP
       attr_accessor :widgets, :state, :logger
 
       def initialize(screen_set, graph_set, controller, state, logger)
