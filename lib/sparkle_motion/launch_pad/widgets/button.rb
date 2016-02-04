@@ -10,9 +10,7 @@ module SparkleMotion
                        value: 0)
           super(launchpad: launchpad,
                 position:  position,
-                colors:    { on:   colors["color"] || colors[:color],
-                             off:  colors["color"] || colors[:color],
-                             down: colors["down"] || colors[:down] },
+                colors:    colors,
                 value:     value,
                 on_press:  on_press)
         end
