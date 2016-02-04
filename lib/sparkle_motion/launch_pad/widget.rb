@@ -10,7 +10,7 @@ module SparkleMotion
         @launchpad  = launchpad
         @value      = value
         @pressed    = {}
-        @colors     = OpenStruct.new(normalize_colors!(colors))
+        apply_colors!(colors)
       end
 
       def enable
@@ -27,6 +27,10 @@ module SparkleMotion
         @value = value
         @value = max_v if max_v && @value && @value > max_v
         render if render_now
+      end
+
+      def apply_colors!(colors)
+        @colors = OpenStruct.new(normalize_colors!(colors))
       end
 
       # TODO: Batch rendering support.
