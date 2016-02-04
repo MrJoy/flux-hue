@@ -98,7 +98,7 @@ module SparkleMotion
       def button(name, position, colors:, &handler)
         widget =  SparkleMotion::LaunchPad::Widgets::Button
                   .new(launchpad:  @controller,
-                       position:   position.to_sym,
+                       position:   position.is_a?(Array) ? SparkleMotion::Vector2.new(position) : position.to_sym,
                        colors:     colors,
                        on_press:   handler)
         @defaults[name] = false
@@ -108,7 +108,7 @@ module SparkleMotion
       def toggle(name, position, default: false, colors:, &handler)
         widget =  SparkleMotion::LaunchPad::Widgets::Toggle
                   .new(launchpad:  @controller,
-                       position:   position.to_sym,
+                       position:   position.is_a?(Array) ? SparkleMotion::Vector2.new(position) : position.to_sym,
                        colors:     colors,
                        on_press:   handler)
         state.parameter!(name, default) do |_key, value|
