@@ -19,7 +19,7 @@ screens do
         horizontal_slider("slider2#{idx}", cfg, 4, colors:  { on:   0x22003F,
                                                               off:  0x05000A,
                                                               down: 0x27103F },
-                                                   default: slider2_size / 2) do |val|
+                                                   default: 2) do |val|
           LOGGER.info { "You pushed a different thing: #{val.inspect}" }
         end
       end
