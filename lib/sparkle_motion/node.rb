@@ -3,7 +3,7 @@ module SparkleMotion
   # things via PNG dump.
   class Node
     FRAME_PERIOD  = 0.4
-    DEBUG_SCALE   = Vector2.new(2, 1)
+    DEBUG_SCALE   = Vector2.new(2, 6)
 
     attr_accessor :history, :debug, :lights
 
