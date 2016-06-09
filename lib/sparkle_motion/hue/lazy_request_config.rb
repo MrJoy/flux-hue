@@ -76,8 +76,11 @@ module SparkleMotion
         if stage == "BEGIN"
           @started_at = Time.now.to_f
           @body = body
+          tmp = @callback.call
+          @target_bri = tmp["bri"]
+          @pieces = @url.split('/')
         else
-          GLOBAL_HISTORY << "#{@started_at},#{Time.now.to_f},#{@url},#{@body}"
+          GLOBAL_HISTORY << "#{@started_at},#{Time.now.to_f},#{@pieces[2]},#{@pieces[6]},#{@target_bri}"
         end
       end
 
