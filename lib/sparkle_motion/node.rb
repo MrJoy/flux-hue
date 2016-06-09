@@ -35,19 +35,33 @@ module SparkleMotion
     def snapshot_to!(fname)
       enrich_history!
       png = new_image
-      history.inject(0) do |y, snapshot|
-        next_y = y + (snapshot[:y] || 0)
-        colors = snapshot[:state].map { |z| to_color(z) }
-        (y..(next_y - 1)).each do |yy|
-          colors.each_with_index do |c, x|
-            x1 = (x * DEBUG_SCALE.x).to_i
-            x2 = ((x + 1) * DEBUG_SCALE.x).to_i - 1
-            (x1..x2).each do |xx|
-              png[xx, yy] = c
+      history.each_with_index do |snapshot, y|
+        next if y == 0
+        last_snapshot = history[y - 1][:state]
+        y0 = (y - 1) * DEBUG_SCALE.y
+        y1 = (y0 + DEBUG_SCALE.y) - 1
+        yy0 = y0
+        yy1 = y1
+        y0 = y0.to_f
+        y1 = y1.to_f
+        (yy0..yy1).each do |yy|
+          yy = yy.to_f
+          snapshot[:state].each_with_index do |c1, x|
+            c0 = last_snapshot[x]
+            x0 = (x * DEBUG_SCALE.x).to_i
+            x1 = ((x + 1) * DEBUG_SCALE.x).to_i - 1
+            (x0..x1).each do |xx|
+              begin
+                c = c0 * (1 - ((yy - y0) / (y1 - y0))) +
+                    c1 * (1 - ((y1 - yy) / (y1 - y0)))
+                # puts "[#{y0}..#{y1}] #{xx}x#{yy} == #{c}"
+                png[xx, yy.to_i] = to_color(c)
+              rescue FloatDomainError
+                puts "GAH!  Got: #{c.inspect} from y0=#{y0}, y1=#{y1}, yy=#{yy}, c0=#{c0}, c1=#{c1}"
+              end
             end
           end
         end
-        next_y
       end
       png.save(fname, interlace: false)
     end
@@ -57,7 +71,7 @@ module SparkleMotion
     def new_image
       require "oily_png" unless defined?(::ChunkyPNG)
       ChunkyPNG::Image.new((@lights * DEBUG_SCALE.x).to_i,
-                           history.map { |sn| sn[:y] }.inject(0) { |a, e| (a || 0) + e },
+                           (history.length - 1) * DEBUG_SCALE.y,
                            ChunkyPNG::Color::TRANSPARENT)
     end
 
@@ -71,7 +85,8 @@ module SparkleMotion
 
     def to_color(val)
       # Based on precision of Hue API...
-      z = (val * 254).round
+      z = (val * 255).round
+      z = 255 if z > 255
       ChunkyPNG::Color.rgba(z, z, z, 255)
     end
   end
