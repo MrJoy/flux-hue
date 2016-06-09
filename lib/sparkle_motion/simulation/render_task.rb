@@ -25,7 +25,12 @@ module SparkleMotion
           return
         end
         before = Time.now.to_f
-        Curl::Multi.http(@requests.dup, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do
+        # Curl::Multi.http(@requests.dup, SparkleMotion::Hue::HTTP::MULTI_OPTIONS) do
+        # end
+        @requests.dup.each do |req|
+          req.delete(:put_data)
+          sleep 0.045
+          req.dummy!
         end
         after                 = Time.now.to_f
         elapsed               = after - before

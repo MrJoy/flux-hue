@@ -12,7 +12,7 @@ export RUBY_GC_HEAP_INIT_SLOTS=75000
 # Visual Effects
 ###############################################################################
 # Whether to use background sweep thread for saw-tooth pattern on hue:
-export USE_SWEEP=1
+export USE_SWEEP=0
 # Whether to actually run main lighting threads:
 export USE_LIGHTS=1
 # Whether or not to run the simulation graph:
@@ -38,4 +38,4 @@ export RUBY_PROF_MODE=allocations  # ALLOCATIONS, CPU_TIME, GC_RUNS, GC_TIME, ME
 # This is VERY VERY memory intensize!  Don't try to use it for a long run!
 # Current nodes: perlin, stretched, shifted_0, shifted_1, shifted_2, shifted_3, spotlit, output
 # ... however you probably don't care about shifted_0..shifted_2.
-export DEBUG_NODES= #spotlit,output #perlin,stretched,shifted_3,spotlit,output
+export DEBUG_NODES=perlin,stretched,shifted_3,output

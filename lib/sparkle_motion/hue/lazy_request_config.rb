@@ -45,6 +45,10 @@ module SparkleMotion
         nil
       end
 
+      def body_str; ""; end
+      def body; ""; end
+      def dummy!; success!(self); end
+
     protected
 
       def error(msg); "#{@bridge['name']}; #{@url}: #{msg}"; end

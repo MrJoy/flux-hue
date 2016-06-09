@@ -54,26 +54,33 @@ module SparkleMotion
           response = Array.new(14)
           @stopwatch.record!(:allocated)
 
-          socket = TCPSocket.new(bridge["ip"], bridge["port"] || 80)
+          # socket = TCPSocket.new(bridge["ip"], bridge["port"] || 80)
+          sleep 0.02
           @stopwatch.record!(:connect)
 
-          message = request_body(http_method, uri, payload, @callback)
+          # message = request_body(http_method, uri, payload, @callback)
+          sleep 0.001
           @stopwatch.record!(:request_synthesized)
 
-          socket.write(message)
-          socket.flush
+          sleep 0.03
+          # socket.write(message)
+          # socket.flush
           @stopwatch.record!(:request_sent)
 
-          read_response(socket, response)
+          # read_response(socket, response)
+          sleep 0.045
           @stopwatch.record!(:response_received)
 
-          socket.close
+          # socket.close
+          sleep 0.001
           @stopwatch.record!(:connection_closed)
 
-          result = parse_response(response)
+          # result = parse_response(response)
+          sleep 0.002
           @stopwatch.record!(:response_parsed)
 
-          result
+          # result
+          [0, 200, ""]
         end
 
       protected
